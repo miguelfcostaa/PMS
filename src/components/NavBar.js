@@ -4,13 +4,27 @@ const NavBar = () => {
     return (
         <nav className="navbar">
             <ul className="navbar-list">
-                <li className="navbar-item"><a href="#home">Home</a></li>
-                <li className="navbar-item"><a href="#about">About</a></li>
-                <li className="navbar-item"><a href="#services">Services</a></li>
-                <li className="navbar-item"><a href="#contact">Contact</a></li>
+                <p style={style.label}> Home </p>
+                <p style={style.label}> About </p>
+                <p style={style.label}> Services </p>
+                <p style={style.label}> Contact </p>
             </ul>
         </nav>
     );
 };
+
+const style = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#183059', // Replace with your desired background color
+    },
+    text: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333', // Replace with your desired text color
+    },
+});
 
 export default NavBar;

@@ -1,4 +1,4 @@
-# Computação Persuasiva
+# Processos e Métricas de Software
 
 ## Get started
 1. Install dependencies

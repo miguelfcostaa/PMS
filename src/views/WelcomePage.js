@@ -1,22 +1,28 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavBarSimple from '../components/NavBarSimple';
 
 const WelcomePage = () => {
+    const navigate = useNavigate();
+
+    const handleJoinUsClick = () => {
+        navigate('/signin');  // Redireciona para a página de SignIn
+    }
+
     return (
         <>
             <NavBarSimple />
             <div style={styles.container}>
-                {/* <img 
-                    src={require('../assets/seta.png')} 
-                    style={styles.seta}
-                /> */} 
                 <div style={styles.welcomeContainer}>
                     <span style={styles.welcome}>WELCOME</span>
                     <p style={styles.text}>
-                        <span>Help bring inspiring projects to life or <br></br> create your own crowdfunding campaign. <br></br><b> Together, we make a difference! </b></span>
+                        <span>Help bring inspiring projects to life or <br /> create your own crowdfunding campaign. <br /><b> Together, we make a difference! </b></span>
                     </p>
+                    {/* Botão Join Us */}
+                    <button onClick={handleJoinUsClick} style={styles.joinButton}>
+                        Join us
+                    </button>
                 </div>
-           
             </div>
         </>
     );
@@ -29,6 +35,7 @@ const styles = {
     },
     welcomeContainer: {
         marginTop: '200px',
+        textAlign: 'center', // Alinha o conteúdo ao centro
     },
     welcome: {
         fontSize: 118,
@@ -45,13 +52,22 @@ const styles = {
         marginTop: '10px',
         textAlign: 'center',
     },
+    joinButton: {
+        marginTop: '20px',
+        padding: '15px 30px',
+        backgroundColor: '#009DFF', // Cor do fundo do botão
+        color: '#ffffff',
+        fontSize: 24,
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+    },
     seta: {
         position: 'absolute',
         width: '60%',
         height: '80%',
         marginRight: '100px',
     },
-    
 };
 
 export default WelcomePage;

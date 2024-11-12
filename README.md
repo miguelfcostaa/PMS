@@ -19,5 +19,5 @@
 
 ## Como ligar o servidor
 
-1. usar o comando "node src/backend/server.js", tem de aparecer as menssagens "Servidor a correr na porta 5000" e Ligação ao MongoDB com sucesso!". 
+1. usar o comando ***node src/backend/server.js***, tem de aparecer as menssagens "Servidor a correr na porta 5000" e Ligação ao MongoDB com sucesso!". 
 2. Tenham sempre atenção que o backend tem de estar sempre na porta 5000 e o front end na 3000.

@@ -4,14 +4,14 @@ function NavBarSimple() {
     return (
         <>
             <nav style={style.container}>
-                <img 
+                <a href="/"><img 
                     src={require('../assets/logo.png')} 
                     style={style.logo}
-                />
+                /></a>
                 <div style={style.linksContainer}>
-                    <span href="#" style={style.link}> Home </span>
-                    <span href="#" style={style.link}> About </span>
-                    <span href="#" style={style.link}> Contact </span>
+                    <a href="/" style={style.link}> Home </a>
+                    <a href="#" style={style.link}> About </a>
+                    <a href="#" style={style.link}> Contact </a>
                 </div>
             </nav>
         </>

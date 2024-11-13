@@ -1,11 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from '@mui/joy/Input';
 import Dropdown from '@mui/joy/Dropdown';
 import Menu from '@mui/joy/Menu';
 import MenuButton from '@mui/joy/MenuButton';
 import MenuItem from '@mui/joy/MenuItem';
 
-const NavBar = () => {
+
+function NavBar({ onSearch }) {
+    
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' || e.type === 'click') {
+            onSearch(searchTerm);  
+        }
+    };
+    
     return (
         <nav style={style.navbar}>
             <img 
@@ -19,8 +29,11 @@ const NavBar = () => {
                     placeholder="Search campaigns..."
                     variant="plain"
                     style={style.searchInput}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearch}
                 />
-                <button style={style.searchButton}>
+                <button style={style.searchButton} onClick={handleSearch} >
                     <img 
                         src={require('../assets/search-icon.png')} 
                         alt="Search Icon" 
@@ -127,7 +140,6 @@ const style = {
         display: 'flex',
         alignItems: 'center',
         backgroundColor: '#2e4a75',
-        borderRadius: '5px',
         paddingLeft: '5px',
         paddingRight: '5px',
         marginLeft: '50px',

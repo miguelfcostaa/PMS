@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
-function SideBar() {
+function SideBar({ onCategorySelect }) {
+    const [selectedCategories, setSelectedCategories] = useState([]);
+
+    const toggleCategory = (category) => {
+        setSelectedCategories((prevSelected) => {
+            const updatedCategories = prevSelected.includes(category)
+                ? prevSelected.filter((cat) => cat !== category)
+                : [...prevSelected, category];
+
+            onCategorySelect(updatedCategories); 
+            return updatedCategories;
+        });
+    };
+
     const location = useLocation();
 
     return (
@@ -15,8 +28,22 @@ function SideBar() {
             <div style={styles.categories}>
                 {['Health', 'Animals', 'Environment', 'Education', 'Children', 'Elderly', 'Human Rights', 'Food Security', 'Social Justice', 'Natural Disasters'].map((category) => (
                     <div key={category} style={styles.categoryItem}>
-                        <label htmlFor={category} style={styles.categoryLabel}>{category}</label>
-                        <input type="checkbox" id={category} style={styles.checkBox} />
+                        <label
+                            htmlFor={category}
+                            style={{
+                                ...styles.categoryLabel,
+                                fontWeight: selectedCategories.includes(category) ? 'bold' : 'normal',
+                            }}
+                        >
+                            {category}
+                        </label>
+                        <input
+                            type="checkbox"
+                            id={category}
+                            checked={selectedCategories.includes(category)}
+                            onChange={() => toggleCategory(category)}
+                            style={styles.checkBox}
+                        />
                     </div>
                 ))}
             </div>
@@ -32,6 +59,9 @@ function SideBar() {
 
 const styles = {
     sideBar: {
+        position: 'fixed',
+        top: 91,
+        left: 0,
         width: '15%',
         height: '100%',
         backgroundColor: '#425576',
@@ -42,6 +72,7 @@ const styles = {
         font: 'Inter',
         fontSize: 26,
         fontWeight: 'regular',
+        overflowY: 'auto',
     },
     link: {
         color: 'white',
@@ -51,7 +82,7 @@ const styles = {
         fontWeight: 'normal',
     },
     activeLink: {
-        fontWeight: 'bold', // Define o link ativo em negrito
+        fontWeight: 'bold', 
     },
     categoryTitle: {
         padding: '10px 0',
@@ -73,9 +104,8 @@ const styles = {
         flex: 1,
     },
     checkBox: {
-        transform: 'scale(1.5)', // Increase the size of the checkbox
+        transform: 'scale(1.5)', 
     },
 };
 
 export default SideBar;
-

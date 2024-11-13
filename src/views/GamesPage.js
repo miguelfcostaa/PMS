@@ -2,7 +2,8 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
-function HomePage() {
+function GamesPage
+() {
     return (
         <>
             <NavBar />
@@ -11,4 +12,4 @@ function HomePage() {
     );
 }
 
-export default HomePage;
+export default GamesPage;

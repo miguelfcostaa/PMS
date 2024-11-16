@@ -3,7 +3,7 @@ import Input from '@mui/joy/Input';
 import Dropdown from '@mui/joy/Dropdown';
 import Menu from '@mui/joy/Menu';
 import MenuButton from '@mui/joy/MenuButton';
-import MenuItem from '@mui/joy/MenuItem';
+import MenuItem from '@mui/joy/MenuItem'; 
 
 
 function NavBar({ onSearch }) {
@@ -41,14 +41,14 @@ function NavBar({ onSearch }) {
                     />
                 </button>
             </div>
-            <button style={style.createButton}>
+            <a href='/create-campaign' style={style.createButton}>
                 <span style={style.textCreate} > Create </span> 
                 <img 
                     src={require('../assets/plus-icon.png')} 
                     alt="Plus Icon" 
                     style={style.plusIcon} 
                 />
-            </button>
+            </a>
             <button style={style.notificationButton}>
                 <img 
                     src={require('../assets/notification-icon.png')} 
@@ -112,19 +112,23 @@ function NavBar({ onSearch }) {
             </Dropdown>
             
 
-            <button style={style.profileButton}>
+            <a href="/profile" style={style.profileButton}>
                 <img 
                     src={require('../assets/profile-icon.png')} 
                     alt="Profile Icon" 
                     style={style.profileIcon} 
                 />
-            </button>
+            </a>
         </nav>
     );
 };
 
 const style = {
     navbar: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         backgroundColor: '#183059',
@@ -181,6 +185,7 @@ const style = {
         border: 'none',
         borderRadius: 20,
         cursor: 'pointer',
+        textDecoration: 'none',
     },
     textCreate: {
         fontWeight: 'bold',

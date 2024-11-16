@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 function SideBar({ onCategorySelect }) {
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const toggleCategory = (category) => {
         setSelectedCategories((prevSelected) => {
@@ -21,32 +22,39 @@ function SideBar({ onCategorySelect }) {
         <div style={styles.sideBar}>
             <NavLink to="/home" style={location.pathname === '/home' ? {...styles.link, ...styles.activeLink} : styles.link}>Home</NavLink>
             
-            <NavLink to="/categories" style={location.pathname === '/categories' ? {...styles.categoryTitle, ...styles.activeLink} : styles.categoryTitle}>
-                Categories
-            </NavLink>
-            
-            <div style={styles.categories}>
-                {['Health', 'Animals', 'Environment', 'Education', 'Children', 'Elderly', 'Human Rights', 'Food Security', 'Social Justice', 'Natural Disasters'].map((category) => (
-                    <div key={category} style={styles.categoryItem}>
-                        <label
-                            htmlFor={category}
-                            style={{
-                                ...styles.categoryLabel,
-                                fontWeight: selectedCategories.includes(category) ? 'bold' : 'normal',
-                            }}
-                        >
-                            {category}
-                        </label>
-                        <input
-                            type="checkbox"
-                            id={category}
-                            checked={selectedCategories.includes(category)}
-                            onChange={() => toggleCategory(category)}
-                            style={styles.checkBox}
-                        />
-                    </div>
-                ))}
+            <div style={styles.categoriesFlex} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                <NavLink to="/campaigns" style={location.pathname === '/campaigns' ? {...styles.link, ...styles.activeLink} : styles.link}>Campaigns</NavLink>
+                <img 
+                    src={require('../assets/dropdown-icon-white.png')} 
+                    alt="Dropdown Icon" 
+                    style={styles.dropdownIcon} 
+                />
             </div>
+
+            {isDropdownOpen && (
+                <div style={styles.categories}>
+                    {['Health', 'Animals', 'Environment', 'Education', 'Children', 'Elderly', 'Human Rights', 'Food Security', 'Social Justice', 'Natural Disasters'].map((category) => (
+                        <div key={category} style={styles.categoryItem}>
+                            <label
+                                htmlFor={category}
+                                style={{
+                                    ...styles.categoryLabel,
+                                    fontWeight: selectedCategories.includes(category) ? 'bold' : 'normal',
+                                }}
+                            >
+                                {category}
+                            </label>
+                            <input
+                                type="checkbox"
+                                id={category}
+                                checked={selectedCategories.includes(category)}
+                                onChange={() => toggleCategory(category)}
+                                style={styles.checkBox}
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <NavLink to="/games" style={location.pathname === '/games' ? {...styles.link, ...styles.activeLink} : styles.link}>Games</NavLink>
             <NavLink to="/#" style={location.pathname === '/promotions' ? {...styles.link, ...styles.activeLink} : styles.link}>Promotions</NavLink>
@@ -84,13 +92,25 @@ const styles = {
     activeLink: {
         fontWeight: 'bold', 
     },
+    categoriesFlex: {
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer',
+    },
     categoryTitle: {
         padding: '10px 0',
         textDecoration: 'none',
         color: 'white',
+        flex: 1,
+    },
+    dropdownIcon: {
+        width: 45,
+        height: 20,
+        marginLeft: 20,
     },
     categories: {
-        padding: '10px 0',
+        marginTop: 10,
+        paddingLeft: 20,
     },
     categoryItem: {
         display: 'flex',
@@ -104,7 +124,7 @@ const styles = {
         flex: 1,
     },
     checkBox: {
-        transform: 'scale(1.5)', 
+        transform: 'scale(1.6)', 
     },
 };
 

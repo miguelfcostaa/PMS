@@ -2,7 +2,8 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
-function CategoriesPage() {
+function CampaignSelectedPage
+() {
     return (
         <>
             <NavBar />
@@ -11,4 +12,4 @@ function CategoriesPage() {
     );
 }
 
-export default CategoriesPage;
+export default CampaignSelectedPage;

@@ -102,7 +102,8 @@ const SignUp = () => {
                 const data = await response.json();
                 alert(data.message || 'Failed to register');
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error during registration:', error);
             alert('Failed to register');
         }

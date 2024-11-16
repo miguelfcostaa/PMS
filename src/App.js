@@ -5,9 +5,10 @@ import SignIn from './views/SignIn';
 import SignUp from './views/SignUp';
 import Warning from './views/Warning';
 import HomePage from './views/HomePage';
-import CategoriesPage from './views/CategoriesPage';
+import CampaignsPage from './views/CampaignsPage';
 import GamesPage from './views/GamesPage';
 import ProfilePage from './views/ProfilePage';
+import CreateCampaignPage from './views/CreateCampaignPage';
 
 function BackgroundColorWrapper({ children }) {
   const location = useLocation();
@@ -34,9 +35,10 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/warning" element={<Warning />} />
           <Route path="/home" element={<HomePage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/games" element={<GamesPage />} />
 
+          <Route path="/create-campaign" element={<CreateCampaignPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </BackgroundColorWrapper>

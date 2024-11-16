@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
+const campaignRoutes = require('./routes/campaignRoutes'); 
 
 dotenv.config({ path: './src/backend/.env' });
 const app = express();
@@ -24,8 +25,10 @@ mongoose.connect(process.env.MONGO_URI, {
     .then(() => console.log('Connected to MongoDB successfully!'))
     .catch((error) => console.error('Error connecting to MongoDB:', error));
 
-// Use the authentication routes
+// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/campaign', campaignRoutes);
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;

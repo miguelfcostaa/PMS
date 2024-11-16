@@ -1,5 +1,3 @@
-// src/backend/models/User.js
-
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({

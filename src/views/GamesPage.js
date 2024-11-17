@@ -8,6 +8,8 @@ function GamesPage
         <>
             <NavBar />
             <SideBar />
+            <div className='box'>
+            </div>
         </>
     );
 }

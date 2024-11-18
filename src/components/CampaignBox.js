@@ -1,6 +1,6 @@
 import React from 'react';
 
-function CampaignBox({ id, name, description, goal, timeToCompleteGoal, currentAmount }) {
+function CampaignBox({ id, title, description, goal, timeToCompleteGoal, currentAmount, nameBankAccount }) {
     const progressPercentage = (currentAmount / goal) * 100;
 
     return (
@@ -17,8 +17,8 @@ function CampaignBox({ id, name, description, goal, timeToCompleteGoal, currentA
                     style={style.campaignPersonImage} 
                 />
                 <div style={style.campaignPersonInfo}>
-                    <span style={style.campaignTitle}>{name}</span>
-                    <span style={style.campaignPerson}>Campaign Person</span>
+                    <span style={style.campaignTitle}>{title}</span>
+                    <span style={style.campaignPerson}>{nameBankAccount}</span>
                 </div>
             </div>
             <div>
@@ -96,6 +96,10 @@ const style = {
         marginTop: 30,
         marginLeft: 30,
         marginRight: 30,
+        maxHeight: 20,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
     },
     campaignDonationInfo: {
         marginTop: 20,

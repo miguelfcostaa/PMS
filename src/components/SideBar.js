@@ -23,7 +23,7 @@ function SideBar({ onCategorySelect }) {
             <NavLink to="/home" style={location.pathname === '/home' ? {...styles.link, ...styles.activeLink} : styles.link}>Home</NavLink>
             
             <div style={styles.categoriesFlex} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                <NavLink to="/campaigns" style={location.pathname === '/campaigns' ? {...styles.link, ...styles.activeLink} : styles.link}>Campaigns</NavLink>
+                <NavLink to="/campaign" style={location.pathname === '/campaign' ? {...styles.link, ...styles.activeLink} : styles.link}>Campaigns</NavLink>
                 <img 
                     src={require('../assets/dropdown-icon-white.png')} 
                     alt="Dropdown Icon" 
@@ -68,7 +68,7 @@ function SideBar({ onCategorySelect }) {
 const styles = {
     sideBar: {
         position: 'fixed',
-        top: 91,
+        top: 95,
         left: 0,
         width: '15%',
         height: '100%',

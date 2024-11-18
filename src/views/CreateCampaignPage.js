@@ -1,23 +1,21 @@
-// CreateCampaignPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
-import SideBar from '../components/SideBar';
 
 function CreateCampaignPage() {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [formData, setFormData] = useState({
-        name: '',
+        title: '',
         description: '',
         goal: '',
         timeToCompleteGoal: '',
-        currentAmount: 0,
-        donaters: [],
-        image: [],
         contact: '',
+        nameBankAccount: '',
         bankAccount: '',
-        donationComment: '',
         category: '',
+        currentAmount: 0,
+        image: '',
+        donaters: [],
         shopItems: [],
     });
 
@@ -62,7 +60,7 @@ function CreateCampaignPage() {
     
             if (response.status === 201) {
                 alert('Campanha criada com sucesso!');
-                navigate('/campaigns');
+                navigate('/campaign');
             } else {
                 const data = await response.json();
                 alert(data.message || 'Erro ao criar a campanha.');
@@ -78,84 +76,203 @@ function CreateCampaignPage() {
         setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
     };
 
-    const handleUploadClick = () => {
+    const handleClick = () => {
         document.getElementById('fileInput').click();
     };
 
     // Converter ficheiro para Base64
-    const convertFileToBase64 = (file) =>
+    const convertFileToBase64 = (file) => {
         new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                console.log('Base64 string:', reader.result);
+                resolve(reader.result);
+            };
             reader.onerror = (error) => reject(error);
-        });
+        })
+    };
 
     return (
         <>
             <NavBar />
-            <SideBar />
+            <div style={styles.sidePage}>
+                <span style={styles.startJourney}> Start Your <br /> Journey To <br /></span>
+                <span style={styles.changeLifes}> CHANGE LIVES <br /></span>
+                <span style={styles.creatingHope}> Creating <b>Hope,</b> <br /></span>
+                <span style={styles.inspiringAction}> Inspiring <b>Action!</b></span>
+            </div>
             <div style={styles.mainContent}>
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>Nome:</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Descrição:</label>
-                        <textarea name="description" value={formData.description} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Meta (€):</label>
-                        <input type="number" name="goal" value={formData.goal} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Tempo para Concluir (dias):</label>
-                        <input type="number" name="timeToCompleteGoal" value={formData.timeToCompleteGoal} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Contacto:</label>
-                        <input type="text" name="contact" value={formData.contact} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Conta Bancária:</label>
-                        <input type="number" name="bankAccount" value={formData.bankAccount} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Comentário de Doação:</label>
-                        <input type="text" name="donationComment" value={formData.donationComment} onChange={handleInputChange} required />
-                    </div>
-                    <div>
-                        <label>Categoria:</label>
-                        <input type="text" name="category" value={formData.category} onChange={handleInputChange} required />
-                    </div>
-                    <div style={styles.inputContainer}>
-                        <label style={styles.label}>Upload de Imagens</label>
-                        <div style={styles.uploadBox} onClick={handleUploadClick}>
-                            {selectedFiles.length > 0 ? (
-                                selectedFiles.map((file, index) => (
-                                    <div key={index} style={styles.filePreview}>
-                                        <img
-                                            src="https://img.icons8.com/color/48/000000/file--v1.png"
-                                            alt="File Icon"
-                                            style={styles.fileIcon}
-                                        />
-                                        <span>{file.name}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                <>
-                                    <span style={styles.uploadTextPrimary}>Upload de Ficheiros</span>
-                                    <span style={styles.uploadTextSecondary}>Arraste ficheiros aqui</span>
-                                </>
-                            )}
-                            <input type="file" id="fileInput" onChange={handleFileChange} style={styles.fileInput} />
+                <h1>About the Cause</h1>
+                <div style={styles.form}>
+                    <form onSubmit={handleSubmit}>
+                        {/* Title and Category */}
+                        <div style={styles.rowContainer}>
+                            <div style={styles.inputHalf}>
+                                <label style={styles.label}>Title:</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={formData.title}
+                                    onChange={handleInputChange}
+                                    style={styles.input}
+                                    required
+                                />
+                            </div>
+                            
+                            <div style={styles.inputHalf}>
+                                <label style={styles.label}>Category:</label>
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    style={styles.inputDropdown}
+                                    required
+                                >
+                                    <option value="">Select a category</option>
+                                    <option value="Health"> Health </option>
+                                    <option value="Animals"> Animals </option>
+                                    <option value="Environment"> Environment </option>
+                                    <option value="Education"> Education </option>
+                                    <option value="Children"> Children </option>
+                                    <option value="Human Rights"> Human Rights </option>
+                                    <option value="Food Security"> Food Security </option>
+                                    <option value="Social Justice"> Social Justice </option>
+                                    <option value="Natural Disasters"> Natural Disasters </option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" style={styles.submitButton}>
-                        Criar Campanha
-                    </button>
-                </form>
+
+                        {/* Description */}
+                        <div style={styles.inputContainer}>
+                            <label style={styles.label}>Talk about your cause:</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                style={styles.textArea}
+                                required
+                            />
+                        </div>
+                        
+                        {/* Category and Goal */}
+                        <div style={styles.rowContainer}>
+                            <div style={styles.inputHalf}>
+                                <label style={styles.label}>Goal (€):</label>
+                                <input
+                                    type="number"
+                                    name="goal"
+                                    value={formData.goal}
+                                    onChange={handleInputChange}
+                                    style={styles.input}
+                                    required
+                                />
+                            </div>
+                            <div style={styles.inputHalf}>
+                                <label style={styles.label}>Time to Complete (days):</label>
+                                <input
+                                    type="number"
+                                    name="timeToCompleteGoal"
+                                    value={formData.timeToCompleteGoal}
+                                    onChange={handleInputChange}
+                                    style={styles.input}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+
+                        {/* Contact */}
+                        <div style={styles.inputContainer}>
+                            <label style={styles.label}>Contact:</label>
+                            <input
+                                type="text"
+                                name="contact"
+                                value={formData.contact}
+                                onChange={handleInputChange}
+                                style={styles.input}
+                                required
+                            />
+                        </div>
+
+                        <h1>Bank Details</h1>
+                        {/* Bank Account */}
+                        <div style={styles.rowContainer}>
+                        <div style={styles.inputHalf}>
+                                <label style={styles.label}>Name:</label>
+                                <input
+                                    type="text"
+                                    name="nameBankAccount"
+                                    value={formData.nameBankAccount}
+                                    onChange={handleInputChange}
+                                    style={styles.input}
+                                    required
+                                />
+                            </div>
+                            <div style={styles.inputHalf}>
+                                <label style={styles.label}>IBAN:</label>
+                                <input
+                                    type="number"
+                                    name="bankAccount"
+                                    value={formData.bankAccount}
+                                    onChange={handleInputChange}
+                                    style={styles.input}
+                                    required
+
+                                />
+                            </div>
+                        </div>
+
+
+                        <h1>Media</h1>
+                        {/* Campaign Image */}
+                        <div style={styles.inputContainer}>
+                                <label style={styles.label}>
+                                    Campaign Image:
+                                </label>
+                                <div style={styles.inputImage} onClick={handleClick}>
+                                    {selectedFiles.length > 0 ? (
+                                        <img
+                                            src={URL.createObjectURL(selectedFiles[0])}
+                                            alt="Selected"
+                                            style={{ maxWidth: '50%', maxHeight: '140' }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <img 
+                                                src={require('../assets/upload-icon.png')} 
+                                                alt="Upload Icon" 
+                                                style={styles.uploadIcon} 
+                                            />
+                                            <span style={styles.uploadTextPrimary}>Upload File</span><br />
+
+                                        </>
+                                    )}
+                                {selectedFiles.length > 0 && (
+                                    <button onClick={() => setSelectedFiles([])} style={styles.removeButton}>
+                                        x
+                                    </button>
+                                )}
+                                </div>
+                                <input
+                                    type="file"
+                                    id="fileInput"
+                                    value={formData.image}
+                                    onChange={handleFileChange}
+                                    style={styles.inputfile}
+                                    accept="image/*" // Aceitar apenas imagens
+                                    multiple={false} // Apenas um ficheiro permitido
+                                />
+                        </div>
+
+                        <button type="submit" style={styles.submitButton}>
+                            Create Campaign
+                        </button>
+
+                        
+                        
+                    </form>
+                </div>
             </div>
         </>
     );
@@ -163,54 +280,168 @@ function CreateCampaignPage() {
 
 const styles = {
     mainContent: {
-        marginTop: 102,
-        marginLeft: '20%',
+        marginTop: 122,
+        marginLeft: '32%',
         paddingLeft: '20px',
         font: 'Inter',
     },
-    inputContainer: {
-        marginBottom: '20px',
+    sidePage: {
+        position: 'fixed',
+        top: 92,
+        left: 0,
+        width: '30%',
+        height: '100%',
+        backgroundColor: '#C7D5E5',
+        display: 'flex',
+        flexDirection: 'column',
     },
-    uploadBox: {
-        width: '400px',
-        height: '200px',
-        border: '2px dashed #ccc',
-        borderRadius: '10px',
-        textAlign: 'center',
-        paddingTop: '30px',
+    startJourney: {
+        fontSize: 40,
+        fontWeight: 'light',
+        font: 'Inter',
+        paddingLeft: '40px',
+        paddingTop: '100px',
     },
-    fileInput: {
-        display: 'none',
+    changeLifes: {
+        fontSize: 40,
+        fontWeight: 'bold',
+        font: 'Inter',
+        paddingTop: '20px',
+        paddingRight: '60px',
+        textAlign: 'end',
+    },
+    creatingHope: {
+        fontSize: 40,
+        fontWeight: 'light',
+        font: 'Inter',
+        paddingLeft: '40px',
+        paddingTop: '200px',
+    },
+    inspiringAction: {
+        fontSize: 40,
+        fontWeight: 'light',
+        font: 'Inter',
+        paddingLeft: '40px',
+        paddingTop: '10px',
+    },
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '70%',
     },
     label: {
-        fontSize: '16px',
-        fontWeight: '600',
+        fontSize: 22,
+        font: 'Inter',
+        width: '100%',
+    },
+    input: {
+        width: '100%',
+        marginTop: 10,
+        padding: '1.5vh',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    rowContainer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    inputHalf: {
+        width: '47%',
+    },
+    inputContainer: {
+        marginBottom: 10,
+    },
+    textArea: {
+        width: '100%',
+        height: '180px',
+        resize: 'none',
+        marginTop: 10,
+        padding: '1.5vh',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+    },
+    inputImage: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '50%',
+        height: 250,
+        marginTop: 10,
+        paddingTop: '50px',
+        paddingBottom: '50px',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    inputfile: {
+        display: 'none',
     },
     uploadTextPrimary: {
-        fontSize: '18px',
+        fontSize: '22px',
         fontWeight: 'bold',
+        font: 'Inter',
+        cursor: 'pointer',
     },
-    uploadTextSecondary: {
-        fontSize: '14px',
-        color: '#888',
+    uploadIcon: {
+        width: 57,
+        height: 57,
+        cursor: 'pointer',
     },
-    filePreview: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: '10px',
-    },
-    fileIcon: {
-        marginRight: '10px',
+    removeButton: {
+        width: 30,
+        height: 30,
+        backgroundColor: '#D20000',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 50,
+        fontSize: 18,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginTop: 10,
     },
     submitButton: {
-        backgroundColor: '#5cb85c',
+        width: '50%',
+        height: '55px',
+        backgroundColor: '#009DFF',
         padding: '10px 20px',
         color: '#fff',
         border: 'none',
-        borderRadius: '5px',
-        fontSize: '16px',
+        borderRadius: 15,
+        fontSize: 22,
+        font: 'Inter',
+        fontWeight: 'bold',
         cursor: 'pointer',
+        marginBottom: '60px',
+        marginTop: '20px',
+    },
+    inputDropdown: {
+        width: '107%',
+        marginTop: 10,
+        padding: '1.5vh',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+        appearance: 'none',
     },
 };
 

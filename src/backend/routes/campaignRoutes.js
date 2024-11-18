@@ -7,9 +7,9 @@ router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { name, description, goal, timeToCompleteGoal, currentAmount, contact, bankAccount, donationComment, category } = req.body;
+        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image } = req.body;
 
-        if (!name || !description || !goal || !timeToCompleteGoal || !contact || !bankAccount || !donationComment || !category) {
+        if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category ) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
@@ -17,19 +17,27 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Goal must be a positive number' });
         }
 
+        if (timeToCompleteGoal <= 0) {
+            return res.status(400).json({ error: 'Time to complete goal must be a positive number' });
+        }
+
+        if (!image) {
+            return res.status(400).json({ message: 'A imagem é obrigatória.' });
+        }
+
         console.log('Creating new campaign...');
         const newCampaign = new Campaign({
-            name,
+            title,
             description,
             goal,
             timeToCompleteGoal,
-            currentAmount: 0,
             contact,
+            nameBankAccount,
             bankAccount,
-            donationComment,
             category,
+            currentAmount: 0,
+            image, 
             donaters: [],
-            image: [],
             shopItems: []
         });
 
@@ -53,6 +61,21 @@ router.get('/all-campaigns', async (req, res) => {
     catch (err) {
         console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/get-campaign/:id', async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+
+        if (!campaign) {
+            return res.status(404).json({ message: 'Campanha não encontrada!' });
+        }
+
+        res.status(200).json(campaign);
+    } catch (error) {
+        console.error('Erro ao buscar campanha por ID:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
     }
 });
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 import CampaignBox from '../components/CampaignBox';
+import { useNavigate } from 'react-router-dom';
 
 function CampaignsPage() {
     const [showSearchResults, setShowSearchResults] = useState(false);
@@ -9,25 +10,19 @@ function CampaignsPage() {
     const [searchResults, setSearchResults] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [campaigns, setCampaigns] = useState([]);
-    const [loading, setLoading] = useState(true);  // Controle de carregamento
-    const [error, setError] = useState(null); // Controle de erro
 
     useEffect(() => {
-        // Buscar as campanhas da API
         const fetchCampaigns = async () => {
             try {
                 const response = await fetch('http://localhost:5000/api/campaign/all-campaigns');
                 if (response.ok) {
                     const data = await response.json();
-                    setCampaigns(data);  // Supondo que a resposta da API seja uma lista de campanhas
-                    setLoading(false);
+                    setCampaigns(data);  
                 } else {
                     throw new Error('Erro ao buscar campanhas');
                 }
             } catch (err) {
                 console.error('Erro na conexão', err);
-                setLoading(false);
-                setError('Erro ao carregar campanhas');
             }
         };
         fetchCampaigns();
@@ -44,7 +39,7 @@ function CampaignsPage() {
 
         // Filtra as campanhas com base no termo de pesquisa
         const filteredResults = campaigns.filter((campaign) =>
-            (campaign.name.toLowerCase().includes(term.toLowerCase()) ||
+            (campaign.title.toLowerCase().includes(term.toLowerCase()) ||
                 campaign.description.toLowerCase().includes(term.toLowerCase())) &&
             (selectedCategories.length === 0 || selectedCategories.includes(campaign.category))
         );
@@ -52,13 +47,10 @@ function CampaignsPage() {
         setSearchResults(filteredResults);
     };
 
-    if (loading) {
-        return <div>Carregando campanhas...</div>;
-    }
-
-    if (error) {
-        return <div>{error}</div>;
-    }
+    const navigate = useNavigate();
+    const handleCampaignClick = (id) => {
+        navigate(`/campaign/${id}`); // Redireciona para a página da campanha com o ID
+    };
 
     return (
         <>
@@ -79,17 +71,20 @@ function CampaignsPage() {
                         <div style={styles.line}></div>
                     </>
                 )}
-                <div style={styles.campaignDisplay}>
+                <div style={styles.campaignDisplay} >
                     {(searchResults.length > 0 ? searchResults : campaigns).map((campaign) => (
-                        <CampaignBox
-                            key={campaign.id}
-                            id={campaign.id}
-                            name={campaign.name}
-                            description={campaign.description}
-                            goal={campaign.goal}
-                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                            currentAmount={campaign.currentAmount}
-                        />
+                        <div onClick={() => handleCampaignClick(campaign._id)}>
+                            <CampaignBox
+                                key={campaign._id}
+                                title={campaign.title}
+                                description={campaign.description}
+                                goal={campaign.goal}
+                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                currentAmount={campaign.currentAmount}
+                                nameBankAccount={campaign.nameBankAccount}
+                                
+                            />
+                        </div>
                     ))}
                 </div>
             </div>

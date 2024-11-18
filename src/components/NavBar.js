@@ -18,11 +18,11 @@ function NavBar({ onSearch }) {
     
     return (
         <nav style={style.navbar}>
-            <img 
+            <a href="/home"><img 
                 src={require('../assets/logo.png')} 
-                alt="Logo" 
-                style={style.logo} 
-            />
+                style={style.logo}
+                alt='Logo'
+            /></a>
 
             <div style={style.navbarSearch}>
                 <Input 

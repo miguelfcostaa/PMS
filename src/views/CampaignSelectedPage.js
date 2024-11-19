@@ -10,7 +10,12 @@ function CampaignSelectedPage() {
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
     const [open, setOpen] = useState(false);
-    
+    const [donationCompleted, setDonationCompleted] = useState(false);
+    const [donation, setDonation] = useState({
+        name: "",
+        amount: "",
+        comment: "",
+    });
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -31,7 +36,56 @@ function CampaignSelectedPage() {
     }, [id]);
 
 
-    const progressPercentage = (campaign.currentAmount / campaign.goal) * 100;
+    const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
+
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setDonation({ ...donation, [name]: value });
+    };
+
+    const handleDonation = async () => {
+        if (!donation.amount || isNaN(donation.amount)) {
+            alert("Please, enter a valid amount.");
+            return;
+        }
+    
+        const newDonation = [
+            donation.name || "Anonymous",
+            parseFloat(donation.amount),
+            donation.comment || ""
+        ];
+    
+        try {
+            const response = await fetch(`http://localhost:5000/api/campaign/donate/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ donation: newDonation }),
+            });
+    
+            if (response.ok) {
+                const updatedCampaign = await response.json();
+                setCampaign(updatedCampaign);
+                setDonationCompleted(true);
+                setTimeout(() => setDonationCompleted(false), 3000);
+                setOpen(false);
+
+                setDonation({
+                    name: "",
+                    amount: "",
+                    comment: "",
+                });
+            } 
+            else {
+                console.error("Erro ao processar doação:", response.status);
+            }
+        } 
+        catch (error) {
+            console.error("Erro de conexão ao servidor:", error);
+        }
+    };
 
     
     return (
@@ -79,29 +133,39 @@ function CampaignSelectedPage() {
                                         <label style={styles.label} >Name (not mandatory): </label>
                                         <input
                                             type="text"
-                                            name="userName"
+                                            name="name"
+                                            value={donation.name}
+                                            onChange={handleInputChange}
                                             style={styles.input}
-                                            required
                                         />
 
                                         <label style={styles.label} >Amount: </label>
                                         <input
-                                            type="text"
-                                            name="userAmount"
+                                            type="number"
+                                            name="amount"
+                                            value={donation.amount}
+                                            onChange={handleInputChange}
                                             style={styles.input}
                                             required
                                         />
 
                                         <label style={styles.label} >Message: </label>
                                         <textarea
-                                            name="userMessage"
+                                            name="comment"
+                                            value={donation.comment}
+                                            onChange={handleInputChange}
                                             style={styles.textArea}
                                             required
                                         />
 
-                                        <button type="submit" style={styles.donationButton}>
+                                        <button type="button" onClick={handleDonation} style={styles.donationButton}>
                                             Donate
                                         </button>
+                                        {donationCompleted && (
+                                            <span style={styles.donationCompleted}>
+                                                Donation completed!
+                                            </span> 
+                                        )}
                                         
                                     </div>
                                     
@@ -152,11 +216,11 @@ function CampaignSelectedPage() {
 
                         <div style={styles.donationsBox}>
                             <span style={styles.donationsTitle}> Donations </span>
-                            <div style={styles.donatersFlex}>
-                                {campaign.donaters && campaign.donaters.length > 0 ? (
-                                    campaign.donaters.map((donater, index) => (
+                            <div style={styles.donatorsFlex}>
+                                {campaign.donators && campaign.donators.length > 0 ? (
+                                    campaign.donators.map((donater, index) => (
                                         <>
-                                            <div key={index} style={styles.donaters}>
+                                            <div key={index} style={styles.donators}>
 
                                                 <div style={styles.nameAndComment}>
                                                     <span style={styles.donaterName}> {donater[0]} </span>
@@ -167,12 +231,12 @@ function CampaignSelectedPage() {
                                                 </div>
                                                 
                                             </div>
-                                            {index < campaign.donaters.length - 1 && <div style={styles.line2}></div>}
+                                            {index < campaign.donators.length - 1 && <div style={styles.line2}></div>}
                                         </>
                                         
                                     ))
                                 ) : (
-                                    <div style={styles.donatersFlex}>
+                                    <div style={styles.donatorsFlex}>
                                         <span style={{ fontSize: 18, opacity: 0.6 }}>No donations made yet.</span>
                                     </div>
                                 )}
@@ -262,12 +326,10 @@ const styles = {
         height: 54,
         backgroundColor: '#D9D9D9',
         marginTop: 10,
-        borderRadius: 20,
     },
     progress: {
         height: '100%',
         backgroundColor: '#22C643', 
-        borderRadius: 20,
     },
     progressNumber: {
         fontSize: 25,
@@ -424,29 +486,31 @@ const styles = {
         paddingLeft: 30,
         paddingRight: 30,
         paddingTop  : 30,
+        paddingBottom  : 20,
         marginBottom: 40,
+        overflow: 'auto',
+
     },
     donationsTitle: {
         fontSize: 30,
         font: 'Inter',
     },
-    donatersFlex: {
+    donatorsFlex: {
         display: 'flex',
         flexDirection: 'column',
         marginTop: 20,
-        overflow: 'auto',
     },
-    donaters: {
+    donators: {
         display: 'flex',
         flexDirection: 'row',
         margin: 20,
-        overflow: 'auto',
     },
     nameAndComment: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width: '80%',
+        
     },
     donaterName: {
         fontSize: 20,
@@ -458,12 +522,16 @@ const styles = {
         font: 'Inter',
         color: '#000000',
         opacity: 0.6,
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
     },
     ammountDonated: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        marginLeft: 20,
+        textAlign: 'end',
+        width: '20%',
         fontSize: 24,
         font: 'Inter',
         color: '#666666',
@@ -523,8 +591,14 @@ const styles = {
         font: 'Inter',
         fontWeight: 'bold',
         cursor: 'pointer',
-        marginBottom: '60px',
         marginTop: 40,
+    },
+    donationCompleted: {
+        fontSize: 20,
+        font: 'Inter',
+        color: '#39AE39',
+        marginTop: 10,
+        marginLeft: 80,
     },
 };
 

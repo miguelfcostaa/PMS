@@ -11,6 +11,7 @@ import ProfilePage from './views/ProfilePage';
 import CreateCampaignPage from './views/CreateCampaignPage';
 import CampaignSelectedPage from './views/CampaignSelectedPage';
 import RoulettePage from './views/RoulettePage';
+import Challenges from './views/Challenges';
 
 function BackgroundColorWrapper({ children }) {
   const location = useLocation();
@@ -39,6 +40,7 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/campaign" element={<CampaignsPage />} />
           <Route path="/campaign/:id" element={<CampaignSelectedPage />} />
+          <Route path='/challenges' element={<Challenges />} />
           <Route path="/games" element={<GamesPage />} />
           <Route path="/roulette" element={<RoulettePage />}/>
           <Route path="/create-campaign" element={<CreateCampaignPage />} />

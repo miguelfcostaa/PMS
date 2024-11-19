@@ -5,9 +5,9 @@ import SideBar from '../components/SideBar';
 function GamesPage
 () {
     const items = [
-        {id: 1, image: "../assets/search.png", text: "Online players: 12874", buttontext: "Try it"},
-        {id: 2, image: "../assets/roleta.png", text: "Online players: 4321", buttontext: "Try it"},
-        {id: 3, image: "../assets/slots.png", text: "Online players: 8567", buttontext: "Try it"}
+        {id: 1, image: require("../assets/crash.png"), text: "Online players: 12874", buttontext: "Try it"},
+        {id: 2, image: require("../assets/roleta.jfif"), text: "Online players: 4321", buttontext: "Try it"},
+        {id: 3, image: require("../assets/slots.jfif"), text: "Online players: 8567", buttontext: "Try it"}
     ];
     return (
         <>

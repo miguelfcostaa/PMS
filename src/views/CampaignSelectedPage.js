@@ -4,14 +4,12 @@ import SideBar from '../components/SideBar';
 import { useParams } from 'react-router-dom';
 import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
-import List from '@mui/joy/List';
-import ListItemButton from '@mui/joy/ListItemButton';
 
 function CampaignSelectedPage() {
 
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
     
 
     useEffect(() => {
@@ -32,7 +30,10 @@ function CampaignSelectedPage() {
         fetchCampaign();
     }, [id]);
 
+
     const progressPercentage = (campaign.currentAmount / campaign.goal) * 100;
+
+    
     return (
         <>
             <NavBar />
@@ -58,10 +59,19 @@ function CampaignSelectedPage() {
                             <div style={styles.timeToGoal}>
                                 <span> {campaign.timeToCompleteGoal} days left </span>
                             </div>
-                            <div style={styles.donateButton} onClick={() => setOpen(true)}>
-                                <span > Donate Now </span>
-                                <Drawer anchor="right" size="600px" open={open} onClose={() => setOpen(false)} color='#E8E8E8'>
-                                    <ModalClose  />
+                            <div>
+                                <div style={styles.donateButton} onClick={() => setOpen(true)}>
+                                    <span> Donate Now </span>
+                                </div>
+                                <Drawer 
+                                    anchor="right" 
+                                    size="600px" 
+                                    open={open} 
+                                    onClose={() => setOpen(false)} 
+                                    backdropProps={{ onClick: () => setOpen(false) }} 
+                                    color='#E8E8E8'
+                                >
+                                    <ModalClose  onClick={() => setOpen(false)} />
                                     
                                     <div style={styles.drawerContainer}>
                                         <span style={styles.drawerTitle}> Donation </span>

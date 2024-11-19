@@ -287,7 +287,7 @@ const styles = {
     },
     sidePage: {
         position: 'fixed',
-        top: 92,
+        top: 97,
         left: 0,
         width: '30%',
         height: '100%',

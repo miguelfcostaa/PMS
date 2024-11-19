@@ -51,6 +51,7 @@ const style = {
         display: 'flex',
         flexDirection: 'column',
         marginTop: '20px', 
+        cursor: 'pointer',
     },
     campaignImage: {
         width: 451,

@@ -17,9 +17,9 @@ const campaignSchema = new mongoose.Schema({
     bankAccount: { type: String, required: true },
     category: { type: String, required: true },
     currentAmount: { type: Number, default: 0 },
-    image: { type: Buffer, required: true }, 
+    image: { type: Buffer, required: false }, 
     contentType: { type: String, required: false }, 
-    donaters: { type: Array, default: [] },
+    donators: { type: Array, default: [] },
     shopItems: { type: Array, default: [] },
 }, { timestamps: true });
 

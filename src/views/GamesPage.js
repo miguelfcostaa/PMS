@@ -28,7 +28,7 @@ function GamesPage
               }
             }}
             >
-              {item.buttontext}<a href='/roulette'></a>
+              {item.buttontext}
             </button>
           </div>
         ))}

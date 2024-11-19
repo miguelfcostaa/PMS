@@ -85,7 +85,6 @@ function RoulettePage() {
             </div>
 
             <div style={styles.container}>
-                {/* Buttons */}
                 <div style={styles.buttonGroup}>
                     <button style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
@@ -101,7 +100,6 @@ function RoulettePage() {
                 <div style={styles.inputGroup}>
                     <label htmlFor="quantity" style={styles.label}>Quantity:</label>
                     <input type="number" id="quantity" style={styles.input} />
-
                 </div>
             </div>
         </>
@@ -116,13 +114,11 @@ const styles = {
     container: {
         display: 'flex',
         flexDirection: 'column',
-        width: "100%",
         alignItems: 'center',
-        marginLeft: "150px",
+        marginLeft: "15%",
         marginTop: "100px",
     },
     buttonGroup: {
-        width: "100%",
         display: 'flex',
         justifyContent: 'center',
         marginBottom: '10px',

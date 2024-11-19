@@ -2,11 +2,16 @@ import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 import { useParams } from 'react-router-dom';
+import ModalClose from '@mui/joy/ModalClose';
+import Drawer from '@mui/joy/Drawer';
+import List from '@mui/joy/List';
+import ListItemButton from '@mui/joy/ListItemButton';
 
 function CampaignSelectedPage() {
 
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
+    const [open, setOpen] = React.useState(false);
     
 
     useEffect(() => {
@@ -53,8 +58,44 @@ function CampaignSelectedPage() {
                             <div style={styles.timeToGoal}>
                                 <span> {campaign.timeToCompleteGoal} days left </span>
                             </div>
-                            <div style={styles.donateButton}>
-                                <span> Donate Now </span>
+                            <div style={styles.donateButton} onClick={() => setOpen(true)}>
+                                <span > Donate Now </span>
+                                <Drawer anchor="right" size="600px" open={open} onClose={() => setOpen(false)} color='#E8E8E8'>
+                                    <ModalClose  />
+                                    
+                                    <div style={styles.drawerContainer}>
+                                        <span style={styles.drawerTitle}> Donation </span>
+
+                                        <label style={styles.label} >Name (not mandatory): </label>
+                                        <input
+                                            type="text"
+                                            name="userName"
+                                            style={styles.input}
+                                            required
+                                        />
+
+                                        <label style={styles.label} >Amount: </label>
+                                        <input
+                                            type="text"
+                                            name="userAmount"
+                                            style={styles.input}
+                                            required
+                                        />
+
+                                        <label style={styles.label} >Message: </label>
+                                        <textarea
+                                            name="userMessage"
+                                            style={styles.textArea}
+                                            required
+                                        />
+
+                                        <button type="submit" style={styles.donationButton}>
+                                            Donate
+                                        </button>
+                                        
+                                    </div>
+                                    
+                                </Drawer>
                             </div>
                             <div style={styles.shareCampaign}>
                                 <span> Share Campaign </span>
@@ -416,6 +457,64 @@ const styles = {
         fontSize: 24,
         font: 'Inter',
         color: '#666666',
+    },
+    drawerContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: 700,
+        margin: 100,
+    },
+    drawerTitle: {
+        fontSize: 50,
+        font: 'Inter',
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    label: {
+        marginTop: 20,
+        fontSize: 24,
+        font: 'Inter',
+        width: '90%',
+    },
+    input: {
+        width: '100%',
+        marginTop: 10,
+        padding: '1.5vh',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    textArea: {
+        width: '100%',
+        height: '180px',
+        resize: 'none',
+        marginTop: 10,
+        padding: '1.5vh',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+    },
+    donationButton: {
+        width: '50%',
+        height: '55px',
+        backgroundColor: '#009DFF',
+        padding: '10px 20px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 15,
+        fontSize: 22,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginBottom: '60px',
+        marginTop: 40,
     },
 };
 

@@ -4,18 +4,35 @@ import SideBar from '../components/SideBar';
 
 function GamesPage
 () {
-    
+    const items = [
+        {id: 1, image: "../assets/search.png", text: "Online players: 12874", buttontext: "Try it"},
+        {id: 2, image: "../assets/roleta.png", text: "Online players: 4321", buttontext: "Try it"},
+        {id: 3, image: "../assets/slots.png", text: "Online players: 8567", buttontext: "Try it"}
+    ];
     return (
         <>
-            <NavBar  />
-            <SideBar  />
-            <div style={styles.container}>
-            {[1, 2, 3].map((item) => (
-                <div style={styles.box} key={item}>
-                    <h3>Conteúdo Aqui</h3>
-                </div>
-            ))}
-            </div>
+        <NavBar  />
+        <SideBar  />
+        <div style={styles.container}>
+        {items.map((item) => (
+          <div style={styles.box} key={item.id}>
+            <img src={item.image} style={styles.image} />
+            <h3 style={styles.text}>{item.text}</h3>
+            <button
+            style={styles.button}
+            onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+            onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+            onClick={() => {
+              if (item.id === 2) {
+                window.location.href = "/roulette";
+              }
+            }}
+            >
+              {item.buttontext}<a href='/roulette'></a>
+            </button>
+          </div>
+        ))}
+      </div>
         </>
     );
 }
@@ -33,7 +50,8 @@ const styles = {
         position: "relative",
         top: "200px",
         left: "475px",
-        justifyContent: "center",
+        flexDirection: "column",
+        justifyContent: "space-between",
         border: "2px solid #ccc",
         borderRadius: "10px",
         width: "350px",
@@ -42,7 +60,31 @@ const styles = {
         backgroundColor: "#d3d3d3",
         boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         textAlign: "center",
-    }
+    },
+    image: {
+        width: "350px",
+        height: "350px",
+        objectFit: "center", 
+        borderRadius: "10px",
+    },
+    text: {
+        fontSize: "16px",
+        color: "#333",
+        margin: "10px 0",
+    },
+    button: {
+        padding: "10px 5px",
+        backgroundColor: "#28a745",
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "16px",
+    },
+    buttonHover: {
+        backgroundColor: "#218838",
+    },
 }
 
 export default GamesPage;

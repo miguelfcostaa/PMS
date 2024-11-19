@@ -13,43 +13,50 @@ function GamesPage
         <>
         <NavBar  />
         <SideBar  />
-        <div style={styles.container}>
-        {items.map((item) => (
-          <div style={styles.box} key={item.id}>
-            <img src={item.image} style={styles.image} />
-            <h3 style={styles.text}>{item.text}</h3>
-            <button
-            style={styles.button}
-            onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
-            onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
-            onClick={() => {
-              if (item.id === 2) {
-                window.location.href = "/roulette";
-              }
-            }}
-            >
-              {item.buttontext}
-            </button>
-          </div>
-        ))}
-      </div>
+        <div style={styles.mainContent}>
+            <div style={styles.container}>
+                {items.map((item) => (
+                <div style={styles.box} key={item.id}>
+                    <img src={item.image} style={styles.image} />
+                    <h3 style={styles.text}>{item.text}</h3>
+                    <button
+                    style={styles.button}
+                    onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+                    onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+                    onClick={() => {
+                    if (item.id === 2) {
+                        window.location.href = "/roulette";
+                    }
+                    }}
+                    >
+                    {item.buttontext}
+                    </button>
+                </div>
+                ))}
+            </div>
+
+
+        </div>
+        
         </>
     );
 }
 const styles = {
+    mainContent: {
+        marginTop: 102,
+        marginLeft: '20%',
+        paddingLeft: '20px',
+        font: 'Inter',
+    },
     container: {
         display: "flex",
-        justifyContent: "flex-start",
+        flexDirection: "row",
+        justifyContent: "space-around",
         alignItems: "center",
-        flexWrap: "wrap",
-        gap: "100px",
-        padding: "5px",
+        padding: "100px",
     },
     box: {
         display: "flex",
-        position: "relative",
-        top: "200px",
-        left: "475px",
         flexDirection: "column",
         justifyContent: "space-between",
         border: "2px solid #ccc",

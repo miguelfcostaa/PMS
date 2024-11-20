@@ -19,27 +19,30 @@ const SignIn = () => {
     // Lidar com o processo de login
     const handleSignIn = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', { // URL para o endpoint de login (isto e importante, no backend tem de ser sempre 5000 e no front end 3000)
+            const response = await fetch('http://localhost:5000/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
             });
-
+    
             const data = await response.json();
             if (response.ok) {
                 alert('Logged in successfully!');
                 localStorage.setItem('token', data.token); // Salvar o token no localStorage
-                navigate('/warning'); 
+                localStorage.setItem('userId', data.userId); // Salvar o userId no localStorage
+                localStorage.setItem('role', data.role); // Salvar o role no localStorage
+                navigate('/home');
             } else {
-                alert(data.message); 
+                alert(data.message);
             }
         } catch (error) {
             console.error('Error during login:', error);
             alert('Failed to log in');
         }
     };
+    
 
     return (
         <>

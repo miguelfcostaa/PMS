@@ -1,36 +1,49 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
-const campaignRoutes = require('./routes/campaignRoutes'); 
+const campaignRoutes = require('./routes/campaignRoutes');
 
 dotenv.config({ path: './src/backend/.env' });
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+    },
+});
 
-// Middlewares
+// Middleware
 app.use(cors({
-    origin: 'http://localhost:3000', // Allow only your frontend to make requests
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'] // Allowed headers
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json({ limit: '50mb' })); // Increase payload limit for JSON
-app.use(express.urlencoded({ limit: '50mb', extended: true })); // Increase payload limit for FormData
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-})
+mongoose.connect(process.env.MONGO_URI, {})
     .then(() => console.log('Connected to MongoDB successfully!'))
     .catch((error) => console.error('Error connecting to MongoDB:', error));
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/campaign', campaignRoutes);
 
+io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
 
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+    });
+});
+
+// Exporta o `io` para que outros arquivos possam usá-lo
+module.exports = { app, server, io };
+
+server.listen(process.env.PORT || 5000, () => {
+    console.log(`Server running on port ${process.env.PORT || 5000}`);
 });

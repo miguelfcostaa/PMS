@@ -17,7 +17,7 @@ function BackgroundColorWrapper({ children }) {
   const location = useLocation();
 
   useEffect(() => {
-    const darkPages = ['/', '/signup', '/signin', '/warning', '/profile'];
+    const darkPages = ['/', '/signup', '/signin', '/warning'];
     if (darkPages.includes(location.pathname)) {
       document.body.style.backgroundColor = '#183059';
     } else {

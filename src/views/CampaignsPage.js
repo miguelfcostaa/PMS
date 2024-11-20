@@ -10,6 +10,7 @@ function CampaignsPage() {
     const [searchResults, setSearchResults] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [campaigns, setCampaigns] = useState([]);
+    const [filteredCampaigns, setFilteredCampaigns] = useState([]);
 
     useEffect(() => {
         const fetchCampaigns = async () => {
@@ -28,23 +29,32 @@ function CampaignsPage() {
         fetchCampaigns();
     }, []);
 
+    useEffect(() => {
+        // Filtra as campanhas com base no termo de pesquisa e nas categorias selecionadas
+        const filteredResults = campaigns.filter((campaign) => {
+            const matchesSearchTerm = campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                      campaign.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(campaign.category);
+
+            return matchesSearchTerm && matchesCategory;
+        });
+
+        // Se houver categorias selecionadas, filtramos ainda mais com base nelas
+        if (selectedCategories.length > 0) {
+            setFilteredCampaigns(filteredResults);
+        } else {
+            setFilteredCampaigns(campaigns);
+        }
+    }, [selectedCategories, searchTerm, campaigns]); // Refiltra sempre que qualquer um desses estados mudar
+
     const handleCategorySelect = (categories) => {
         setSelectedCategories(categories);
-        setShowSearchResults(categories.length > 0);
+        setShowSearchResults(categories.length > 0 || searchTerm.length > 0); // Exibe resultados de pesquisa quando categoria ou termo são selecionados
     };
 
     const handleSearch = (term) => {
         setSearchTerm(term);
         setShowSearchResults(true);
-
-        // Filtra as campanhas com base no termo de pesquisa
-        const filteredResults = campaigns.filter((campaign) =>
-            (campaign.title.toLowerCase().includes(term.toLowerCase()) ||
-                campaign.description.toLowerCase().includes(term.toLowerCase())) &&
-            (selectedCategories.length === 0 || selectedCategories.includes(campaign.category))
-        );
-
-        setSearchResults(filteredResults);
     };
 
     const navigate = useNavigate();
@@ -57,7 +67,6 @@ function CampaignsPage() {
             <NavBar onSearch={handleSearch} />
             <SideBar onCategorySelect={handleCategorySelect} />
             <div style={styles.mainContent}>
-
                 {showSearchResults && (searchTerm || selectedCategories.length > 0) && (
                     <>
                         <h1 id="search-results-title">Resultados da Pesquisa</h1>
@@ -71,21 +80,23 @@ function CampaignsPage() {
                         <div style={styles.line}></div>
                     </>
                 )}
-                <div style={styles.campaignDisplay} >
-                    {(searchResults.length > 0 ? searchResults : campaigns).map((campaign) => (
-                        <div onClick={() => handleCampaignClick(campaign._id)}>
-                            <CampaignBox
-                                key={campaign._id}
-                                title={campaign.title}
-                                description={campaign.description}
-                                goal={campaign.goal}
-                                timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                currentAmount={campaign.currentAmount}
-                                nameBankAccount={campaign.nameBankAccount}
-                                
-                            />
-                        </div>
-                    ))}
+                <div style={styles.campaignDisplay}>
+                    {filteredCampaigns.length > 0 ? (
+                        filteredCampaigns.map((campaign) => (
+                            <div onClick={() => handleCampaignClick(campaign._id)} key={campaign._id}>
+                                <CampaignBox
+                                    title={campaign.title}
+                                    description={campaign.description}
+                                    goal={campaign.goal}
+                                    timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                    currentAmount={campaign.currentAmount}
+                                    nameBankAccount={campaign.nameBankAccount}
+                                />
+                            </div>
+                        ))
+                    ) : (
+                        <p>No campaigns available for the selected category(ies).</p>
+                    )}
                 </div>
             </div>
         </>

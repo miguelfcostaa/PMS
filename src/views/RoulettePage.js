@@ -13,10 +13,10 @@ const time = 5000;
 const spacing = 0.45
 const speed = 0.1;
 
+
 let position = -2.94
 let scene, canvas, renderer, camera
 let circles = []
-
 
 function roulette() {
     const index = Math.floor(Math.random() * 10)
@@ -32,7 +32,7 @@ function roulette() {
                 actualS = today.getSeconds()
                 console.log(sp)
                 c.position.x -= sp
-                sp = sp - sp/3000
+                sp = sp - sp / 3000
                 if (c.position.x <= -2.5) {
                     if (index !== 0) {
                         c.position.x = circles[index - 1].position.x + spacing
@@ -43,12 +43,12 @@ function roulette() {
                 }
             }
             else {
-                if (result.position.x>= -0.1 && result.position.x<= -0.3) {
+                if (result.position.x >= -0.1 && result.position.x <= -0.3) {
                     today = new Date()
                     actualS = today.getSeconds()
                     console.log(s)
                     c.position.x -= sp
-                    sp = sp - sp/3000
+                    sp = sp - sp / 3000
                     if (c.position.x <= -2.5) {
                         console.log(c.position.x)
                         if (index !== 0) {
@@ -134,9 +134,13 @@ function Init() {
 }
 
 function RoulettePage() {
+    const [inputValue, setInputValue] = React.useState('');
+
+    const handleInputChange = (e) => {
+        setInputValue(e.target.value);
+    };
     Init()
     return (
-
         <>
             <NavBar />
             <SideBar />
@@ -145,20 +149,28 @@ function RoulettePage() {
 
             <div style={styles.container}>
                 <div style={styles.buttonGroup}>
-                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#9D0208" }}>
+                    <button onClick={roulette} 
+                    disabled={!inputValue.trim()} 
+                    style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
                     </button>
-                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#009DFF" }}>
+                    <button onClick={roulette} 
+                    disabled={!inputValue.trim()} 
+                    style={{ ...styles.button, backgroundColor: "#009DFF" }}
+                    onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
                         Place Bet x10
                     </button>
-                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#000000" }}>
+                    <button onClick={roulette} 
+                    disabled={!inputValue.trim()} 
+                    style={{ ...styles.button, backgroundColor: "#000000" }}
+                    onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
                         Place Bet x2
                     </button>
                 </div>
 
                 <div style={styles.inputGroup}>
                     <label htmlFor="quantity" style={styles.label}>Quantity:</label>
-                    <input type="number" id="quantity" style={styles.input} />
+                    <input type="number" id="quantity" value={inputValue} onChange={handleInputChange} style={styles.input} />
                 </div>
             </div>
         </>
@@ -199,6 +211,7 @@ const styles = {
         color: "white",
         cursor: 'pointer',
     },
+
     inputGroup: {
         width: "920px",
         flexDirection: 'column',
@@ -206,12 +219,14 @@ const styles = {
         justifyContent: 'center',
         marginBottom: '10px',
     },
+
     label: {
         margin: '5px',
         fontSize: '18px',
         color: "#A5A5A5",
         fontFamily: "Helvetica",
     },
+
     input: {
         height: '30px',
         width: "100%",
@@ -221,6 +236,6 @@ const styles = {
         border: "none",
         boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
     },
-};
+}
 
 export default memo(RoulettePage)

@@ -13,8 +13,15 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     TIN: { type: String },
     passportNumber: { type: String, required: true },
-    documents: [documentSchema], // Utilizamos o schema do documento criado acima
+    role: { 
+        type: String, 
+        enum: ['doador', 'criador/doador', 'admin'], 
+        default: 'doador'
+    },
+    documents: [documentSchema],
+    notificationSeen: { type: Boolean, default: false }, // Novo campo para rastrear a notificação
 }, { timestamps: true });
+
 
 const User = mongoose.model('User', userSchema);
 

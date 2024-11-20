@@ -97,7 +97,7 @@ const SignUp = () => {
 
             if (response.status === 201) {
                 alert('User registered successfully!');
-                navigate('/signin');
+                navigate('/warning');
             } else {
                 const data = await response.json();
                 alert(data.message || 'Failed to register');

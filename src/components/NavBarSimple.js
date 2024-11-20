@@ -9,7 +9,7 @@ function NavBarSimple() {
                     style={style.logo}
                 /></a>
                 <div style={style.linksContainer}>
-                    <a href="/home" style={style.link}> Home </a>
+                    <a href="/" style={style.link}> Home </a>
                     <a href="#" style={style.link}> About </a>
                     <a href="#" style={style.link}> Contact </a>
                 </div>

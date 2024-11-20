@@ -1,12 +1,20 @@
 import React from 'react';
-import NavBarSimple from '../components/NavBarSimple';
+import NavBar from '../components/NavBar';
+import SideBar from '../components/SideBar';
 
 function ProfilePage() {
+
     return (
         <>
-            <NavBarSimple />
+            <NavBar  />
+            <SideBar  />
+            
         </>
     );
 }
+
+const styles = {
+ 
+};
 
 export default ProfilePage;

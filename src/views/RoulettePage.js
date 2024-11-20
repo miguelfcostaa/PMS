@@ -1,76 +1,114 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, memo } from 'react';
 import * as THREE from 'three';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
-const cameraPositionZ = 4; // camera's Z position
-const colors = ["red", "black", "red", "black", "blue", "red", "black", "red", "black", "red", "black"];
+
+const colors = ["red", "black", "red", "black", "red", "black", "red", "black", "red", "blue", "black", "red", "black"];
 const red = 0x9D0208;
 const black = 0x000000;
 const blue = 0x009DFF;
+const clock = new THREE.Clock()
+const time = 5000;
+const spacing = 0.45
 
-let position = 0;
+let position = -2.94;
+let initialPos = 2.94;
 let scene, canvas, renderer, camera;
 let circles = [];
 
-function Init() {
-    canvas = useRef(null)
-    position = -1;
-    useEffect(() => {
-        scene = new THREE.Scene();
-        scene.background = (0xFF7F3E);
 
-        camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-        renderer = new THREE.WebGLRenderer();
-
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0xC7D5E5);
-        canvas.current.appendChild(renderer.domElement);
-
-        const material = new THREE.LineBasicMaterial({ color: 0xFAB12F });
-
-        const points = [];
-        points.push(new THREE.Vector3(0, 0.2, 0));
-        points.push(new THREE.Vector3(0, 0, 0));
-        points.push(new THREE.Vector3(0, 0.6, 0));
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-        const line = new THREE.Line(geometry, material);
-        line.position.x = 0.2
-        scene.add(line);
-
-        for (let c in colors) {
-            let material;
-            console.log(colors[c]);
-            if (colors[c] === "red") {
-                material = new THREE.MeshBasicMaterial({ color: red });
+function startAnimation() {
+    let today = new Date();
+    let s = today.getSeconds();
+    console.log(s)
+    let actualS = s
+    let posAnt = 0
+    const rouletteAnimation = (speed) => {
+        circles.forEach((c, index) => {
+            if (actualS < s + 5) {
+                today = new Date()
+                actualS = today.getSeconds();
+                console.log(s)
+                c.position.x -= speed;
+                if (c.position.x <= -2.5) {
+                    console.log(c.position.x)
+                    if(index !== 0){
+                        c.position.x = circles[index-1].position.x + spacing;
+                    }
+                    else{
+                        c.position.x =  circles[circles.length-1].position.x + spacing;
+                    }
+                }
             }
-            if (colors[c] === "black") {
-                material = new THREE.MeshBasicMaterial({ color: black });
-            }
-            if (colors[c] === "blue") {
-                material = new THREE.MeshBasicMaterial({ color: blue });
-            }
-            const geometry = new THREE.CircleGeometry(1, 128)
-
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.scale.set(0.1, 0.1, 0.1);
-            sphere.position.x = position
-            sphere.position.set(position, 0.3)
-            position += 0.3;
-            circles.push(sphere);
-            scene.add(sphere);
-        }
-
-        camera.position.z = 4;
-
+        });
+    }
+    const animate = () => {
+        requestAnimationFrame(animate);
+        rouletteAnimation(0.01);
         renderer.render(scene, camera);
 
+    };
+    animate();
+}
+
+function Init() {
+    canvas = useRef(null)
+    useEffect(() => {
+        if (!scene) {
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+
+            renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
+            //renderer.setClearColor(0xC7D5E5);
+            renderer.setClearColor(0xE8E8E8);
+            canvas.current.appendChild(renderer.domElement);
+
+            const material = new THREE.LineBasicMaterial({ color: 0xFAB12F });
+
+            const points = [];
+            points.push(new THREE.Vector3(0, -0.2, 0));
+            points.push(new THREE.Vector3(0, 0, 0));
+            points.push(new THREE.Vector3(0, 0.2, 0));
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const line = new THREE.Line(geometry, material);
+            line.position.x = -0.1
+            line.position.z = 2
+            scene.add(line);
+
+            for (let c in colors) {
+                let material;
+                console.log(colors[c]);
+                if (colors[c] === "red") {
+                    material = new THREE.MeshBasicMaterial({ color: red });
+                }
+                if (colors[c] === "black") {
+                    material = new THREE.MeshBasicMaterial({ color: black });
+                }
+                if (colors[c] === "blue") {
+                    material = new THREE.MeshBasicMaterial({ color: blue });
+                }
+                const geometry = new THREE.CircleGeometry(1, 128)
+
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.scale.set(0.2, 0.2, 0.2);
+                sphere.position.x = position
+                position += spacing;
+                circles.push(sphere);
+                scene.add(sphere);
+            }
+            
+            camera.position.z = 4;
+
+            renderer.render(scene, camera);
+        }
         return () => {
             renderer.dispose();
-            //canvas.current.removeChild(renderer.domElement);
-          };
+        };
 
     }, []);
 }
@@ -78,6 +116,7 @@ function Init() {
 function RoulettePage() {
     Init()
     return (
+
         <>
             <NavBar />
             <SideBar />
@@ -86,13 +125,13 @@ function RoulettePage() {
 
             <div style={styles.container}>
                 <div style={styles.buttonGroup}>
-                    <button style={{ ...styles.button, backgroundColor: "#9D0208" }}>
+                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
                     </button>
-                    <button style={{ ...styles.button, backgroundColor: "#009DFF" }}>
+                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#009DFF" }}>
                         Place Bet x10
                     </button>
-                    <button style={{ ...styles.button, backgroundColor: "#000000" }}>
+                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#000000" }}>
                         Place Bet x2
                     </button>
                 </div>
@@ -107,15 +146,20 @@ function RoulettePage() {
 }
 
 const styles = {
-
     canvas: {
-        height: "500px"
+        height: "350px",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginLeft: "20%",
+    },
+    buttonGroup: {
     },
     container: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginLeft: "15%",
+        marginLeft: "20%",
         marginTop: "100px",
     },
     buttonGroup: {
@@ -159,4 +203,4 @@ const styles = {
     },
 };
 
-export default RoulettePage;
+export default memo(RoulettePage);

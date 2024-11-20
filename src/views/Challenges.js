@@ -16,17 +16,10 @@ function Challenges() {
         {
           id: 2,
           squares: [
-            { id: 1, content: "Square 2 - Content 1" },
-            { id: 2, content: "Square 2 - Content 2" },
-            { id: 3, content: "Square 2 - Content 3" }
-          ]
-        },
-        {
-          id: 3,
-          squares: [
-            { id: 1, content: "Square 3 - Content 1" },
-            { id: 2, content: "Square 3 - Content 2" },
-            { id: 3, content: "Square 3 - Content 3" }
+            { id: 1, image: require("../assets/deposit.png"), description: "Deposit 100€", progress: 100},
+            { id: 2, image: require("../assets/multiplier.jpg"), description: "Double your money, playing any game", progress: 100},
+            { id: 3, image: require("../assets/donate.png"), description: "Donate to any campaign a value superior to 400€", progress: 89},
+            { id: 4, image: require("../assets/medal-silver.png"), description: "Reward: Helping the aid", isMedal: true }
           ]
         }
       ];

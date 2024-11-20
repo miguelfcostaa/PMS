@@ -7,7 +7,7 @@ router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image } = req.body;
+        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems } = req.body;
 
         if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category ) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -35,7 +35,7 @@ router.post('/create-campaign', async (req, res) => {
             currentAmount: 0,
             image, 
             donators: [],
-            shopItems: []
+            shopItems,
         });
 
         console.log('Saving campaign...');
@@ -94,28 +94,6 @@ router.post('/donate/:id', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
-router.put('/update-shop-items', async (req, res) => {
-    const { campaignId, shopItems } = req.body;
-
-    try {
-        const campaign = await Campaign.findByIdAndUpdate(
-            campaignId,
-            { shopItems: shopItems },
-            { new: true }
-        );
-
-        if (!campaign) {
-            return res.status(404).json({ message: "Campanha não encontrada." });
-        }
-
-        res.status(200).json({ message: "Itens atualizados com sucesso!", campaign });
-    } catch (error) {
-        console.error("Erro ao atualizar itens da loja:", error);
-        res.status(500).json({ message: "Erro no servidor." });
-    }
-});
-
 
 
 module.exports = router;

@@ -11,106 +11,126 @@ const blue = 0x009DFF;
 const clock = new THREE.Clock()
 const time = 5000;
 const spacing = 0.45
+const speed = 0.1;
 
-let position = -2.94;
-let initialPos = 2.94;
-let scene, canvas, renderer, camera;
-let circles = [];
+let position = -2.94
+let scene, canvas, renderer, camera
+let circles = []
 
 
-function startAnimation() {
-    let today = new Date();
-    let s = today.getSeconds();
-    console.log(s)
+function roulette() {
+    const index = Math.floor(Math.random() * 10)
+    const result = circles[index]
+    let today = new Date()
+    let s = today.getSeconds()
     let actualS = s
-    let posAnt = 0
-    const rouletteAnimation = (speed) => {
+    let sp = speed
+    const rouletteAnimation = () => {
         circles.forEach((c, index) => {
             if (actualS < s + 5) {
                 today = new Date()
-                actualS = today.getSeconds();
-                console.log(s)
-                c.position.x -= speed;
+                actualS = today.getSeconds()
+                console.log(sp)
+                c.position.x -= sp
+                sp = sp - sp/3000
                 if (c.position.x <= -2.5) {
-                    console.log(c.position.x)
-                    if(index !== 0){
-                        c.position.x = circles[index-1].position.x + spacing;
+                    if (index !== 0) {
+                        c.position.x = circles[index - 1].position.x + spacing
                     }
-                    else{
-                        c.position.x =  circles[circles.length-1].position.x + spacing;
+                    else {
+                        c.position.x = circles[circles.length - 1].position.x + spacing
+                    }
+                }
+            }
+            else {
+                if (result.position.x>= -0.1 && result.position.x<= -0.3) {
+                    today = new Date()
+                    actualS = today.getSeconds()
+                    console.log(s)
+                    c.position.x -= sp
+                    sp = sp - sp/3000
+                    if (c.position.x <= -2.5) {
+                        console.log(c.position.x)
+                        if (index !== 0) {
+                            c.position.x = circles[index - 1].position.x + spacing
+                        }
+                        else {
+                            c.position.x = circles[circles.length - 1].position.x + spacing
+                        }
                     }
                 }
             }
         });
     }
+
     const animate = () => {
-        requestAnimationFrame(animate);
-        rouletteAnimation(0.01);
-        renderer.render(scene, camera);
+        requestAnimationFrame(animate)
+        rouletteAnimation()
+        renderer.render(scene, camera)
 
     };
-    animate();
+    animate()
 }
 
 function Init() {
     canvas = useRef(null)
     useEffect(() => {
         if (!scene) {
-            scene = new THREE.Scene();
+            scene = new THREE.Scene()
 
-            camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer();
+            camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000)
+            renderer = new THREE.WebGLRenderer()
 
-            renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5);
+            renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5)
             //renderer.setClearColor(0xC7D5E5);
-            renderer.setClearColor(0xE8E8E8);
-            canvas.current.appendChild(renderer.domElement);
+            renderer.setClearColor(0xE8E8E8)
+            canvas.current.appendChild(renderer.domElement)
 
-            const material = new THREE.LineBasicMaterial({ color: 0xFAB12F });
+            const material = new THREE.LineBasicMaterial({ color: 0xFAB12F })
 
-            const points = [];
-            points.push(new THREE.Vector3(0, -0.2, 0));
-            points.push(new THREE.Vector3(0, 0, 0));
-            points.push(new THREE.Vector3(0, 0.2, 0));
+            const points = []
+            points.push(new THREE.Vector3(0, -0.2, 0))
+            points.push(new THREE.Vector3(0, 0, 0))
+            points.push(new THREE.Vector3(0, 0.2, 0))
 
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points)
 
-            const line = new THREE.Line(geometry, material);
+            const line = new THREE.Line(geometry, material)
             line.position.x = -0.1
             line.position.z = 2
-            scene.add(line);
+            scene.add(line)
 
             for (let c in colors) {
                 let material;
-                console.log(colors[c]);
+                console.log(colors[c])
                 if (colors[c] === "red") {
-                    material = new THREE.MeshBasicMaterial({ color: red });
+                    material = new THREE.MeshBasicMaterial({ color: red })
                 }
                 if (colors[c] === "black") {
-                    material = new THREE.MeshBasicMaterial({ color: black });
+                    material = new THREE.MeshBasicMaterial({ color: black })
                 }
                 if (colors[c] === "blue") {
-                    material = new THREE.MeshBasicMaterial({ color: blue });
+                    material = new THREE.MeshBasicMaterial({ color: blue })
                 }
                 const geometry = new THREE.CircleGeometry(1, 128)
 
-                const sphere = new THREE.Mesh(geometry, material);
-                sphere.scale.set(0.2, 0.2, 0.2);
+                const sphere = new THREE.Mesh(geometry, material)
+                sphere.scale.set(0.2, 0.2, 0.2)
                 sphere.position.x = position
-                position += spacing;
-                circles.push(sphere);
-                scene.add(sphere);
+                position += spacing
+                circles.push(sphere)
+                scene.add(sphere)
             }
-            
-            camera.position.z = 4;
 
-            renderer.render(scene, camera);
+            camera.position.z = 4
+
+            renderer.render(scene, camera)
         }
         return () => {
-            renderer.dispose();
+            renderer.dispose()
         };
 
-    }, []);
+    }, [])
 }
 
 function RoulettePage() {
@@ -125,13 +145,13 @@ function RoulettePage() {
 
             <div style={styles.container}>
                 <div style={styles.buttonGroup}>
-                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#9D0208" }}>
+                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
                     </button>
-                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#009DFF" }}>
+                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#009DFF" }}>
                         Place Bet x10
                     </button>
-                    <button onClick={startAnimation} style={{ ...styles.button, backgroundColor: "#000000" }}>
+                    <button onClick={roulette} style={{ ...styles.button, backgroundColor: "#000000" }}>
                         Place Bet x2
                     </button>
                 </div>
@@ -203,4 +223,4 @@ const styles = {
     },
 };
 
-export default memo(RoulettePage);
+export default memo(RoulettePage)

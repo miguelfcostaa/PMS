@@ -49,8 +49,18 @@ function CampaignSelectedPage() {
             alert("Please, enter a valid amount.");
             return;
         }
+
+        if (donation.amount < 1) {
+            alert("The minimum donation amount is €1.");
+            return;
+        }
+
+        if (donation.amount > campaign.goal - campaign.currentAmount) {
+            alert("The donation amount exceeds the campaign goal.");
+            return;
+        }
     
-        const newDonation = [
+        const newDonation = [ //
             donation.name || "Anonymous",
             parseFloat(donation.amount),
             donation.comment || ""
@@ -114,9 +124,15 @@ function CampaignSelectedPage() {
                                 <span> {campaign.timeToCompleteGoal} days left </span>
                             </div>
                             <div>
-                                <div style={styles.donateButton} onClick={() => setOpen(true)}>
-                                    <span> Donate Now </span>
-                                </div>
+                                { progressPercentage === 100 ? (
+                                    <div style={styles.donateButtonDisabled} disabled>
+                                        <span> Donate Now </span>
+                                    </div>
+                                ) : (
+                                    <div style={styles.donateButton} onClick={() => setOpen(true)}>
+                                        <span> Donate Now </span>
+                                    </div>
+                                )}
                                 <Drawer 
                                     anchor="right" 
                                     size="600px" 
@@ -212,7 +228,6 @@ function CampaignSelectedPage() {
                             </div>
                         </div>
                         
-                    
 
                         <div style={styles.donationsBox}>
                             <span style={styles.donationsTitle}> Donations </span>
@@ -244,14 +259,7 @@ function CampaignSelectedPage() {
                         </div>
                     </div>
                 </div>
-                
-
-
-                
-
-
             </div>
-
         </>
     );
 }
@@ -298,7 +306,7 @@ const styles = {
         borderRadius: 10,
     },
     donateBox: {
-        width: "35%",	
+        width: "35%",
         height: 450,
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
@@ -307,7 +315,7 @@ const styles = {
         marginLeft: 50,
         paddingLeft: 30,
         paddingRight: 30,
-        paddingTop  : 30,
+        paddingTop: 30,
     },
     currentAmount: {
         fontSize: 48,
@@ -329,7 +337,7 @@ const styles = {
     },
     progress: {
         height: '100%',
-        backgroundColor: '#22C643', 
+        backgroundColor: '#22C643',
     },
     progressNumber: {
         fontSize: 25,
@@ -361,6 +369,18 @@ const styles = {
         alignContent: 'center',
         cursor: 'pointer',
     },
+    donateButtonDisabled: {
+        backgroundColor: '#F8B422',
+        width: '100%',
+        height: 82,
+        borderRadius: 20,
+        marginTop: 60,
+        fontSize: 32,
+        font: 'Inter',
+        textAlign: 'center',
+        alignContent: 'center',
+        cursor: 'not-allowed',
+    },
     shareCampaign: {
         backgroundColor: '#F8B422',
         width: '100%',
@@ -373,7 +393,7 @@ const styles = {
         cursor: 'pointer',
         alignContent: 'center',
     },
-    contactAndCategory: { 
+    contactAndCategory: {
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -399,7 +419,7 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         borderRadius: 20,
-        justifyContent : 'flex-end',
+        justifyContent: 'flex-end',
         marginRight: 20,
     },
     line: {

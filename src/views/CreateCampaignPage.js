@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 
 function CreateCampaignPage() {
-    const navigate = useNavigate();
     const [parte1, setParte1] = useState(true);
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [formData, setFormData] = useState({
+        id: '',
         title: '',
         description: '',
         goal: '',
@@ -22,61 +21,12 @@ function CreateCampaignPage() {
         donators: [],
         shopItems: [],
     });
-    const [shopItem, setShopItem] = useState({
+    const [newShopItem, setNewShopItem] = useState({
         itemName: "",
         itemPrice: "",
-        image: "",
+        itemImage: "",
     });
 
-    const addShopItem = async () => {
-        if (!shopItem.itemName || !shopItem.itemPrice) {
-            alert("Preencha todos os campos do item antes de adicionar.");
-            return;
-        }
-    
-        const newItem = [shopItem.itemName, parseFloat(shopItem.itemPrice), shopItem.image];
-    
-        setFormData((prevData) => {
-            const updatedShopItems = [...prevData.shopItems, newItem];
-    
-            updateShopItemsInDatabase(updatedShopItems);
-    
-            return { ...prevData, shopItems: updatedShopItems };
-        });
-    
-        setShopItem({
-            itemName: "",
-            itemPrice: "",
-            image: "",
-        });
-    };
-
-
-    const updateShopItemsInDatabase = async (updatedShopItems) => {
-        try {
-            const response = await fetch('http://localhost:5000/api/campaign/update-shop-items', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    campaignId: formData.id, 
-                    shopItems: updatedShopItems,
-                }),
-            });
-    
-            if (response.ok) {
-                alert("Loja da campanha atualizada com sucesso!");
-            } else {
-                const data = await response.json();
-                alert(data.message || "Erro ao atualizar a loja da campanha.");
-            }
-        } catch (err) {
-            console.error("Erro ao atualizar os itens da loja:", err);
-            alert("Erro ao conectar ao servidor.");
-        }
-    };
-    
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -89,52 +39,87 @@ function CreateCampaignPage() {
         });
     };
 
-    const handleInputChangeStore = (e) => {
-        const { name, value } = e.target;
-        setShopItem({ ...shopItem, [name]: value });
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        // Validação extra antes de enviar os dados
         if (formData.goal <= 0) {
             alert('Goal must be a positive number.');
             return;
         }
-    
-        try {
-            // Adicionar ficheiros como Base64 (se necessário)
-            const images = await Promise.all(
-                selectedFiles.map((file) => convertFileToBase64(file))
-            );
 
-            // Atualizar o formData com as imagens
-            const finalData = { ...formData, image: images };
-    
-            const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(finalData),
-            });
-    
-            if (response.status === 201) {
-                alert('Campanha criada com sucesso!');
-                setParte1(false);
-                setParte2(false);
-                setParte3(true);
-            } else {
-                const data = await response.json();
-                alert(data.message || 'Erro ao criar a campanha.');
+        if (formData.timeToCompleteGoal <= 0) {
+            alert('Time to complete goal must be a positive number.');
+            return;
+        }
+
+        if (parte2 === false){
+            setParte1(false);
+            setParte2(true);
+            setParte3(false);     
+        }
+        else if (parte2 === true){
+            try {
+                const images = await Promise.all(
+                    selectedFiles.map((file) => convertFileToBase64(file))
+                );
+
+                const finalData = { 
+                    ...formData, 
+                    image: images, 
+                    shopItems: formData.shopItems, // Inclui os itens da loja aqui
+                };
+        
+                const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(finalData),
+                });
+        
+                if (response.status === 201) {
+                    alert('Campaign created successfully!');
+                    setParte1(false);
+                    setParte2(false);
+                    setParte3(true);
+
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Erro ao criar a campanha.');
+                }
+            } catch (err) {
+                console.error(err.message);
+                alert('Erro ao criar a campanha.');
             }
-        } catch (err) {
-            console.error(err.message);
-            alert('Erro ao criar a campanha.');
         }
     };
+
+    const handleInputChangeStore = (e) => {
+        const { name, value } = e.target;
+
+        const numericFields = ['itemPrice'];
+        setNewShopItem({
+            ...newShopItem,
+            [name]: numericFields.includes(name) ? Number(value) : value,
+        });
+
+    };
+
+    const handleAddShopItems = () => {
+        if (newShopItem.itemName && newShopItem.itemPrice) {
+            setFormData({
+                ...formData,
+                shopItems: [
+                    ...formData.shopItems, 
+                    [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage || ''],
+                ],
+            });
     
+        }
+    };
+
+
     const handleFileChange = (event) => {
         const files = Array.from(event.target.files);
         setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -156,23 +141,7 @@ function CreateCampaignPage() {
             reader.onerror = (error) => reject(error);
         })
     };
-    const handleStateChange = (parte) => {
-        if (parte === '1') {
-            if (!formData.title || !formData.category || !formData.description || !formData.goal || !formData.timeToCompleteGoal) {
-                alert('Please fill all required fields.');
-            }
-            else {
-                setParte1(false);
-                setParte2(true);
-                setParte3(false);
-            }
-        }
-        else if (parte === '2') {
-            setParte1(false);
-            setParte2(false);
-            setParte3(true);
-        }
-    }
+    
 
     return (
         <>
@@ -184,12 +153,8 @@ function CreateCampaignPage() {
                 <span style={styles.inspiringAction}> Inspiring <b>Action!</b></span>
             </div>
             <div style={styles.mainContent}>
-                
                 <>
-                    
                     <div style={styles.form}>
-                        
-                        
                         <form onSubmit={handleSubmit}>
                             { parte1 && (
                             <>
@@ -352,17 +317,12 @@ function CreateCampaignPage() {
                                         multiple={false} // Apenas um ficheiro permitido
                                     />
                             </div>
-
-                            <button type="button" style={styles.submitButton} onClick={() => handleStateChange('1')}>
+                            <button type="submit" style={styles.submitButton}>
                                 Next
                             </button>
-
                             
 
-                            
-                            
-                    
-                            </>            
+                            </>   
                             )}
                             { parte2 && (
                             <>
@@ -377,7 +337,7 @@ function CreateCampaignPage() {
                                     <input
                                         type="text"
                                         name="itemName"
-                                        value={shopItem.itemName}
+                                        value={newShopItem.itemName}
                                         onChange={handleInputChangeStore}
                                         style={styles.input}
                                     />
@@ -387,13 +347,13 @@ function CreateCampaignPage() {
                                     <input
                                         type="number"
                                         name="itemPrice"
-                                        value={shopItem.itemPrice}
+                                        value={newShopItem.itemPrice}
                                         onChange={handleInputChangeStore}
                                         style={styles.input}
                                     />
                                 </div>
                                 <div style={styles.inputHalfSend}>
-                                    <div style={styles.addButton} onClick={addShopItem}>
+                                    <div style={styles.addButton} onClick={handleAddShopItems}>
                                         <img 
                                             src={require('../assets/plus-icon-simple.png')} 
                                             alt="Plus Icon" 
@@ -435,7 +395,7 @@ function CreateCampaignPage() {
                                     <input
                                         type="file"
                                         id="fileInput"
-                                        value={shopItem.image}
+                                        value={newShopItem.itemImage}
                                         onChange={handleFileChange}
                                         style={styles.inputfile}
                                         accept="image/*" // Aceitar apenas imagens
@@ -451,21 +411,21 @@ function CreateCampaignPage() {
                                 ) : (
                                     <ul>
                                         {formData.shopItems.map(([name, price, image], index) => (
-                                            <li key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
-                                                <span>{name}</span>
-                                                <span style={{ marginLeft: "10px", fontWeight: "bold" }}>{price}€</span>
+                                            <li key={index} style={{ display: "flex", alignItems: "center", justifyContent: 'flex-start', alignItems: 'center', marginBottom: "10px",  fontSize: "2vh" }}>
+                                                <span style={{ marginLeft: "1vh", fontSize: "3vh", textAlign: 'center'}}> {name} </span>
+                                                <span style={{ marginLeft: "1vh", fontSize: "3vh" }}> {price}€ </span>
                                             </li>
                                         ))}
                                     </ul>
                                 )}
                             </div>
                             
-                            <button type="submit" style={styles.submitButton}>
+                            <button type="submit" style={styles.submitButton} >
                                 Finish
                             </button>
                             </>
                             )}
-                        </form>
+                        </form>  
 
                         
                         { parte3 && (

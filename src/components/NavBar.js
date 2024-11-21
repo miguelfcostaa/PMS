@@ -6,13 +6,17 @@ import MenuButton from '@mui/joy/MenuButton';
 import MenuItem from '@mui/joy/MenuItem';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useSearch } from '../contexts/SearchContext';
 
 // Conexão com o servidor WebSocket
 const socket = io('http://localhost:5000');
 
 function NavBar({ onSearch }) {
+    const navigate = useNavigate();
     const [userId, setUserId] = useState(null); // Para armazenar o userId do localStorage
-    const [searchTerm, setSearchTerm] = useState('');
+    const { setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
+    const [localSearchTerm, setLocalSearchTerm] = useState('');
     const [verificationCompleted, setVerificationCompleted] = useState(false); // Para determinar o estado do perfil (verificado ou não)
     const [notifications, setNotifications] = useState([]); // Lista de notificações
     const [showBanner, setShowBanner] = useState(false); // Para exibir o banner de notificação
@@ -77,7 +81,8 @@ function NavBar({ onSearch }) {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' || e.type === 'click') {
-            onSearch(searchTerm);
+            setSearchTerm(localSearchTerm);
+            navigate('/campaign');
         }
     };
 
@@ -102,8 +107,8 @@ function NavBar({ onSearch }) {
                     placeholder="Search campaigns..."
                     variant="plain"
                     style={style.searchInput}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={localSearchTerm}
+                    onChange={(e) => setLocalSearchTerm(e.target.value)}
                     onKeyDown={handleSearch}
                 />
                 <button style={style.searchButton} onClick={handleSearch}>

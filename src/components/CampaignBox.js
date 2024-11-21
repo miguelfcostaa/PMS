@@ -31,7 +31,7 @@ function CampaignBox({ id, title, description, goal, timeToCompleteGoal, current
                 <span style={style.donated}>of € {goal} </span>
             
                 <div style={style.progressBar}>
-                    <div style={{ ...styles.progress, width: `${Math.min(progressPercentage, 100)}%` }}>
+                    <div style={{ ...style.progress, width: `${Math.min(progressPercentage, 100)}%` }}>
                     </div>
                 </div>
                 <div style={style.progressInfo}>

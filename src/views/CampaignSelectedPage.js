@@ -55,10 +55,6 @@ function CampaignSelectedPage() {
             return;
         }
 
-        if (donation.amount > campaign.goal - campaign.currentAmount) {
-            alert("The donation amount exceeds the campaign goal.");
-            return;
-        }
     
         const newDonation = [ //
             donation.name || "Anonymous",

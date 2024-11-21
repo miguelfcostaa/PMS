@@ -113,7 +113,7 @@ function CampaignSelectedPage() {
                             <span style={styles.donated}>of € {campaign.goal} </span>
                             
                             <div style={styles.progressBar}>
-                                <div style={{ ...styles.progress, width: `${progressPercentage}%` }}>
+                                <div style={{ ...styles.progress, width: `${Math.min(progressPercentage, 100)}%` }}>
                                     {progressPercentage >= 20 && (
                                         <span style={styles.progressNumber}> {progressPercentage}% </span>
                                     )}
@@ -124,15 +124,9 @@ function CampaignSelectedPage() {
                                 <span> {campaign.timeToCompleteGoal} days left </span>
                             </div>
                             <div>
-                                { progressPercentage === 100 ? (
-                                    <div style={styles.donateButtonDisabled} disabled>
-                                        <span> Donate Now </span>
-                                    </div>
-                                ) : (
-                                    <div style={styles.donateButton} onClick={() => setOpen(true)}>
-                                        <span> Donate Now </span>
-                                    </div>
-                                )}
+                                <div style={styles.donateButton} onClick={() => setOpen(true)}>
+                                    <span> Donate Now </span>
+                                </div>
                                 <Drawer 
                                     anchor="right" 
                                     size="600px" 

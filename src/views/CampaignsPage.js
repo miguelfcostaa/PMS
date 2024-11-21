@@ -8,7 +8,7 @@ import { useSearch } from '../contexts/SearchContext';
 function CampaignsPage() {
     const showSearchResults = true;
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const { searchTerm } = useSearch(); // Termo de pesquisa global
+    const { searchTerm, setSearchTerm } = useSearch(); // Termo de pesquisa global
     const [campaigns, setCampaigns] = useState([]);
     const [filteredCampaigns, setFilteredCampaigns] = useState([]);
 
@@ -44,6 +44,11 @@ function CampaignsPage() {
         navigate(`/campaign/${id}`);
     };
 
+    const handleClearSearch = () => {
+        setSearchTerm('');
+    };
+
+
     return (
         <>
             <NavBar />
@@ -56,8 +61,8 @@ function CampaignsPage() {
                         <div style={styles.selectedCategories}>
                             {searchTerm && (
                                 <span style={styles.categorieSelected}>
-                                    <img src={require('../assets/search-icon.png')}  alt="Search Icon" style={styles.searchIcon} />
                                     {searchTerm}
+                                    <img src={require('../assets/close-icon.png')}  alt="Close Icon" style={styles.searchIcon} onClick={() => handleClearSearch()}/>
                                 </span>
                             )}
                             {selectedCategories.map((category, index) => (
@@ -133,9 +138,10 @@ const styles = {
         marginBottom: 30,
     },
     searchIcon: {
-        width: 20,
-        height: 20,
-        marginRight: 10,
+        width: 22,
+        height: 22,
+        marginLeft: 10,
+        cursor: 'pointer',
     },
 };
 

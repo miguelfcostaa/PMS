@@ -15,7 +15,7 @@ const socket = io('http://localhost:5000');
 function NavBar({ onSearch }) {
     const navigate = useNavigate();
     const [userId, setUserId] = useState(null); // Para armazenar o userId do localStorage
-    const { setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
+    const { searchTerm, setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
     const [localSearchTerm, setLocalSearchTerm] = useState('');
     const [verificationCompleted, setVerificationCompleted] = useState(false); // Para determinar o estado do perfil (verificado ou não)
     const [notifications, setNotifications] = useState([]); // Lista de notificações
@@ -107,8 +107,8 @@ function NavBar({ onSearch }) {
                     placeholder="Search campaigns..."
                     variant="plain"
                     style={style.searchInput}
-                    value={localSearchTerm}
-                    onChange={(e) => setLocalSearchTerm(e.target.value)}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleSearch}
                 />
                 <button style={style.searchButton} onClick={handleSearch}>

@@ -21,6 +21,11 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Time to complete goal must be a positive number' });
         }
 
+        const userId = req.body.creator; // Certifique-se de que o ID do usuário está vindo na requisição
+
+        if (!userId) {
+            return res.status(400).json({ error: 'Creator ID is required' });
+        }
 
         console.log('Creating new campaign...');
         const newCampaign = new Campaign({
@@ -33,22 +38,24 @@ router.post('/create-campaign', async (req, res) => {
             bankAccount,
             category,
             currentAmount: 0,
-            image, 
+            image,
             donators: [],
             shopItems,
+            creator: userId, // Adiciona o criador
         });
 
         console.log('Saving campaign...');
         await newCampaign.save();
 
         console.log('Campaign registered successfully:', newCampaign);
-        res.status(201).json(newCampaign); 
+        res.status(201).json(newCampaign);
 
     } catch (err) {
         console.error('Error during registration:', err);
         res.status(500).json({ error: 'Failed to create campaign: ' + err.message });
     }
 });
+
 
 router.get('/all-campaigns', async (req, res) => {
     try {
@@ -78,14 +85,20 @@ router.get('/get-campaign/:id', async (req, res) => {
 
 router.post('/donate/:id', async (req, res) => {
     const { id } = req.params;
-    const { donation } = req.body;
+    const { userId, donationDetails } = req.body;
 
     try {
         const campaign = await Campaign.findById(id);
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-        campaign.donators.push(donation);
-        campaign.currentAmount += donation[1];
+        // Salvar o doador com `userId`
+        campaign.donators.push({
+            userId: userId,
+            donationDetails: donationDetails,
+        });
+
+        // Atualizar o valor arrecadado
+        campaign.currentAmount += donationDetails[1];
 
         await campaign.save();
         res.json(campaign);
@@ -94,6 +107,9 @@ router.post('/donate/:id', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+
+
+
 
 
 module.exports = router;

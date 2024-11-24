@@ -1,12 +1,5 @@
 const mongoose = require('mongoose');
 
-const documentSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    type: { type: String, required: true },
-    content: { type: String, required: true } // Será uma string Base64
-});
-
-
 const campaignSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -17,12 +10,19 @@ const campaignSchema = new mongoose.Schema({
     bankAccount: { type: String, required: true },
     category: { type: String, required: true },
     currentAmount: { type: Number, default: 0 },
-    image: { type: Buffer, required: false }, 
-    contentType: { type: String, required: false }, 
-    donators: { type: Array, default: [] },
+    image: { type: Buffer, required: false },
+    contentType: { type: String, required: false },
+    donators: [
+        {
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            donationDetails: { type: Array, default: [] },
+        },
+    ],
     shopItems: { type: Array, default: [] },
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Criador da campanha
 }, { timestamps: true });
 
 const Campaign = mongoose.model('Campaign', campaignSchema);
 
 module.exports = Campaign;
+

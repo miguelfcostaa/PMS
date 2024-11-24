@@ -3,9 +3,12 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const verifyUser = require('../verificationJob'); // Função de verificação
+const mongoose = require('mongoose');
+
 
 const router = express.Router();
 
+// Rota de registo
 router.post('/register', async (req, res) => {
     try {
         const { firstName, lastName, email, password, TIN, passportNumber, documents } = req.body;
@@ -42,6 +45,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Rota de login
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -68,6 +72,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Rota para obter notificações
 router.get('/notifications/:userId', async (req, res) => {
     const { userId } = req.params;
 
@@ -99,4 +104,49 @@ router.get('/notifications/:userId', async (req, res) => {
     }
 });
 
+// Rota para atualizar informações do utilizador
+router.put('/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const updates = req.body;
+
+    try {
+        const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user); // Retorna o utilizador atualizado
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    console.log(`Received request to fetch user with ID: ${userId}`);
+
+    // Verificar se o ID é válido
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.error(`Invalid user ID format: ${userId}`);
+        return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            console.error(`User not found for ID: ${userId}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log(`User found: ${user}`);
+        res.json(user);
+    } catch (error) {
+        console.error(`Error fetching user data for ID ${userId}: ${error.message}`);
+        res.status(500).json({ message: 'Error fetching user data', error: error.message });
+    }
+});
+
 module.exports = router;
+

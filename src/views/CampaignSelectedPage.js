@@ -6,7 +6,6 @@ import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
 
 function CampaignSelectedPage() {
-
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
     const [open, setOpen] = useState(false);
@@ -19,7 +18,7 @@ function CampaignSelectedPage() {
 
     useEffect(() => {
         const fetchCampaign = async () => {
-            try { 
+            try {
                 const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`);
                 if (response.ok) {
                     const data = await response.json();
@@ -35,9 +34,7 @@ function CampaignSelectedPage() {
         fetchCampaign();
     }, [id]);
 
-
     const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -55,22 +52,24 @@ function CampaignSelectedPage() {
             return;
         }
 
-    
-        const newDonation = [ //
+        const newDonation = [
             donation.name || "Anonymous",
             parseFloat(donation.amount),
             donation.comment || ""
         ];
-    
+
         try {
             const response = await fetch(`http://localhost:5000/api/campaign/donate/${id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ donation: newDonation }),
+                body: JSON.stringify({
+                    userId: localStorage.getItem('userId'), // Enviar o ID do utilizador
+                    donationDetails: newDonation, // Detalhes da doação
+                }),
             });
-    
+
             if (response.ok) {
                 const updatedCampaign = await response.json();
                 setCampaign(updatedCampaign);
@@ -83,60 +82,68 @@ function CampaignSelectedPage() {
                     amount: "",
                     comment: "",
                 });
-            } 
-            else {
+            } else {
                 console.error("Erro ao processar doação:", response.status);
             }
-        } 
-        catch (error) {
+        } catch (error) {
             console.error("Erro de conexão ao servidor:", error);
         }
     };
 
-    
     return (
         <>
             <NavBar />
             <SideBar />
             <div style={styles.mainContent}>
                 <div style={styles.container}>
-                    
                     <span style={styles.title}>{campaign.title}</span>
                     <div style={styles.imageAndDonate}>
-                        <img src={require('../assets/image.png')}  alt="Imagem da campanha" style={styles.image} />
+                        <img
+                            src={require('../assets/image.png')}
+                            alt="Imagem da campanha"
+                            style={styles.image}
+                        />
                         <div style={styles.donateBox}>
                             <span style={styles.currentAmount}> € {campaign.currentAmount} </span>
                             <span style={styles.donated}>of € {campaign.goal} </span>
-                            
+
                             <div style={styles.progressBar}>
-                                <div style={{ ...styles.progress, width: `${Math.min(progressPercentage, 100)}%` }}>
+                                <div
+                                    style={{
+                                        ...styles.progress,
+                                        width: `${Math.min(progressPercentage, 100)}%`,
+                                    }}
+                                >
                                     {progressPercentage >= 20 && (
                                         <span style={styles.progressNumber}> {progressPercentage}% </span>
                                     )}
                                 </div>
                             </div>
-                            
+
                             <div style={styles.timeToGoal}>
                                 <span> {campaign.timeToCompleteGoal} days left </span>
                             </div>
                             <div>
-                                <div style={styles.donateButton} onClick={() => setOpen(true)}>
+                                <div
+                                    style={styles.donateButton}
+                                    onClick={() => setOpen(true)}
+                                >
                                     <span> Donate Now </span>
                                 </div>
-                                <Drawer 
-                                    anchor="right" 
-                                    size="600px" 
-                                    open={open} 
-                                    onClose={() => setOpen(false)} 
-                                    backdropProps={{ onClick: () => setOpen(false) }} 
-                                    color='#E8E8E8'
+                                <Drawer
+                                    anchor="right"
+                                    size="600px"
+                                    open={open}
+                                    onClose={() => setOpen(false)}
+                                    backdropProps={{ onClick: () => setOpen(false) }}
+                                    color="#E8E8E8"
                                 >
-                                    <ModalClose  onClick={() => setOpen(false)} />
-                                    
+                                    <ModalClose onClick={() => setOpen(false)} />
+
                                     <div style={styles.drawerContainer}>
                                         <span style={styles.drawerTitle}> Donation </span>
 
-                                        <label style={styles.label} >Name (not mandatory): </label>
+                                        <label style={styles.label}>Name (not mandatory): </label>
                                         <input
                                             type="text"
                                             name="name"
@@ -145,7 +152,7 @@ function CampaignSelectedPage() {
                                             style={styles.input}
                                         />
 
-                                        <label style={styles.label} >Amount: </label>
+                                        <label style={styles.label}>Amount: </label>
                                         <input
                                             type="number"
                                             name="amount"
@@ -155,7 +162,7 @@ function CampaignSelectedPage() {
                                             required
                                         />
 
-                                        <label style={styles.label} >Message: </label>
+                                        <label style={styles.label}>Message: </label>
                                         <textarea
                                             name="comment"
                                             value={donation.comment}
@@ -164,17 +171,19 @@ function CampaignSelectedPage() {
                                             required
                                         />
 
-                                        <button type="button" onClick={handleDonation} style={styles.donationButton}>
+                                        <button
+                                            type="button"
+                                            onClick={handleDonation}
+                                            style={styles.donationButton}
+                                        >
                                             Donate
                                         </button>
                                         {donationCompleted && (
                                             <span style={styles.donationCompleted}>
                                                 Donation completed!
-                                            </span> 
+                                            </span>
                                         )}
-                                        
                                     </div>
-                                    
                                 </Drawer>
                             </div>
                             <div style={styles.shareCampaign}>
@@ -184,7 +193,6 @@ function CampaignSelectedPage() {
                     </div>
                     <div style={styles.contactAndDonationsFlex}>
                         <div style={styles.contactAndOther}>
-
                             <div style={styles.contactAndCategory}>
                                 <div style={styles.contact}>
                                     <span> Contact Details: {campaign.contact} </span>
@@ -197,7 +205,11 @@ function CampaignSelectedPage() {
                             <div style={styles.line}></div>
 
                             <div style={styles.personInfo}>
-                                <img src={require('../assets/image.png')}  alt="Imagem da campanha" style={styles.personImage} />
+                                <img
+                                    src={require('../assets/image.png')}
+                                    alt="Imagem da campanha"
+                                    style={styles.personImage}
+                                />
                                 <div style={styles.namePerson}>
                                     <span> Created by: </span>
                                     <span> {campaign.nameBankAccount} </span>
@@ -217,7 +229,6 @@ function CampaignSelectedPage() {
                                 <span> {campaign.description} </span>
                             </div>
                         </div>
-                        
 
                         <div style={styles.donationsBox}>
                             <span style={styles.donationsTitle}> Donations </span>
@@ -226,23 +237,28 @@ function CampaignSelectedPage() {
                                     campaign.donators.map((donater, index) => (
                                         <>
                                             <div key={index} style={styles.donators}>
-
                                                 <div style={styles.nameAndComment}>
-                                                    <span style={styles.donaterName}> {donater[0]} </span>
-                                                    <span style={styles.donaterComment}> {donater[2]} </span>
+                                                    <span style={styles.donaterName}>
+                                                        {donater.donationDetails[0]}
+                                                    </span>
+                                                    <span style={styles.donaterComment}>
+                                                        {donater.donationDetails[2]}
+                                                    </span>
                                                 </div>
                                                 <div style={styles.ammountDonated}>
-                                                    <span> € {donater[1]} </span>
+                                                    <span> € {donater.donationDetails[1]} </span>
                                                 </div>
-                                                
                                             </div>
-                                            {index < campaign.donators.length - 1 && <div style={styles.line2}></div>}
+                                            {index < campaign.donators.length - 1 && (
+                                                <div style={styles.line2}></div>
+                                            )}
                                         </>
-                                        
                                     ))
                                 ) : (
                                     <div style={styles.donatorsFlex}>
-                                        <span style={{ fontSize: 18, opacity: 0.6 }}>No donations made yet.</span>
+                                        <span style={{ fontSize: 18, opacity: 0.6 }}>
+                                            No donations made yet.
+                                        </span>
                                     </div>
                                 )}
                             </div>

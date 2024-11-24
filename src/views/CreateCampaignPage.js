@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import NavBar from '../components/NavBar';
 
 function CreateCampaignPage() {
+    const userId = localStorage.getItem('userId');
+
     const [parte1, setParte1] = useState(true);
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
@@ -30,8 +32,6 @@ function CreateCampaignPage() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-
-        // Converter valores numéricos, se necessário
         const numericFields = ['goal', 'timeToCompleteGoal', 'bankAccount'];
         setFormData({
             ...formData,
@@ -43,57 +43,72 @@ function CreateCampaignPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        if (formData.goal <= 0) {
-            alert('Goal must be a positive number.');
-            return;
-        }
-
-        if (formData.timeToCompleteGoal <= 0) {
-            alert('Time to complete goal must be a positive number.');
-            return;
-        }
-
-        if (parte2 === false){
+        // Validação de campos obrigatórios
+        if (parte1) {
+            if (!formData.title || !formData.description || !formData.goal || !formData.timeToCompleteGoal || !formData.contact || !formData.nameBankAccount || !formData.bankAccount || !formData.category) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+    
+            if (formData.goal <= 0) {
+                alert('Goal must be a positive number.');
+                return;
+            }
+    
+            if (formData.timeToCompleteGoal <= 0) {
+                alert('Time to complete goal must be a positive number.');
+                return;
+            }
+    
+            // Passa para a próxima parte do formulário
             setParte1(false);
             setParte2(true);
-            setParte3(false);     
-        }
-        else if (parte2 === true){
+            setParte3(false);
+        } else if (parte2) {
             try {
+                // Converte as imagens selecionadas para Base64
                 const images = await Promise.all(
                     selectedFiles.map((file) => convertFileToBase64(file))
                 );
-
+    
+                // Prepara os dados finais para envio
                 const finalData = { 
                     ...formData, 
-                    image: images, 
-                    shopItems: formData.shopItems, // Inclui os itens da loja aqui
+                    image: images.length > 0 ? images[0] : null, 
+                    shopItems: formData.shopItems, // Inclui os itens da loja
+                    creator: localStorage.getItem('userId'), // Adiciona o criador automaticamente
                 };
-        
+    
+                console.log("Data being sent to the server:", finalData); // Verifica os dados
+    
+                // Envia os dados para o backend
                 const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Certifique-se de que o token está armazenado
                     },
                     body: JSON.stringify(finalData),
                 });
-        
-                if (response.status === 201) {
-                    alert('Campaign created successfully!');
-                    setParte1(false);
-                    setParte2(false);
-                    setParte3(true);
-
-                } else {
-                    const data = await response.json();
-                    alert(data.message || 'Erro ao criar a campanha.');
+    
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Error creating campaign:", errorData);
+                    alert(errorData.error || "Failed to create campaign");
+                    return;
                 }
+    
+                alert('Campaign created successfully!');
+                setParte1(false);
+                setParte2(false);
+                setParte3(true); // Avança para a terceira parte
             } catch (err) {
-                console.error(err.message);
-                alert('Erro ao criar a campanha.');
+                console.error("Unexpected error creating campaign:", err.message);
+                alert('Unexpected error creating campaign.');
             }
         }
     };
+    
 
     const handleInputChangeStore = (e) => {
         const { name, value } = e.target;

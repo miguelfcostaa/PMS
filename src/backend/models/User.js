@@ -13,15 +13,15 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     TIN: { type: String },
     passportNumber: { type: String, required: true },
+    IBAN: { type: String, default: '' }, 
     role: { 
         type: String, 
         enum: ['doador', 'criador/doador', 'admin'], 
         default: 'doador'
     },
     documents: [documentSchema],
-    notificationSeen: { type: Boolean, default: false }, // Novo campo para rastrear a notificação
+    notificationSeen: { type: Boolean, default: false },
 }, { timestamps: true });
-
 
 const User = mongoose.model('User', userSchema);
 

@@ -20,6 +20,7 @@ const campaignSchema = new mongoose.Schema({
     ],
     shopItems: { type: Array, default: [] },
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Criador da campanha
+    coin: { type: [String], required: true, },
 }, { timestamps: true });
 
 const Campaign = mongoose.model('Campaign', campaignSchema);

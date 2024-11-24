@@ -4,10 +4,12 @@ import SideBar from '../components/SideBar';
 import CampaignBox from '../components/CampaignBox';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../contexts/SearchContext';
+import { useCategories } from '../contexts/CategoryContext';
 
 function CampaignsPage() {
+    
     const showSearchResults = true;
-    const [selectedCategories, setSelectedCategories] = useState([]);
+    const { selectedCategories } = useCategories(); 
     const { searchTerm, setSearchTerm } = useSearch(); // Termo de pesquisa global
     const [campaigns, setCampaigns] = useState([]);
     const [filteredCampaigns, setFilteredCampaigns] = useState([]);
@@ -52,11 +54,11 @@ function CampaignsPage() {
     return (
         <>
             <NavBar />
-            <SideBar onCategorySelect={setSelectedCategories} />
+            <SideBar />
             <div style={styles.mainContent}>
                 {showSearchResults && (searchTerm || selectedCategories.length > 0) && (
                     <>
-                        <h1 id="search-results-title">Resultados da Pesquisa</h1>
+                        <h1 id="search-results-title">Search Results</h1>
 
                         <div style={styles.selectedCategories}>
                             {searchTerm && (

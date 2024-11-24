@@ -13,6 +13,7 @@ import CampaignSelectedPage from './views/CampaignSelectedPage';
 import RoulettePage from './views/RoulettePage';
 import Challenges from './views/Challenges';
 import { SearchProvider } from './contexts/SearchContext';
+import { CategoryProvider } from './contexts/CategoryContext';
 
 
 function BackgroundColorWrapper({ children }) {
@@ -34,6 +35,7 @@ function App() {
   return (
     <Router>
       <SearchProvider>
+      <CategoryProvider>
       <BackgroundColorWrapper>
         <Routes>
           <Route path="/" element={<WelcomePage />} />
@@ -50,6 +52,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </BackgroundColorWrapper>
+      </CategoryProvider>
       </SearchProvider>
     </Router>
   );

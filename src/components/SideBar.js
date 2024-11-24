@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useCategories } from '../contexts/CategoryContext';
 
-function SideBar({ onCategorySelect }) {
-    const [selectedCategories, setSelectedCategories] = useState([]);
+function SideBar() {
+    const { selectedCategories, setSelectedCategories } = useCategories();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const navigate = useNavigate();
 
     const toggleCategory = (category) => {
         setSelectedCategories((prevSelected) => {
@@ -11,9 +13,9 @@ function SideBar({ onCategorySelect }) {
                 ? prevSelected.filter((cat) => cat !== category)
                 : [...prevSelected, category];
 
-            onCategorySelect(updatedCategories); 
             return updatedCategories;
         });
+        navigate('/campaign');
     };
 
     const location = useLocation();

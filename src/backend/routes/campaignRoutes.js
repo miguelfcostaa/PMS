@@ -7,7 +7,7 @@ router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems } = req.body;
+        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
 
         if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category ) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -42,6 +42,7 @@ router.post('/create-campaign', async (req, res) => {
             donators: [],
             shopItems,
             creator: userId, // Adiciona o criador
+            coin,
         });
 
         console.log('Saving campaign...');

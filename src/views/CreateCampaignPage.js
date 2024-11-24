@@ -7,7 +7,6 @@ function CreateCampaignPage() {
     const [parte1, setParte1] = useState(true);
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
-    const [selectedFiles, setSelectedFiles] = useState([]);
     const [formData, setFormData] = useState({
         id: '',
         title: '',
@@ -22,6 +21,7 @@ function CreateCampaignPage() {
         image: '',
         donators: [],
         shopItems: [],
+        coin: ['', ''],
     });
     const [newShopItem, setNewShopItem] = useState({
         itemName: "",
@@ -59,24 +59,27 @@ function CreateCampaignPage() {
                 alert('Time to complete goal must be a positive number.');
                 return;
             }
+
+            if (!formData.coin[0] || !formData.coin[1]) {
+                alert('Please provide both a name and an image for the campaign coin.');
+                return;
+            }
+
     
             // Passa para a próxima parte do formulário
             setParte1(false);
             setParte2(true);
             setParte3(false);
-        } else if (parte2) {
+        } 
+        else if (parte2) {
             try {
-                // Converte as imagens selecionadas para Base64
-                const images = await Promise.all(
-                    selectedFiles.map((file) => convertFileToBase64(file))
-                );
     
                 // Prepara os dados finais para envio
                 const finalData = { 
                     ...formData, 
-                    image: images.length > 0 ? images[0] : null, 
                     shopItems: formData.shopItems, // Inclui os itens da loja
                     creator: localStorage.getItem('userId'), // Adiciona o criador automaticamente
+                    coin: formData.coin, // Inclui a moeda
                 };
     
                 console.log("Data being sent to the server:", finalData); // Verifica os dados
@@ -130,31 +133,34 @@ function CreateCampaignPage() {
                     [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage || ''],
                 ],
             });
-    
         }
     };
 
 
-    const handleFileChange = (event) => {
-        const files = Array.from(event.target.files);
-        setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+    const handleFileChange = (e, type) => {
+        const file = e.target.files[0];
+        if (file) {
+            convertFileToBase64(file).then((base64) => {
+                if (type === 'campaign') {
+                    setFormData({ ...formData, image: base64 });
+                } else if (type === 'coin') {
+                    const newCoin = [...formData.coin];
+                    newCoin[1] = base64;
+                    setFormData({ ...formData, coin: newCoin });
+                }
+            }).catch((err) => console.error("Error converting file to Base64:", err));
+        }
     };
 
-    const handleClick = () => {
-        document.getElementById('fileInput').click();
-    };
 
     // Converter ficheiro para Base64
     const convertFileToBase64 = (file) => {
-        new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => {
-                console.log('Base64 string:', reader.result);
-                resolve(reader.result);
-            };
+            reader.onload = () => resolve(reader.result);
             reader.onerror = (error) => reject(error);
-        })
+        });
     };
     
 
@@ -294,16 +300,15 @@ function CreateCampaignPage() {
 
                             <h1>Media</h1>
                             {/* Campaign Image */}
-                            <div style={styles.inputContainer}>
-                                    <label style={styles.label}>
-                                        Campaign Image:
-                                    </label>
-                                    <div style={styles.inputImage} onClick={handleClick}>
-                                        {selectedFiles.length > 0 ? (
+                            <div style={styles.rowContainer}>
+                                <div style={styles.inputHalf}>
+                                    <label style={styles.label}>Campaign Image:</label>
+                                    <div style={styles.inputImage} onClick={() => document.getElementById('campaignFileInput').click()}>
+                                        {formData.image ? (
                                             <img
-                                                src={URL.createObjectURL(selectedFiles[0])}
-                                                alt="Selected"
-                                                style={{ maxWidth: '50%', maxHeight: '140' }}
+                                                src={formData.image}
+                                                alt="Campaign"
+                                                style={{ maxWidth: '50%', maxHeight: '140px' }}
                                             />
                                         ) : (
                                             <>
@@ -312,26 +317,79 @@ function CreateCampaignPage() {
                                                     alt="Upload Icon" 
                                                     style={styles.uploadIcon} 
                                                 />
-                                                <span style={styles.uploadTextPrimary}>Upload File</span><br />
-
+                                                <span style={styles.uploadTextPrimary}>Upload File</span>
                                             </>
                                         )}
-                                    {selectedFiles.length > 0 && (
-                                        <button onClick={() => setSelectedFiles([])} style={styles.removeButton}>
-                                            x
-                                        </button>
-                                    )}
+                                        {formData.image && (
+                                            <button onClick={() => setFormData({ ...formData, image: null })} style={styles.removeButton}>
+                                                x
+                                            </button>
+                                        )}
                                     </div>
                                     <input
                                         type="file"
-                                        id="fileInput"
-                                        value={formData.image}
-                                        onChange={handleFileChange}
+                                        id="campaignFileInput"
+                                        accept="image/*"
+                                        onChange={(e) => handleFileChange(e, 'campaign')}
                                         style={styles.inputfile}
-                                        accept="image/*" // Aceitar apenas imagens
-                                        multiple={false} // Apenas um ficheiro permitido
                                     />
+                                </div>
+
+                                {/* Imagem da Moeda */}
+                                <div style={styles.inputHalf}>
+                                    <label style={styles.label}>Coin Name:</label>
+                                    <input
+                                        type="text"
+                                        name="coinName"
+                                        value={formData.coin[0]}
+                                        onChange={(e) => {
+                                            const newCoin = [...formData.coin];
+                                            newCoin[0] = e.target.value;
+                                            setFormData({ ...formData, coin: newCoin });
+                                        }}
+                                        style={styles.input}
+                                        required
+                                    />
+                                    <label style={styles.label}>Coin Image:</label>
+                                    <div style={styles.inputCoinImage} onClick={() => document.getElementById('coinFileInput').click()}>
+                                        {formData.coin[1] ? (
+                                            <img
+                                                src={formData.coin[1]}
+                                                alt="Coin"
+                                                style={{ maxWidth: '50%', maxHeight: '140px' }}
+                                            />
+                                        ) : (
+                                            <>
+                                                <img 
+                                                    src={require('../assets/upload-icon.png')} 
+                                                    alt="Upload Icon" 
+                                                    style={styles.uploadIcon} 
+                                                />
+                                                <span style={styles.uploadTextPrimary}>Upload Coin Image</span>
+                                            </>
+                                        )}
+                                        {formData.coin[1] && (
+                                            <button onClick={() => {
+                                                const newCoin = [...formData.coin];
+                                                newCoin[1] = null;
+                                                setFormData({ ...formData, coin: newCoin });
+                                                }} 
+                                                style={styles.removeButton}
+                                            >
+                                                    x
+                                            </button>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        id="coinFileInput"
+                                        accept="image/*"
+                                        onChange={(e) => handleFileChange(e, 'coin')}
+                                        style={styles.inputfile}
+                                    />
+                                </div>
                             </div>
+
                             <button type="submit" style={styles.submitButton}>
                                 Next
                             </button>
@@ -426,7 +484,7 @@ function CreateCampaignPage() {
                                 ) : (
                                     <ul>
                                         {formData.shopItems.map(([name, price, image], index) => (
-                                            <li key={index} style={{ display: "flex", alignItems: "center", justifyContent: 'flex-start', alignItems: 'center', marginBottom: "10px",  fontSize: "2vh" }}>
+                                            <li key={index} style={{ display: "flex", alignItems: "center", justifyContent: 'flex-start', marginBottom: "10px",  fontSize: "2vh" }}>
                                                 <span style={{ marginLeft: "1vh", fontSize: "3vh", textAlign: 'center'}}> {name} </span>
                                                 <span style={{ marginLeft: "1vh", fontSize: "3vh" }}> {price}€ </span>
                                             </li>
@@ -434,10 +492,16 @@ function CreateCampaignPage() {
                                     </ul>
                                 )}
                             </div>
+                            <div style={styles.buttonsFlex}>
+                                <button type="button" onClick={() => { setParte1(true); setParte2(false); }} style={styles.backButton} >
+                                    Back
+                                </button>
+                                
                             
-                            <button type="submit" style={styles.submitButton} >
-                                Finish
-                            </button>
+                                <button type="submit" style={styles.submitButton} >
+                                    Finish
+                                </button>
+                            </div>
                             </>
                             )}
                         </form>  
@@ -559,8 +623,26 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '50%',
+        width: '100%',
         height: 250,
+        marginTop: 10,
+        paddingTop: '50px',
+        paddingBottom: '50px',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    inputCoinImage: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '107%',
+        height: "15.5vh",
         marginTop: 10,
         paddingTop: '50px',
         paddingBottom: '50px',
@@ -599,8 +681,30 @@ const styles = {
         cursor: 'pointer',
         marginTop: 10,
     },
+    buttonsFlex: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
     submitButton: {
-        width: '50%',
+        justifyContent: 'flex-end',
+        width: '40%',
+        height: '55px',
+        backgroundColor: '#393939',
+        padding: '10px 20px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 15,
+        fontSize: 22,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginBottom: '60px',
+        marginTop: '20px',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+    },
+    backButton: {
+        width: '40%',
         height: '55px',
         backgroundColor: '#393939',
         padding: '10px 20px',
@@ -638,10 +742,12 @@ const styles = {
     listOfItems: {
         display: 'flex',
         flexDirection: 'column',
-        width: '100%',
+        width: '97.7%',
         height: 250,
         marginTop: 10,
-        padding: 20,
+        paddingLeft: 20,
+        paddingTop: 20,
+        paddingBottom: 20,
         fontSize: '2vh',
         borderRadius: '1vh',
         backgroundColor: '#EFEFEF',

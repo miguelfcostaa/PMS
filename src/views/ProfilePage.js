@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
-import CampaignBox from '../components/CampaignBox'; // Import do componente de campanhas
+import CampaignBox from '../components/CampaignBox'; 
 import axios from 'axios';
 
 function ProfilePage() {
@@ -147,8 +147,9 @@ function ProfilePage() {
                             {['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN'].map(
                                 (field) => (
                                     <div key={field} style={styles.fieldRow}>
-                                        <h4 style={styles.fieldLabel}>
-                                            {field.replace(/([A-Z])/g, ' $1').toUpperCase()}
+
+                                        <h4 style={styles.label}>
+                                            {field.replace(/([A-Z])/, ' $1').trim().toLowerCase().replace(/(^\w|\s\w)/g, (match) => match.toUpperCase())}
                                         </h4>
                                         <div style={styles.inputContainer}>
                                             {editingField === field ? (
@@ -170,7 +171,11 @@ function ProfilePage() {
                                                 </span>
                                             )}
                                             <button onClick={() => handleEdit(field)} style={styles.editButton}>
-                                                ✏️
+                                                <img 
+                                                    src={require('../assets/edit-icon.png')}
+                                                    style={styles.editIcon}
+                                                    alt="Edit" 
+                                                />
                                             </button>
                                         </div>
                                     </div>
@@ -179,12 +184,15 @@ function ProfilePage() {
                         </div>
                     </div>
 
+                    <hr style={styles.separator} />
+
                     {/* Minhas campanhas */}
                     <div style={styles.campaignsSection}>
                         <h2 style={styles.sectionTitle}>My Campaigns</h2>
                         <div style={styles.campaignsContainer}>
                             {myCampaigns.length > 0 ? (
                                 myCampaigns.map(campaign => (
+                                    <div style={styles.campaignShadow}>
                                     <CampaignBox
                                         key={campaign._id}
                                         id={campaign._id}
@@ -195,6 +203,7 @@ function ProfilePage() {
                                         currentAmount={campaign.currentAmount}
                                         nameBankAccount={campaign.nameBankAccount}
                                     />
+                                    </div>
                                 ))
                             ) : (
                                 <p style={styles.noCampaignsMessage}>You haven't created any campaigns yet.</p>
@@ -202,12 +211,15 @@ function ProfilePage() {
                         </div>
                     </div>
 
+                    <hr style={styles.separator} />
+
                     {/* Campanhas doadas */}
                     <div style={styles.campaignsSection}>
                         <h2 style={styles.sectionTitle}>Campaigns that I Donated</h2>
                         <div style={styles.campaignsContainer}>
                             {donatedCampaigns.length > 0 ? (
                                 donatedCampaigns.map(campaign => (
+                                    <div style={styles.campaignShadow}>
                                     <CampaignBox
                                         key={campaign._id}
                                         id={campaign._id}
@@ -218,6 +230,7 @@ function ProfilePage() {
                                         currentAmount={campaign.currentAmount}
                                         nameBankAccount={campaign.nameBankAccount}
                                     />
+                                    </div>
                                 ))
                             ) : (
                                 <p style={styles.noCampaignsMessage}>You haven't donated to any campaigns yet.</p>
@@ -264,9 +277,10 @@ const styles = {
         color: '#333',
     },
     verificationStatus: {
-        padding: '0.7vh 2.7vw',
+        padding: '1.2vh 2.7vw',
         color: '#fff',
         borderRadius: '30px',
+        fontSize: "2vh",
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -287,6 +301,7 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'flex-start', // Alinha no mesmo eixo que "Profile"
         gap: '2vh',
+        margin: '4vh 0',
     },
     profilePicture: {
         position: 'relative',
@@ -324,35 +339,49 @@ const styles = {
         width: '12vw', // Alinhado com o tamanho da foto de perfil
         height: '12.5vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        marginTop: '3vh',
     },
     coinsTitle: {
-        fontSize: '1.2rem',
+        fontSize: '1.5rem',
         color: '#333',
         fontWeight: 'bold',
+        marginTop: '10vh',
     },
     profileRight: {
         flex: 3,
         display: 'flex',
         flexDirection: 'column',
-       
+        marginBottom: "7vh",
     },
     fieldRow: {
         display: 'flex',
         flexDirection: 'column',
+
     },
-    fieldLabel: {
-        fontWeight: 'bold',
-        color: '#000', // Preto para os títulos
+    label: {
+        fontSize: 22,
+        font: 'Inter',
+        width: '100%',
     },
     inputContainer: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#EFEFEF',
-        padding: '0.2vh',
-        borderRadius: '5px',
-        boxShadow: '0 6px 8px rgba(0, 0, 0, 0.1)',
+        padding: '1.5vh',
+        borderRadius: '1vh',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        fontSize: '2vh',
+        outline: 'none',
+    },
+    input: {
+        border: 'none',
+        background: '#fff',
+        fontSize: '2vh',
+        padding: '1vh',
+        color: '#333',
+        outline: 'none',
+        width: '100%',
+        borderRadius: '1vh',
     },
     fieldValue: {
         color: '#333',
@@ -367,12 +396,12 @@ const styles = {
     },
 
     campaignsSection: {
-        marginTop: '4vh',
+        marginTop: '7vh',
     },
     sectionTitle: {
-        fontSize: '1.5rem',
+        fontSize: '2rem',
         fontWeight: 'bold',
-        marginBottom: '2vh',
+        marginBottom: '4vh',
         color: '#333',
     },
     campaignsContainer: {
@@ -381,9 +410,19 @@ const styles = {
         gap: '2vw', // Espaçamento entre as campanhas
         padding: '1vh 0', // Espaçamento interno para a área de campanhas
     },
+    campaignShadow: {
+        marginLeft: '1vw',
+        boxShadow: '0px 1px 8px 1px rgba(0, 0, 0, 0.25)',
+        marginBottom: '7vh',
+        borderRadius: 10,
+    },
     noCampaignsMessage: {
         fontSize: '1rem',
         color: '#666',
+    },
+    editIcon: {
+        width: '1vw',
+        height: '1vw',
     },
 };
 

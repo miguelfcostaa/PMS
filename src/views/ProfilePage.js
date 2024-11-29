@@ -252,12 +252,12 @@ const styles = {
     },
     contentContainer: {
         display: 'flex',
-        marginTop: '12.5vh', // Ajuste para a Navbar
+        marginTop: '12vh', // Ajuste para a Navbar
         marginRight: '1vw', // Espaçamento à direita alinhado
     },
     profileContainer: {
         marginLeft: '15%', // Espaçamento da Sidebar
-        padding: '2vh 5vw',
+        padding: '2vh 4vw',
         flex: 1,
         borderRadius: '10px',
         backgroundColor: '#fff',
@@ -272,14 +272,13 @@ const styles = {
         alignItems: 'center',
     },
     title: {
-        fontSize: '2rem',
+        fontSize: '1.8 vh',
         fontWeight: 'bold',
-        color: '#333',
     },
     verificationStatus: {
-        padding: '1.2vh 2.7vw',
+        padding: '0.7vh 2.3vw',
         color: '#fff',
-        borderRadius: '30px',
+        borderRadius: '3vh',
         fontSize: "2vh",
         fontWeight: 'bold',
         textAlign: 'center',
@@ -288,7 +287,7 @@ const styles = {
         border: '0',
         height: '1px',
         background: '#A8A8A8',
-        margin: '2vh 0',
+        margin: '1vh 0',
     },
     profileBody: {
         display: 'flex',
@@ -300,8 +299,8 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start', // Alinha no mesmo eixo que "Profile"
-        gap: '2vh',
-        margin: '4vh 0',
+        gap: '1vh',
+        margin: '3vh 0',
     },
     profilePicture: {
         position: 'relative',
@@ -327,30 +326,31 @@ const styles = {
         width: '2.5vw',
         height: '2.5vw',
         cursor: 'pointer',
-        fontSize: '1.5rem',
+        fontSize: '1.5vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        
     },
     coinsContainer: {
         backgroundColor: '#f9f9f9',
         padding: '1.5vw',
-        borderRadius: '10px',
+        borderRadius: '1vh',
         width: '12vw', // Alinhado com o tamanho da foto de perfil
-        height: '12.5vw',
+        height: '10vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
     },
     coinsTitle: {
-        fontSize: '1.5rem',
+        fontSize: '2.5vh',
         color: '#333',
         fontWeight: 'bold',
-        marginTop: '10vh',
+        marginTop: '2vh',
     },
     profileRight: {
         flex: 3,
         display: 'flex',
         flexDirection: 'column',
-        marginBottom: "7vh",
+        marginBottom: "5vh",
     },
     fieldRow: {
         display: 'flex',
@@ -358,7 +358,7 @@ const styles = {
 
     },
     label: {
-        fontSize: 22,
+        fontSize: "1.6vh",
         font: 'Inter',
         width: '100%',
     },
@@ -367,16 +367,16 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#EFEFEF',
-        padding: '1.5vh',
+        padding: '0.7vh',
         borderRadius: '1vh',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
-        fontSize: '2vh',
+        fontSize: '1.6vh',
         outline: 'none',
     },
     input: {
         border: 'none',
         background: '#fff',
-        fontSize: '2vh',
+        fontSize: '1.6vh',
         padding: '1vh',
         color: '#333',
         outline: 'none',
@@ -391,7 +391,7 @@ const styles = {
         border: 'none',
         cursor: 'pointer',
         color: '#007bff',
-        fontSize: '1rem',
+        fontSize: '0.5vh',
         marginLeft: '1vw',
     },
 
@@ -399,7 +399,7 @@ const styles = {
         marginTop: '7vh',
     },
     sectionTitle: {
-        fontSize: '2rem',
+        fontSize: '3.5vh',
         fontWeight: 'bold',
         marginBottom: '4vh',
         color: '#333',
@@ -417,7 +417,7 @@ const styles = {
         borderRadius: 10,
     },
     noCampaignsMessage: {
-        fontSize: '1rem',
+        fontSize: '1.7vh',
         color: '#666',
     },
     editIcon: {

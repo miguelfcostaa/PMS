@@ -66,18 +66,28 @@ function ProfilePage() {
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
+        if (!file) {
+            console.error('No file selected');
+            return;
+        }
+    
         const formData = new FormData();
         formData.append('profilePicture', file);
-
+    
         try {
-            const response = await axios.put(`http://localhost:5000/api/auth/${userId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const response = await axios.put(
+                `http://localhost:5000/api/auth/${userId}/profile-picture`,
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+            
+            console.log('Profile picture updated:', response.data);
             setUserData({ ...userData, profilePicture: response.data.profilePicture });
         } catch (error) {
             console.error('Error uploading profile picture:', error);
         }
     };
+    
 
     if (!userData) {
         return <div>Loading...</div>;
@@ -106,27 +116,30 @@ function ProfilePage() {
                     {/* Imagem de perfil e coins */}
                     <div style={styles.profileBody}>
                         <div style={styles.profileLeft}>
-                            <div style={styles.profilePicture}>
-                                <img
-                                    src={
-                                        userData?.profilePicture
-                                            ? `data:image/png;base64,${userData.profilePicture}`
-                                            : '/default-avatar.png'
-                                    }
-                                    alt="Profile"
-                                    style={styles.picture}
-                                />
-                                <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    +
-                                    <input
-                                        id="profilePictureUpload"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleProfilePictureUpload}
-                                        style={{ display: 'none' }}
-                                    />
-                                </label>
-                            </div>
+                        <div style={styles.profilePictureContainer}>
+                        <div style={styles.profilePicture}>
+                            <img
+                                src={
+                                    userData?.profilePicture
+                                        ? `data:image/png;base64,${userData.profilePicture}`
+                                        : '/default-avatar.png'
+                                }
+                                alt="Profile"
+                                style={styles.picture}
+                            />
+                        </div>
+                        <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
+                            +
+                            <input
+                                id="profilePictureUpload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProfilePictureUpload}
+                                style={{ display: 'none' }}
+                            />
+                        </label>
+                    </div>
+
                             <h3 style={styles.coinsTitle}>My Coins</h3>
                             <div style={styles.coinsContainer}>
                                 {coins.map((coin, index) => (
@@ -302,10 +315,15 @@ const styles = {
         gap: '1vh',
         margin: '3vh 0',
     },
-    profilePicture: {
+    profilePictureContainer: {
         position: 'relative',
         width: '15vw',
         height: '15vw',
+    },
+    profilePicture: {
+        position: 'relative',
+        width: '100%',
+        height: '100%',
         borderRadius: '10%', // Mantém bordas arredondadas
         overflow: 'hidden',
         border: '2px solid #ddd',
@@ -317,21 +335,22 @@ const styles = {
     },
     uploadButton: {
         position: 'absolute',
-        top: '-10%',
-        right: '-10%',
+        top: '-8%', // Metade fora do placeholder
+        right: '-8%', // Metade fora do placeholder
         backgroundColor: '#007bff',
         color: '#fff',
         borderRadius: '50%',
         border: 'none',
-        width: '2.5vw',
-        height: '2.5vw',
+        width: '3vw', // Ajuste do tamanho do botão
+        height: '3vw', // Ajuste do tamanho do botão
         cursor: 'pointer',
-        fontSize: '1.5vh',
+        fontSize: '3vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     },
+    
     coinsContainer: {
         backgroundColor: '#f9f9f9',
         padding: '1.5vw',

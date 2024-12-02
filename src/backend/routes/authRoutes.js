@@ -4,9 +4,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const verifyUser = require('../verificationJob'); // Função de verificação
 const mongoose = require('mongoose');
-
+const multer = require('multer');
 
 const router = express.Router();
+
+// Configuração do Multer para lidar com uploads de arquivos
+const storage = multer.memoryStorage(); // Armazenamento na memória para fácil manipulação do Buffer
+const upload = multer({ storage: storage });
 
 // Rota de registo
 router.post('/register', async (req, res) => {
@@ -41,6 +45,33 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ message: 'User registered successfully', userId: newUser._id });
     } catch (error) {
         console.error('Error during registration:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Rota para upload de imagem de perfil
+router.put('/:userId/profile-picture', upload.single('profilePicture'), async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const profilePictureBase64 = req.file.buffer.toString('base64');
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePicture: profilePictureBase64 },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'Profile picture updated successfully', profilePicture: updatedUser.profilePicture });
+    } catch (error) {
+        console.error('Error uploading profile picture:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -122,31 +153,24 @@ router.put('/:userId', async (req, res) => {
     }
 });
 
+// Rota para obter informações do utilizador
 router.get('/:userId', async (req, res) => {
     const { userId } = req.params;
 
-    console.log(`Received request to fetch user with ID: ${userId}`);
-
-    // Verificar se o ID é válido
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-        console.error(`Invalid user ID format: ${userId}`);
         return res.status(400).json({ message: 'Invalid user ID' });
     }
 
     try {
         const user = await User.findById(userId);
         if (!user) {
-            console.error(`User not found for ID: ${userId}`);
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log(`User found: ${user}`);
         res.json(user);
     } catch (error) {
-        console.error(`Error fetching user data for ID ${userId}: ${error.message}`);
         res.status(500).json({ message: 'Error fetching user data', error: error.message });
     }
 });
 
 module.exports = router;
-

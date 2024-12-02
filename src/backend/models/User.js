@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     TIN: { type: String },
     passportNumber: { type: String, required: true },
-    IBAN: { type: String, default: '' }, 
+    IBAN: { type: String, default: '' },
+    profilePicture: { type: String, default: '' }, // Novo campo para armazenar a imagem de perfil em Base64
     role: { 
         type: String, 
         enum: ['doador', 'criador/doador', 'admin'], 

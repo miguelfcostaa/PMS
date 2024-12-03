@@ -1,5 +1,6 @@
 const express = require('express');
 const Campaign = require('../models/Campaign'); 
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -92,7 +93,7 @@ router.post('/donate/:id', async (req, res) => {
         const campaign = await Campaign.findById(id);
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-        // Salvar o doador com `userId`
+        // Salvar o doador com userId
         campaign.donators.push({
             userId: userId,
             donationDetails: donationDetails,
@@ -102,15 +103,37 @@ router.post('/donate/:id', async (req, res) => {
         campaign.currentAmount += donationDetails[1];
 
         await campaign.save();
+
+        // Atualizar as moedas do utilizador
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Calcular 55% do valor da doação para as moedas
+        const coinAmount = Math.floor(donationDetails[1] * 0.55);
+        
+        // Verificar se o utilizador já tem a moeda desta campanha
+        const existingCoin = user.coins.find(coin => coin.coinName === campaign.coin[0]);
+        if (existingCoin) {
+            // Atualizar quantidade de moedas existentes
+            existingCoin.amount += coinAmount;
+        } else {
+            // Adicionar nova moeda ao utilizador
+            user.coins.push({
+                coinName: campaign.coin[0],
+                coinImage: campaign.coin[1],
+                amount: coinAmount,
+                campaignId: campaign._id, // Associar o ID da campanha
+            });
+        }
+
+        await user.save();
+        
         res.json(campaign);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error" });
     }
 });
-
-
-
 
 
 module.exports = router;

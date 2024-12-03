@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema({
     passportNumber: { type: String, required: true },
     IBAN: { type: String, default: '' },
     profilePicture: { type: String, default: '' }, // Novo campo para armazenar a imagem de perfil em Base64
+    coins: [
+        {
+            coinName: { type: String, required: true },
+            coinImage: { type: String, required: true },
+            amount: { type: Number, required: true, default: 0 },
+            campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true } // Associando à campanha
+        }
+    ],
     role: { 
         type: String, 
         enum: ['doador', 'criador/doador', 'admin'], 

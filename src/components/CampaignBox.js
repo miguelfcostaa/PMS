@@ -1,10 +1,10 @@
 import React from 'react';
 
-function CampaignBox({ id, title, description, goal, timeToCompleteGoal, currentAmount, nameBankAccount }) {
+function CampaignBox({ id, title, description, goal, timeToCompleteGoal, currentAmount, nameBankAccount, onClick }) {
     const progressPercentage = (currentAmount / goal) * 100;
 
     return (
-        <div style={style.container}>
+        <div style={style.container} onClick={onClick}>
             <img 
                 src={require('../assets/image.png')} 
                 alt="Logo" 

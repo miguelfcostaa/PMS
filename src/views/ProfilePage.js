@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
-import CampaignBox from '../components/CampaignBox'; 
+import CampaignBox from '../components/CampaignBox';
 import axios from 'axios';
 
 function ProfilePage() {
@@ -19,29 +19,29 @@ function ProfilePage() {
             try {
                 const response = await axios.get(`http://localhost:5000/api/auth/${userId}`);
                 if (response.status === 200) {
-                    setUserData(response.data);
-                    setCoins(response.data.coins || []);
-                    setIsVerified(response.data.role === 'criador/doador');
+                    const data = response.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
+                    setIsVerified(data.role === 'criador/doador');
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         };
+        
 
         const fetchCampaigns = async () => {
             const userId = localStorage.getItem('userId');
             const campaignsResponse = await axios.get('http://localhost:5000/api/campaign/all-campaigns');
-        
+
             const userCampaigns = campaignsResponse.data.filter(campaign => campaign.creator === userId);
             setMyCampaigns(userCampaigns);
-        
+
             const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
                 campaign.donators.some(donator => donator.userId === userId)
             );
             setDonatedCampaigns(userDonatedCampaigns);
         };
-        
-        
 
         fetchUserData();
         fetchCampaigns();
@@ -70,24 +70,23 @@ function ProfilePage() {
             console.error('No file selected');
             return;
         }
-    
+
         const formData = new FormData();
         formData.append('profilePicture', file);
-    
+
         try {
             const response = await axios.put(
                 `http://localhost:5000/api/auth/${userId}/profile-picture`,
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } }
             );
-            
+
             console.log('Profile picture updated:', response.data);
             setUserData({ ...userData, profilePicture: response.data.profilePicture });
         } catch (error) {
             console.error('Error uploading profile picture:', error);
         }
     };
-    
 
     if (!userData) {
         return <div>Loading...</div>;
@@ -116,43 +115,66 @@ function ProfilePage() {
                     {/* Imagem de perfil e coins */}
                     <div style={styles.profileBody}>
                         <div style={styles.profileLeft}>
-                        <div style={styles.profilePictureContainer}>
-                        <div style={styles.profilePicture}>
-                            <img
-                                src={
-                                    userData?.profilePicture
-                                        ? `data:image/png;base64,${userData.profilePicture}`
-                                        : '/default-avatar.png'
-                                }
-                                alt="Profile"
-                                style={styles.picture}
-                            />
-                        </div>
-                        <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                            +
-                            <input
-                                id="profilePictureUpload"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleProfilePictureUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </label>
-                    </div>
-
-                            <h3 style={styles.coinsTitle}>My Coins</h3>
-                            <div style={styles.coinsContainer}>
-                                {coins.map((coin, index) => (
-                                    <div key={index} style={styles.coinRow}>
-                                        <span style={styles.coinAmount}>{coin.amount}</span>
-                                        <img
-                                            src={`/coin-icons/${coin.campaignId}.png`}
-                                            alt="Coin"
-                                            style={styles.coinIcon}
-                                        />
-                                    </div>
-                                ))}
+                            <div style={styles.profilePictureContainer}>
+                                <div style={styles.profilePicture}>
+                                    <img
+                                        src={
+                                            userData?.profilePicture
+                                                ? `data:image/png;base64,${userData.profilePicture}`
+                                                : '/default-avatar.png'
+                                        }
+                                        alt="Profile"
+                                        style={styles.picture}
+                                    />
+                                </div>
+                                <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
+                                    +
+                                    <input
+                                        id="profilePictureUpload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleProfilePictureUpload}
+                                        style={{ display: 'none' }}
+                                    />
+                                </label>
                             </div>
+
+                            <h3 style={styles.coinsTitle}>Your Coins</h3>
+                            <div style={styles.coinsContainer}>
+                                {coins.length > 0 ? (
+                                    coins.map((coin, index) => (
+                                        <div key={index} style={styles.coinRow}>
+                                            <button
+                                                onClick={() => {
+                                                    if (!coin.campaignId) {
+                                                        alert('Campaign ID não encontrado para esta moeda.');
+                                                        return;
+                                                    }
+                                                    window.location.href = `/campaign/${coin.campaignId}`;
+                                                }}
+                                                style={styles.addButton}
+                                            >
+                                                +
+                                            </button>
+                                            <span style={styles.coinAmount}>
+                                                {coin.amount}
+                                            </span>
+                                            <div style={styles.coinCircle}>
+                                                <img
+                                                    src={coin.coinImage}
+                                                    alt={coin.coinName}
+                                                    style={styles.coinImage}
+                                                    title={coin.coinName} // Nome da moeda aparece no hover
+                                                />
+                                            </div>
+                                            {index < coins.length - 1 && <div style={styles.coinSeparator}></div>}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>No coins available</p>
+                                )}
+                            </div>
+
                         </div>
 
                         {/* Fields */}
@@ -160,7 +182,6 @@ function ProfilePage() {
                             {['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN'].map(
                                 (field) => (
                                     <div key={field} style={styles.fieldRow}>
-
                                         <h4 style={styles.label}>
                                             {field.replace(/([A-Z])/, ' $1').trim().toLowerCase().replace(/(^\w|\s\w)/g, (match) => match.toUpperCase())}
                                         </h4>
@@ -184,10 +205,10 @@ function ProfilePage() {
                                                 </span>
                                             )}
                                             <button onClick={() => handleEdit(field)} style={styles.editButton}>
-                                                <img 
+                                                <img
                                                     src={require('../assets/edit-icon.png')}
                                                     style={styles.editIcon}
-                                                    alt="Edit" 
+                                                    alt="Edit"
                                                 />
                                             </button>
                                         </div>
@@ -206,16 +227,17 @@ function ProfilePage() {
                             {myCampaigns.length > 0 ? (
                                 myCampaigns.map(campaign => (
                                     <div style={styles.campaignShadow}>
-                                    <CampaignBox
-                                        key={campaign._id}
-                                        id={campaign._id}
-                                        title={campaign.title}
-                                        description={campaign.description}
-                                        goal={campaign.goal}
-                                        timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                        currentAmount={campaign.currentAmount}
-                                        nameBankAccount={campaign.nameBankAccount}
-                                    />
+                                        <CampaignBox
+                                            key={campaign._id}
+                                            id={campaign._id}
+                                            title={campaign.title}
+                                            description={campaign.description}
+                                            goal={campaign.goal}
+                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                            currentAmount={campaign.currentAmount}
+                                            nameBankAccount={campaign.nameBankAccount}
+                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                        />
                                     </div>
                                 ))
                             ) : (
@@ -233,16 +255,17 @@ function ProfilePage() {
                             {donatedCampaigns.length > 0 ? (
                                 donatedCampaigns.map(campaign => (
                                     <div style={styles.campaignShadow}>
-                                    <CampaignBox
-                                        key={campaign._id}
-                                        id={campaign._id}
-                                        title={campaign.title}
-                                        description={campaign.description}
-                                        goal={campaign.goal}
-                                        timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                        currentAmount={campaign.currentAmount}
-                                        nameBankAccount={campaign.nameBankAccount}
-                                    />
+                                        <CampaignBox
+                                            key={campaign._id}
+                                            id={campaign._id}
+                                            title={campaign.title}
+                                            description={campaign.description}
+                                            goal={campaign.goal}
+                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                            currentAmount={campaign.currentAmount}
+                                            nameBankAccount={campaign.nameBankAccount}
+                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                        />
                                     </div>
                                 ))
                             ) : (
@@ -255,6 +278,7 @@ function ProfilePage() {
         </div>
     );
 }
+
 
 const styles = {
     pageContainer: {
@@ -344,7 +368,7 @@ const styles = {
         width: '3vw', // Ajuste do tamanho do botão
         height: '3vw', // Ajuste do tamanho do botão
         cursor: 'pointer',
-        fontSize: '3vh',
+        fontSize: '5vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -443,7 +467,62 @@ const styles = {
         width: '1vw',
         height: '1vw',
     },
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between', // Alinha tudo horizontalmente
+        padding: '10px 0', // Espaçamento interno
+        position: 'relative', // Para a linha separadora
+    },
+    coinAmount: {
+        fontSize: '2vh',
+        color: '#333',
+        fontWeight: 'bold',
+        maxWidth: '5vw',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    coinSeparator: {
+        position: 'absolute',
+        bottom: 0,
+        left: '1%',
+        right: '1%',
+        height: '1px',
+        backgroundColor: '#A8A8A8',
+        opacity: 0.5,
+    },
+    coinCircle: {
+        width: '3vw',
+        height: '3vw',
+        borderRadius: '50%',
+        backgroundColor: '#f9f9f9',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    addButton: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        backgroundColor: '#FFFFFF',
+        border: '0.5vh solid #007bff',
+        color: '#007bff',
+        fontSize: '6vh',
+        cursor: 'pointer',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    },
 };
-
 
 export default ProfilePage;

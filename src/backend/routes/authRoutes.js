@@ -167,10 +167,14 @@ router.get('/:userId', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        res.json(user);
+        res.json({
+            ...user.toObject(),
+            coins: user.coins // Incluir as moedas do utilizador
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching user data', error: error.message });
     }
 });
+
 
 module.exports = router;

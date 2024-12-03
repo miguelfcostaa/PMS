@@ -21,16 +21,28 @@ function NavBar({ onSearch }) {
     const [notifications, setNotifications] = useState([]); // Lista de notificações
     const [showBanner, setShowBanner] = useState(false); // Para exibir o banner de notificação
     const [isNotificationOpen, setIsNotificationOpen] = useState(false); // Estado para mostrar ou esconder notificações
+    const [coins, setCoins] = useState([]); // Estado para guardar as moedas do utilizador
 
     // Lê o userId do localStorage quando o componente é montado
     useEffect(() => {
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
             setUserId(storedUserId);
+            fetchCoins(storedUserId);
         } else {
             console.error('User ID not found in localStorage');
         }
     }, []);
+
+    // Função para buscar as moedas do utilizador
+    const fetchCoins = async (storedUserId) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/auth/${storedUserId}`);
+            setCoins(response.data.coins || []);
+        } catch (error) {
+            console.error('Error fetching user coins:', error);
+        }
+    };
 
     // Busca informações do backend e configura WebSocket
     useEffect(() => {
@@ -140,7 +152,7 @@ function NavBar({ onSearch }) {
 
             <Dropdown>
                 <MenuButton variant="solid" color="#FFFFFF">
-                    <div style={style.coinsContainer}>
+                    <div style={style.coinsContainerDropdown}>
                         <span style={style.coinText}> Coins </span>
                         <img
                             src={require('../assets/dropdown-icon.png')}
@@ -150,19 +162,42 @@ function NavBar({ onSearch }) {
                     </div>
                 </MenuButton>
                 <Menu style={style.dropdownMenuItem}>
-                    <MenuItem>
-                        <img
-                            src={require('../assets/plus-icon.png')}
-                            alt="Plus Icon"
-                            style={style.plusIconCoins}
-                        />
-                        <span style={style.numberCoins}> 1293 </span>
-                        <img
-                            src={require('../assets/health-coin.png')}
-                            alt="Health Coin"
-                            style={style.coinTypeIcon}
-                        />
-                    </MenuItem>
+                    {coins.length > 0 ? (
+                        coins.map((coin, index) => (
+                            <MenuItem key={index}>
+                                <div style={style.coinRow}>
+                                    <button
+                                        onClick={() => {
+                                            if (!coin.campaignId) {
+                                                alert('Campaign ID not found for this coin.');
+                                                return;
+                                            }
+                                            navigate(`/campaign/${coin.campaignId}`);
+                                        }}
+                                        style={style.addButton}
+                                    >
+                                        +
+                                    </button>
+                                    <span style={style.coinAmount}>
+                                        {coin.amount}
+                                    </span>
+                                    <div style={style.coinCircle}>
+                                        <img
+                                            src={coin.coinImage}
+                                            alt={coin.coinName}
+                                            style={style.coinImage}
+                                            title={coin.coinName} // Nome da moeda aparece no hover
+                                        />
+                                    </div>
+                                </div>
+                                
+                            </MenuItem>
+                        ))
+                    ) : (
+                        <MenuItem>
+                            <span>No coins available</span>
+                        </MenuItem>
+                    )}
                 </Menu>
             </Dropdown>
 
@@ -288,7 +323,7 @@ const style = {
         backgroundColor: 'red',
         borderRadius: '50%',
     },
-    coinsContainer: {
+    coinsContainerDropdown: {
         height: "6vh",
         width: "17.2vh",
         borderRadius: "2vh",
@@ -367,6 +402,48 @@ const style = {
         padding: '1.2vh',
         borderBottom: '1px solid #E0E0E0',
     },
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        marginBottom: '1vh',
+        gap: '1vw'
+    },
+    addButton: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        backgroundColor: '#FFFFFF',
+        border: '0.5vh solid #007bff',
+        color: '#007bff',
+        fontSize: '6vh',
+        cursor: 'pointer',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    },
+    coinAmount: {
+        fontSize: '3vh',
+        color: '#333',
+        fontWeight: 'bold'
+    },
+    coinCircle: {
+        width: '3vw',
+        height: '3vw',
+        borderRadius: '50%',
+        backgroundColor: '#FFAD00',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    
 };
 
 export default NavBar;

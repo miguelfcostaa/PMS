@@ -298,7 +298,54 @@ function CampaignSelectedPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div style={styles.shopTitle}>
+                    <span> Campaign Store </span>
+                </div>                
+                <div style={styles.shopContainer}>
+                    {campaign?.shopItems?.length > 0 ? (
+                        campaign.shopItems.map((item, index) => {
+                            const matchingCoin = coins.find(
+                                (coin) => coin.coinName === campaign.coin[0]
+                            ); 
+
+                            return (
+                                <div key={index} style={styles.shopItemBox}>
+                                    <img
+                                        src={require('../assets/image.png')}
+                                        alt="Imagem do item"
+                                        style={styles.shopItemImage}
+                                    />
+                                    <span style={styles.shopItemName}> {item[0]} </span>
+                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
+                                        <span style={styles.shopItemPrice}> {item[1]} </span>
+                                        {matchingCoin && (
+                                            <div style={styles.coinCircle}>
+                                                <img
+                                                    src={matchingCoin.coinImage}
+                                                    alt={matchingCoin.coinName}
+                                                    style={styles.coinImage}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        style={styles.buyButton}
+                                    >
+                                        Buy
+                                    </button>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div style={styles.shopItemBox}>
+                            <span> No items available in the store. </span>
+                        </div>
+                    )}
+                </div>
+            </div>            
         </>
     );
 }
@@ -661,6 +708,84 @@ const styles = {
         color: '#39AE39',
         marginTop: 10,
         marginLeft: 80,
+    },
+    shopTitle: {
+        fontSize: '4.5vh',
+        font: 'Inter',
+        fontWeight: 'bold',
+        color: '#000000',
+        paddingTop: 40,
+        paddingBottom: 20,
+    },
+    shopContainer: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        width: "101%",
+        height: "100%",
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 40,
+    },
+    shopItemBox: {
+        width: "36vh",	
+        height: "46vh",
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        boxShadow: "4px 4px 36.5px 3px rgba(0, 0, 0, 0.25)",
+        margin: '2vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    shopItemImage: {
+        width: "15vh",
+        height: "15vh",
+        borderRadius: 100,
+    },
+    shopItemName: {
+        fontSize: '3.5vh',
+        font: 'Inter',
+        color: '#000000',
+        marginTop: '1vh',
+    },
+    shopItemPrice: {
+        fontSize: '4vh',
+        font: 'Inter',
+        color: '#000000',
+        marginRight: '1vh',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    buyButton: {
+        width: '50%',
+        height: '55px',
+        backgroundColor: '#009DFF',
+        padding: '10px 20px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 15,
+        fontSize: 22,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginTop: '2vh',
     },
 };
 

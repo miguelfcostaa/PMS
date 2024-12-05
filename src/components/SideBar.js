@@ -43,7 +43,6 @@ function SideBar() {
                                 htmlFor={category}
                                 style={{
                                     ...styles.categoryLabel,
-                                    fontWeight: selectedCategories.includes(category) ? 'bold' : 'normal',
                                 }}
                             >
                                 {category}
@@ -85,7 +84,7 @@ const styles = {
         top: '9.5vh',
         left: '0',
         width: '15%',
-        height: '100vh',
+        height: '85vh',
         backgroundColor: '#425576',
         padding: '3vh', 
         paddingLeft: '6vh',
@@ -95,13 +94,14 @@ const styles = {
         fontSize: '2.6vh', 
         fontWeight: 'regular',
         overflowY: 'auto',
+        display: 'flex', 
+        flexDirection: 'column',
     },
     link: {
         color: 'white',
         textDecoration: 'none',
         display: 'block',
         padding: '1vh 0', 
-        fontWeight: 'normal',
     },
     activeLink: {
         fontWeight: 'bold', 
@@ -123,8 +123,7 @@ const styles = {
         marginLeft: '10%', 
     },
     categories: {
-        marginTop: '0.5vh',
-        marginBottom: '1vh', 
+        marginBottom: '0.5vh', 
         paddingLeft: '5%', 
     },
     categoryItem: {
@@ -140,26 +139,26 @@ const styles = {
     },
     checkBox: {
         transform: 'scale(1.6)', 
+        cursor: 'pointer',
     },
     logoutContainer: {
         display: 'flex',
         flexDirection: 'row',
         cursor: 'pointer',
+        textDecoration: 'none',
+        marginTop: 'auto',
     },
     logoutButton: {
         color: 'white',
-        textDecoration: 'none',
         backgroundColor: 'transparent',
-        display: 'block',
         padding: '1vh 0', 
         fontSize: '2.6vh', 
-        fontFamily: 'Inter',
-        fontWeight: '500',
-        marginTop: 'auto',
+        font: 'Inter',
+        fontWeight: '400',
     },
     logoutIcon: {
-        width: '3.8vh', 
-        height: '3.8vh', 
+        width: '3.7vh', 
+        height: '3.7vh', 
         alignSelf: 'center',
         marginLeft: '2vh',
     }

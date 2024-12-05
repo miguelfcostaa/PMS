@@ -89,7 +89,7 @@ function ProfilePage() {
     };
 
     if (!userData) {
-        return <div>Loading...</div>;
+        return <div style={styles.loading}>Loading...</div>;
     }
 
     return (
@@ -128,7 +128,11 @@ function ProfilePage() {
                                     />
                                 </div>
                                 <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    +
+                                    <img 
+                                        src={require('../assets/adicionar-imagem.png')} 
+                                        alt="Add Icon" 
+                                        style={styles.addIcon} 
+                                    /> 
                                     <input
                                         id="profilePictureUpload"
                                         type="file"
@@ -284,24 +288,25 @@ const styles = {
     pageContainer: {
         display: 'flex',
         flexDirection: 'column',
+        marginLeft: '19%',
         height: '100vh',
         backgroundColor: '#f8f9fa',
     },
     contentContainer: {
         display: 'flex',
-        marginTop: '12vh', // Ajuste para a Navbar
-        marginRight: '1vw', // Espaçamento à direita alinhado
+        marginTop: '12vh',
+        marginRight: '1vw',
     },
     profileContainer: {
-        marginLeft: '15%', // Espaçamento da Sidebar
+        marginLeft: '3vh', 
         padding: '2vh 4vw',
         flex: 1,
         borderRadius: '10px',
         backgroundColor: '#fff',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         border: '1px solid #ddd',
-        overflowY: 'auto', // Scroll interno se necessário
-        maxHeight: 'calc(100vh - 17vh)', // Limitar o tamanho do container para caber na tela
+        overflowY: 'auto', 
+        maxHeight: 'calc(100vh - 17vh)', 
     },
     header: {
         display: 'flex',
@@ -335,7 +340,7 @@ const styles = {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start', // Alinha no mesmo eixo que "Profile"
+        alignItems: 'flex-start', 
         gap: '1vh',
         margin: '3vh 0',
     },
@@ -348,7 +353,7 @@ const styles = {
         position: 'relative',
         width: '100%',
         height: '100%',
-        borderRadius: '10%', // Mantém bordas arredondadas
+        borderRadius: '10%', 
         overflow: 'hidden',
         border: '2px solid #ddd',
     },
@@ -359,33 +364,34 @@ const styles = {
     },
     uploadButton: {
         position: 'absolute',
-        top: '-8%', // Metade fora do placeholder
-        right: '-8%', // Metade fora do placeholder
+        top: '-8%', 
+        right: '-8%', 
         backgroundColor: '#007bff',
         color: '#fff',
         borderRadius: '50%',
         border: 'none',
-        width: '3vw', // Ajuste do tamanho do botão
-        height: '3vw', // Ajuste do tamanho do botão
+        width: '2vw', 
+        height: '2vw', 
         cursor: 'pointer',
-        fontSize: '5vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     },
-    
+    addIcon: {
+        width: '1.5vw',
+        height: '1.5vw',
+    },
     coinsContainer: {
         backgroundColor: '#f9f9f9',
         padding: '1.5vw',
         borderRadius: '1vh',
-        width: '12vw', // Tamanho fixo para o container
-        height: '10.4vw', // Tamanho fixo para o container
+        width: '12vw',
+        height: '10.4vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        overflowY: 'auto', // Permite rolagem vertical se necessário
-        overflowX: 'hidden', // Evita rolagem horizontal
+        overflowY: 'auto', 
+        overflowX: 'hidden',
     },
-
     coinsTitle: {
         fontSize: '2.5vh',
         color: '#333',
@@ -452,9 +458,9 @@ const styles = {
     },
     campaignsContainer: {
         display: 'flex',
-        overflowX: 'auto', // Rolagem horizontal
-        gap: '2vw', // Espaçamento entre as campanhas
-        padding: '1vh 0', // Espaçamento interno para a área de campanhas
+        overflowX: 'auto', 
+        gap: '2vw', 
+        padding: '1vh 0', 
     },
     campaignShadow: {
         marginLeft: '1vw',
@@ -473,9 +479,9 @@ const styles = {
     coinRow: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between', // Alinha tudo horizontalmente
-        padding: '10px 0', // Espaçamento interno
-        position: 'relative', // Para a linha separadora
+        justifyContent: 'space-between', 
+        padding: '10px 0', 
+        position: 'relative', 
     },
     coinAmount: {
         fontSize: '2vh',
@@ -525,6 +531,13 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    },
+    loading: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '5vh',
     },
 };
 

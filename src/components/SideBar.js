@@ -20,6 +20,11 @@ function SideBar() {
         navigate('/campaign');
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/');
+    };
+
     const location = useLocation();
 
     return (
@@ -64,16 +69,15 @@ function SideBar() {
             <NavLink to="/challenges" style={location.pathname === '/challenges' ? {...styles.link, ...styles.activeLink} : styles.link}>Challenges</NavLink>
             <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}> Contact </NavLink>
             <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}> About </NavLink>
-            <NavLink to="/" style={styles.logoutContainer}>
-                <Button style={styles.logoutButton} > 
-                    Logout   
-                </Button>
+            <Button style={styles.logoutButton} onClick={handleLogout} > 
+                Logout 
                 <img 
                     src={require('../assets/logout-icon.png')} 
                     alt="Logout Icon" 
                     style={styles.logoutIcon} 
-                /> 
-            </NavLink>
+                />   
+            </Button>
+                
         </div>
     );
 }
@@ -141,14 +145,13 @@ const styles = {
         transform: 'scale(1.6)', 
         cursor: 'pointer',
     },
-    logoutContainer: {
+    logoutButton: {
         display: 'flex',
         flexDirection: 'row',
+        justifyContent: 'flex-start',
         cursor: 'pointer',
         textDecoration: 'none',
         marginTop: 'auto',
-    },
-    logoutButton: {
         color: 'white',
         backgroundColor: 'transparent',
         padding: '1vh 0', 

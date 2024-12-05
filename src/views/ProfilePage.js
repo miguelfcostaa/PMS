@@ -121,7 +121,7 @@ function ProfilePage() {
                                         src={
                                             userData?.profilePicture
                                                 ? `data:image/png;base64,${userData.profilePicture}`
-                                                : '/default-avatar.png'
+                                                : require('../assets/default-avatar.png')
                                         }
                                         alt="Profile"
                                         style={styles.picture}
@@ -148,7 +148,10 @@ function ProfilePage() {
                                 {coins.length > 0 ? (
                                     coins.map((coin, index) => (
                                         <div key={index} style={styles.coinRow}>
-                                            <button
+                                            <img 
+                                                src={require('../assets/plus-icon.png')} 
+                                                alt="Add Icon" 
+                                                style={styles.addCoinsIcon} 
                                                 onClick={() => {
                                                     if (!coin.campaignId) {
                                                         alert('Campaign ID não encontrado para esta moeda.');
@@ -156,10 +159,7 @@ function ProfilePage() {
                                                     }
                                                     window.location.href = `/campaign/${coin.campaignId}`;
                                                 }}
-                                                style={styles.addButton}
-                                            >
-                                                +
-                                            </button>
+                                            />
                                             <span style={styles.coinAmount}>
                                                 {coin.amount}
                                             </span>
@@ -384,10 +384,10 @@ const styles = {
     },
     coinsContainer: {
         backgroundColor: '#f9f9f9',
-        padding: '1.5vw',
+        padding: '0.5vw 1vw 0.5vw 1vw',
         borderRadius: '1vh',
-        width: '12vw',
-        height: '10.4vw',
+        width: '13vw',
+        height: '11.5vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         overflowY: 'auto', 
         overflowX: 'hidden',
@@ -480,11 +480,16 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between', 
-        padding: '10px 0', 
+        padding: '1.2vh 0', 
         position: 'relative', 
     },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
+    },
     coinAmount: {
-        fontSize: '2vh',
+        fontSize: '3.5vh',
         color: '#333',
         fontWeight: 'bold',
         maxWidth: '5vw',
@@ -502,10 +507,10 @@ const styles = {
         opacity: 0.5,
     },
     coinCircle: {
-        width: '3vw',
-        height: '3vw',
+        width: '2.5vw',
+        height: '2.5vw',
         borderRadius: '50%',
-        backgroundColor: '#f9f9f9',
+        /*backgroundColor: '#f9f9f9',*/
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',

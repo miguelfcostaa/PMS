@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCategories } from '../contexts/CategoryContext';
+import { Button } from '@mui/joy';
+
 
 function SideBar() {
     const { selectedCategories, setSelectedCategories } = useCategories();
@@ -61,8 +63,18 @@ function SideBar() {
             <NavLink to="/games" style={location.pathname === '/games' ? {...styles.link, ...styles.activeLink} : styles.link}>Games</NavLink>
             <NavLink to="/#" style={location.pathname === '/promotions' ? {...styles.link, ...styles.activeLink} : styles.link}>Promotions</NavLink>
             <NavLink to="/challenges" style={location.pathname === '/challenges' ? {...styles.link, ...styles.activeLink} : styles.link}>Challenges</NavLink>
-            <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}>Contact</NavLink>
-            <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}>About</NavLink>
+            <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}> Contact </NavLink>
+            <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}> About </NavLink>
+            <NavLink to="/" style={styles.logoutContainer}>
+                <Button style={styles.logoutButton} > 
+                    Logout   
+                </Button>
+                <img 
+                    src={require('../assets/logout-icon.png')} 
+                    alt="Logout Icon" 
+                    style={styles.logoutIcon} 
+                /> 
+            </NavLink>
         </div>
     );
 }
@@ -122,13 +134,35 @@ const styles = {
     },
     categoryLabel: {
         color: 'white',
-        fontSize: '2vh', 
+        fontSize: '2.2vh', 
         marginLeft: '1%', 
         flex: 1,
     },
     checkBox: {
         transform: 'scale(1.6)', 
     },
+    logoutContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        cursor: 'pointer',
+    },
+    logoutButton: {
+        color: 'white',
+        textDecoration: 'none',
+        backgroundColor: 'transparent',
+        display: 'block',
+        padding: '1vh 0', 
+        fontSize: '2.6vh', 
+        fontFamily: 'Inter',
+        fontWeight: '500',
+        marginTop: 'auto',
+    },
+    logoutIcon: {
+        width: '3.8vh', 
+        height: '3.8vh', 
+        alignSelf: 'center',
+        marginLeft: '2vh',
+    }
 };
 
 export default SideBar;

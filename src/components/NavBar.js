@@ -14,25 +14,29 @@ const socket = io('http://localhost:5000');
 
 function NavBar({ onSearch }) {
     const navigate = useNavigate();
-    const [userId, setUserId] = useState(null); // Para armazenar o userId do localStorage
+    const [userId, setUserId] = useState(localStorage.getItem('userId')); // Para armazenar o userId do localStorage
     const { searchTerm, setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
     const [localSearchTerm, setLocalSearchTerm] = useState('');
-    const [verificationCompleted, setVerificationCompleted] = useState(false); // Para determinar o estado do perfil (verificado ou não)
+    const [verificationCompleted, setVerificationCompleted] = useState(
+        JSON.parse(localStorage.getItem(`verificationCompleted_${userId}`)) || false // Recupera o estado de verificação do localStorage para cada userId
+    ); // Para determinar o estado do perfil (verificado ou não)
     const [notifications, setNotifications] = useState([]); // Lista de notificações
     const [showBanner, setShowBanner] = useState(false); // Para exibir o banner de notificação
     const [isNotificationOpen, setIsNotificationOpen] = useState(false); // Estado para mostrar ou esconder notificações
     const [coins, setCoins] = useState([]); // Estado para guardar as moedas do utilizador
+    const [profilePicture, setProfilePicture] = useState(
+        localStorage.getItem(`profilePicture_${userId}`) || '' // Recupera a imagem de perfil do localStorage para cada userId
+    ); // Estado para armazenar a imagem de perfil
 
     // Lê o userId do localStorage quando o componente é montado
     useEffect(() => {
-        const storedUserId = localStorage.getItem('userId');
-        if (storedUserId) {
-            setUserId(storedUserId);
-            fetchCoins(storedUserId);
+        if (userId) {
+            fetchCoins(userId);
+            fetchProfilePicture(userId);
         } else {
             console.error('User ID not found in localStorage');
         }
-    }, []);
+    }, [userId]);
 
     // Função para buscar as moedas do utilizador
     const fetchCoins = async (storedUserId) => {
@@ -41,6 +45,18 @@ function NavBar({ onSearch }) {
             setCoins(response.data.coins || []);
         } catch (error) {
             console.error('Error fetching user coins:', error);
+        }
+    };
+
+    // Função para buscar a imagem de perfil do utilizador
+    const fetchProfilePicture = async (storedUserId) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/auth/${storedUserId}`);
+            const fetchedProfilePicture = response.data.profilePicture || '';
+            setProfilePicture(fetchedProfilePicture);
+            localStorage.setItem(`profilePicture_${storedUserId}`, fetchedProfilePicture); // Armazena a imagem de perfil no localStorage para cada userId
+        } catch (error) {
+            console.error('Error fetching profile picture:', error);
         }
     };
 
@@ -53,6 +69,10 @@ function NavBar({ onSearch }) {
                 const response = await axios.get(`http://localhost:5000/api/auth/notifications/${userId}`);
                 if (response.data.role === 'criador/doador') {
                     setVerificationCompleted(true); // Atualiza o estado do ícone do perfil
+                    localStorage.setItem(`verificationCompleted_${userId}`, 'true'); // Armazena o estado de verificação no localStorage para cada userId
+                } else {
+                    setVerificationCompleted(false);
+                    localStorage.setItem(`verificationCompleted_${userId}`, 'false'); // Garante que o estado está correto para cada userId
                 }
                 if (response.data.notifications.length > 0) {
                     setNotifications(response.data.notifications); // Define as notificações recebidas
@@ -70,6 +90,7 @@ function NavBar({ onSearch }) {
         socket.on('userVerified', (data) => {
             if (data.userId === userId) {
                 setVerificationCompleted(true); // Atualiza o estado do perfil
+                localStorage.setItem(`verificationCompleted_${userId}`, 'true'); // Armazena o estado de verificação no localStorage para cada userId
                 setNotifications([
                     {
                         title: 'Your account was successfully verified',
@@ -190,7 +211,6 @@ function NavBar({ onSearch }) {
                                         />
                                     </div>
                                 </div>
-                                
                             </MenuItem>
                         ))
                     ) : (
@@ -203,7 +223,7 @@ function NavBar({ onSearch }) {
 
             <a href="/profile" style={style.profileButton}>
                 <img
-                    src={require('../assets/profile-icon.png')}
+                    src={profilePicture ? `data:image/png;base64,${profilePicture}` : require('../assets/profile-icon.png')}
                     alt="Profile Icon"
                     style={profileStyles}
                 />
@@ -242,6 +262,12 @@ const style = {
         alignItems: 'center',
         backgroundColor: '#183059',
         zIndex: 10,
+    },
+    loadingContainer: {
+        width: '100%',
+        textAlign: 'center',
+        color: 'white',
+        padding: '2vh',
     },
     logo: {
         width: "22.4vh",

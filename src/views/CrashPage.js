@@ -3,7 +3,7 @@ import axios from "axios";
 import NavBar from "../components/NavBar";
 import SideBar from "../components/SideBar";
 
-const CrashPage = ({ userId, token }) => {
+const CrashPage = () => {
   const [coins, setCoins] = useState([]);
   const [selectedCoin, setSelectedCoin] = useState("");
   const [betAmount, setBetAmount] = useState("");
@@ -13,8 +13,10 @@ const CrashPage = ({ userId, token }) => {
   const [gameResult, setGameResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [cashoutPressed, setCashoutPressed] = useState(false);
+  const userId = localStorage.getItem("userId"); // Obtendo o ID do usuário do localStorage
+  const token = localStorage.getItem("token"); // Obtendo o token de autenticação
 
-  // Função para buscar moedas do usuário corretamente
+  // Buscar moedas do usuário
   useEffect(() => {
     const fetchCoins = async () => {
       try {
@@ -123,13 +125,11 @@ const CrashPage = ({ userId, token }) => {
   // Estilos inline
   const styles = {
     container: {
-      textAlign: "center",
-      fontFamily: "Arial, sans-serif",
-      backgroundColor: "#0d1117",
-      color: "#c9d1d9",
-      minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
+      height: "100vh",
+      backgroundColor: "#0d1117",
+      color: "#c9d1d9",
     },
     mainContent: {
       display: "flex",
@@ -138,6 +138,10 @@ const CrashPage = ({ userId, token }) => {
     gameContent: {
       flex: 1,
       padding: "20px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
     },
     controls: {
       display: "flex",
@@ -168,8 +172,15 @@ const CrashPage = ({ userId, token }) => {
       marginTop: "20px",
     },
     history: {
-      textAlign: "left",
       marginTop: "20px",
+      textAlign: "left",
+      backgroundColor: "#161b22",
+      padding: "10px",
+      borderRadius: "5px",
+      width: "80%",
+    },
+    historyItem: {
+      marginBottom: "5px",
     },
   };
 
@@ -230,7 +241,7 @@ const CrashPage = ({ userId, token }) => {
             <h2>Histórico</h2>
             <ul>
               {history.map((item, index) => (
-                <li key={index}>
+                <li key={index} style={styles.historyItem}>
                   Multiplicador: {item.multiplier},{" "}
                   {item.win ? "Ganhou!" : "Perdeu!"}
                 </li>

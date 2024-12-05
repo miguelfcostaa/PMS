@@ -1,246 +1,163 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import NavBar from "../components/NavBar";
-import SideBar from "../components/SideBar";
+import React from 'react';
+import NavBar from '../components/NavBar';
+import SideBar from '../components/SideBar';
 
-const CrashPage = ({ userId, token }) => {
-  const [coins, setCoins] = useState([]);
-  const [selectedCoin, setSelectedCoin] = useState("");
-  const [betAmount, setBetAmount] = useState("");
-  const [autoCashout, setAutoCashout] = useState("");
-  const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gameResult, setGameResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [cashoutPressed, setCashoutPressed] = useState(false);
-
-  // Função para buscar moedas do usuário corretamente
-  useEffect(() => {
-    const fetchCoins = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/auth/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setCoins(response.data.coins || []);
-      } catch (error) {
-        console.error("Erro ao buscar moedas do usuário:", error);
-      }
-    };
-
-    fetchCoins();
-  }, [userId, token]);
-
-  // Início do jogo
-  const startGame = () => {
-    if (!selectedCoin || !betAmount) {
-      alert("Escolha uma moeda e insira o valor da aposta!");
-      return;
-    }
-    if (betAmount > getSelectedCoinAmount()) {
-      alert("Saldo insuficiente!");
-      return;
-    }
-
-    // Deduz a aposta das moedas do usuário
-    const updatedCoins = coins.map((coin) => {
-      if (coin.coinName === selectedCoin) {
-        return { ...coin, amount: coin.amount - parseFloat(betAmount) };
-      }
-      return coin;
-    });
-
-    setCoins(updatedCoins);
-    setIsPlaying(true);
-    setCurrentMultiplier(1.0);
-    setCashoutPressed(false);
-    simulateGame();
-  };
-
-  // Simula o multiplicador em tempo real
-  const simulateGame = () => {
-    const interval = setInterval(() => {
-      setCurrentMultiplier((prevMultiplier) => {
-        const newMultiplier = (prevMultiplier + Math.random() * 0.1).toFixed(2);
-        if (Math.random() < 0.01) {
-          endGame(newMultiplier); // Simula um crash com 1% de chance
-          clearInterval(interval);
+function Challenges() {
+    const rectangles = [
+        {
+          id: 1,
+          squares: [
+            { id: 1, image: require("../assets/plus-icon-simple.png"), description: "Create a Campaign", progress: 100},
+            { id: 2, image: require("../assets/share.webp"), description: "Share your campaign to atleast 10 people", progress: 40},
+            { id: 3, image: require("../assets/goal.png"), description: "Make your campaign reach its goal.", progress: 68},
+            { id: 4, image: require("../assets/medal-bronze.png"), description: "Reward: Creator of Campaign", isMedal: true }
+          ],
+        },
+        {
+          id: 2,
+          squares: [
+            { id: 1, image: require("../assets/deposit.png"), description: "Deposit 100€", progress: 100},
+            { id: 2, image: require("../assets/multiplier.jpg"), description: "Double your money, playing any game", progress: 100},
+            { id: 3, image: require("../assets/donate.png"), description: "Donate to any campaign a value superior to 400€", progress: 89},
+            { id: 4, image: require("../assets/medal-silver.png"), description: "Reward: Helping the aid", isMedal: true }
+          ]
         }
-        return parseFloat(newMultiplier);
-      });
-    }, 100);
+      ];
+      return (
+        <>
+          <NavBar />
+          <SideBar />
+          <div style={styles.mainContent}>
+            <h1 sty></h1>
+            <div style={styles.container}>
+              {rectangles.map((rectangle) => (
+                <div style={styles.rectangle} key={rectangle.id}>
+                  {rectangle.squares.map((square) => (
+                    <div
+                    style={{
+                        ...styles.square,
+                        ...(square.isMedal && styles.medalSquare), 
+                    }}
+                    key={square.id}
+                    >
+                      <img
+                        src={square.image}
+                        alt={square.isMedal ? "Medal" : "Challenge"} 
+                        style={square.isMedal ? styles.medalImage : styles.image}
+                      />
+                      <p style={styles.description}>
+                        {square.isMedal ? square.description : square.description}
+                      </p>
+                      {!square.isMedal && (
+                      <>
+                          <div style={styles.progressBar}>
+                              <div
+                                  style={{
+                                      ...styles.progress,
+                                      width: `${square.progress}%`,
+                                  }}
+                              ></div>
+                          </div>
+                          <p style={styles.percentage}>{square.progress}%</p>
+                      </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+}
 
-    if (autoCashout) {
-      const autoCashoutTimeout = setTimeout(() => {
-        if (!cashoutPressed) {
-          handleCashout();
-        }
-      }, parseFloat(autoCashout) * 1000);
-      return () => clearTimeout(autoCashoutTimeout);
-    }
-  };
-
-  // Obtém o saldo da moeda selecionada
-  const getSelectedCoinAmount = () => {
-    const coin = coins.find((c) => c.coinName === selectedCoin);
-    return coin ? coin.amount : 0;
-  };
-
-  // Finaliza o jogo após crash
-  const endGame = (finalMultiplier) => {
-    setIsPlaying(false);
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { multiplier: finalMultiplier, win: false },
-    ]);
-    setGameResult("Perdeu! O multiplicador foi " + finalMultiplier);
-  };
-
-  // Lógica do botão de cashout
-  const handleCashout = () => {
-    if (!isPlaying || cashoutPressed) return;
-
-    const winnings = betAmount * currentMultiplier;
-    const updatedCoins = coins.map((coin) => {
-      if (coin.coinName === selectedCoin) {
-        return { ...coin, amount: coin.amount + parseFloat(winnings) };
-      }
-      return coin;
-    });
-
-    setCoins(updatedCoins);
-    setIsPlaying(false);
-    setCashoutPressed(true);
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { multiplier: currentMultiplier, win: true },
-    ]);
-    setGameResult("Ganhou! Multiplicador: " + currentMultiplier);
-  };
-
-  // Estilos inline
-  const styles = {
-    container: {
-      textAlign: "center",
-      fontFamily: "Arial, sans-serif",
-      backgroundColor: "#0d1117",
-      color: "#c9d1d9",
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-    },
+const styles = {
     mainContent: {
-      display: "flex",
-      flex: 1,
+        marginTop: 102,
+        marginLeft: '20%',
+        paddingLeft: '20px',
+        font: 'Inter',
     },
-    gameContent: {
-      flex: 1,
-      padding: "20px",
-    },
-    controls: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      marginBottom: "20px",
-    },
-    input: {
-      margin: "10px",
-      padding: "10px",
-      fontSize: "16px",
-      borderRadius: "5px",
-      border: "1px solid #c9d1d9",
-      backgroundColor: "#161b22",
-      color: "#c9d1d9",
-    },
-    button: {
-      margin: "10px",
-      padding: "10px 20px",
-      fontSize: "16px",
-      borderRadius: "5px",
-      border: "none",
-      cursor: "pointer",
-      backgroundColor: "#238636",
-      color: "#fff",
-    },
-    gameInfo: {
-      marginTop: "20px",
-    },
-    history: {
-      textAlign: "left",
-      marginTop: "20px",
-    },
-  };
-
-  return (
-    <div style={styles.container}>
-      <NavBar />
-      <div style={styles.mainContent}>
-        <SideBar />
-        <div style={styles.gameContent}>
-          <h1>Jogo Crash</h1>
-          <div style={styles.controls}>
-            <select
-              value={selectedCoin}
-              onChange={(e) => setSelectedCoin(e.target.value)}
-              style={styles.input}
-            >
-              <option value="">Escolha uma moeda</option>
-              {coins.map((coin) => (
-                <option key={coin.coinName} value={coin.coinName}>
-                  {coin.coinName} (Saldo: {coin.amount})
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Valor da aposta"
-              value={betAmount}
-              onChange={(e) => setBetAmount(e.target.value)}
-              style={styles.input}
-            />
-            <input
-              type="number"
-              placeholder="Auto Cashout (opcional)"
-              value={autoCashout}
-              onChange={(e) => setAutoCashout(e.target.value)}
-              style={styles.input}
-            />
-            <button
-              onClick={startGame}
-              disabled={isPlaying}
-              style={styles.button}
-            >
-              Apostar
-            </button>
-            <button
-              onClick={handleCashout}
-              disabled={!isPlaying || cashoutPressed}
-              style={{ ...styles.button, backgroundColor: "#da3633" }}
-            >
-              Cashout
-            </button>
-          </div>
-          <div style={styles.gameInfo}>
-            <p>Multiplicador Atual: {currentMultiplier}x</p>
-            <p>{gameResult}</p>
-          </div>
-          <div style={styles.history}>
-            <h2>Histórico</h2>
-            <ul>
-              {history.map((item, index) => (
-                <li key={index}>
-                  Multiplicador: {item.multiplier},{" "}
-                  {item.win ? "Ganhou!" : "Perdeu!"}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    container: {
+        display: "flex",
+        justifyContent: "space-around",
+        flexDirection: "column",
+        padding: "20px",
+        marginTop: "10px",
+        gap: "20px"
+      },
+      rectangle: {
+        display: "flex",
+        flexDirection: "row", 
+        justifyContent: "flex-start",
+        alignItems: "center",
+        width: "1400px", 
+        height: "375px",
+        padding: "10px",
+        backgroundColor: "#f0f0f0",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+      },
+      square: {
+        marginLeft: "20px",
+        height: "250px",
+        width: "250px",
+        textAlign: "center",
+        backgroundColor: "#ddd",
+        borderRadius: "5px",
+        padding: "50px",
+      },
+      squareContent: {
+        fontSize: "14px",
+        color: "#333",
+      },
+      image: {
+        width: "100px",
+        height: "100px",
+        marginTop: "20px",
+        marginBottom: "10px",
+      },
+      description: {
+        fontSize: "18px",
+        color: "#333",
+        textAlign: "center",
+        marginBottom: "10px",
+      },
+      progressBar: {
+        width: "100%",
+        height: "10px",
+        backgroundColor: "#ddd",
+        borderRadius: "5px",
+        overflow: "hidden",
+        border: "1px solid #ccc",
+        marginBottom: "5px",
+      },
+      progress: {
+        height: "100%",
+        backgroundColor: "#4caf50",
+      },
+      percentage: {
+        fontSize: "16px",
+        color: "#666",
+      },
+      medalSquare: {
+        display: "flex",
+        backgroundColor: "",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        height: "200px",
+        width: "200px",
+        borderRadius: "10px",
+        fontWeight: "bold",
+        padding: "20px",
+      },
+      medalImage: {
+        width: "150px",
+        height: "150px",
+        marginBottom: "10px",
+      },
 };
 
-export default CrashPage;
+export default Challenges;

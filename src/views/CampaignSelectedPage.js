@@ -4,10 +4,14 @@ import SideBar from '../components/SideBar';
 import { useParams } from 'react-router-dom';
 import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
+import axios from 'axios';
 
 function CampaignSelectedPage() {
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
+    const [userData, setUserData] = useState({});
+    const userId = localStorage.getItem('userId');
+    const [coins, setCoins] = useState([]);
     const [open, setOpen] = useState(false);
     const [donationCompleted, setDonationCompleted] = useState(false);
     const [donation, setDonation] = useState({
@@ -17,6 +21,19 @@ function CampaignSelectedPage() {
     });
 
     useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (response.status === 200) {
+                    const data = response.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
         const fetchCampaign = async () => {
             try {
                 const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`);
@@ -31,6 +48,8 @@ function CampaignSelectedPage() {
                 console.log('Erro de conexão ao servidor:', err);
             }
         };
+
+        fetchUserData();
         fetchCampaign();
     }, [id]);
 
@@ -49,6 +68,11 @@ function CampaignSelectedPage() {
 
         if (donation.amount < 1) {
             alert("The minimum donation amount is €1.");
+            return;
+        }
+
+        if (userData.paymentMethod === null || userData.paymentMethod === "") {
+            alert("Please, add a payment method on your profile to donate.");
             return;
         }
 
@@ -74,7 +98,7 @@ function CampaignSelectedPage() {
                 const updatedCampaign = await response.json();
                 setCampaign(updatedCampaign);
                 setDonationCompleted(true);
-                setTimeout(() => setDonationCompleted(false), 3000);
+                setTimeout(() => setDonationCompleted(false), 500);
                 setOpen(false);
 
                 setDonation({
@@ -169,6 +193,15 @@ function CampaignSelectedPage() {
                                             onChange={handleInputChange}
                                             style={styles.textArea}
                                             required
+                                        />
+
+                                        <label style={styles.label}>Payment Method: </label>
+                                        <input
+                                            type="text"
+                                            name="paymentMethod"
+                                            value={userData.paymentMethod}
+                                            style={styles.input}
+                                            disabled
                                         />
 
                                         <button
@@ -566,16 +599,18 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         width: 700,
-        margin: 100,
+        marginTop: "8vh",
+        marginRight: "10vh",
+        marginLeft: "5vh",
     },
     drawerTitle: {
-        fontSize: 50,
+        fontSize: 40,
         font: 'Inter',
         fontWeight: 'bold',
         marginBottom: 20,
     },
     label: {
-        marginTop: 20,
+        marginTop: 10,
         fontSize: 24,
         font: 'Inter',
         width: '90%',
@@ -594,7 +629,7 @@ const styles = {
     },
     textArea: {
         width: '100%',
-        height: '180px',
+        height: '100px',
         resize: 'none',
         marginTop: 10,
         padding: '1.5vh',
@@ -604,6 +639,7 @@ const styles = {
         backgroundColor: '#EFEFEF',
         outline: 'none',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
     },
     donationButton: {
         width: '50%',

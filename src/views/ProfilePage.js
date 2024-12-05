@@ -183,7 +183,7 @@ function ProfilePage() {
 
                         {/* Fields */}
                         <div style={styles.profileRight}>
-                            {['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN'].map(
+                            {['firstName', 'lastName', 'email', 'password', 'TIN', 'PassportNumber', 'IBAN' , 'paymentMethod'].map(
                                 (field) => (
                                     <div key={field} style={styles.fieldRow}>
                                         <h4 style={styles.label}>
@@ -387,7 +387,7 @@ const styles = {
         padding: '0.5vw 1vw 0.5vw 1vw',
         borderRadius: '1vh',
         width: '13vw',
-        height: '11.5vw',
+        height: '17vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         overflowY: 'auto', 
         overflowX: 'hidden',

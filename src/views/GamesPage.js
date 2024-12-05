@@ -80,8 +80,9 @@ const styles = {
 
     },
     image: {
-        width: "40vh",
-        height: "40vh",
+        marginTop: '1vh',
+        width: "45vh",
+        height: "45vh",
         borderRadius: "1vh",
         alignSelf: "center",
     },

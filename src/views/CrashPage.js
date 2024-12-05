@@ -36,7 +36,7 @@ const CrashPage = () => {
   }, [userId, token]);
 
   // Início do jogo
-  const startGame = () => {
+  const startGame = async () => {
     if (!selectedCoin || !betAmount) {
       alert("Escolha uma moeda e insira o valor da aposta!");
       return;
@@ -55,6 +55,22 @@ const CrashPage = () => {
     });
 
     setCoins(updatedCoins);
+
+    try {
+      await axios.put(
+        `http://localhost:5000/api/auth/${userId}/coins`,
+        {
+          coins: [{ coinName: selectedCoin, amount: -parseFloat(betAmount) }],
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar moedas na base de dados:", error);
+      return;
+    }
+
     setIsPlaying(true);
     setCurrentMultiplier(1.0);
     setCashoutPressed(false);
@@ -101,7 +117,7 @@ const CrashPage = () => {
   };
 
   // Lógica do botão de cashout
-  const handleCashout = () => {
+  const handleCashout = async () => {
     if (!isPlaying || cashoutPressed) return;
 
     const winnings = betAmount * currentMultiplier;
@@ -113,6 +129,23 @@ const CrashPage = () => {
     });
 
     setCoins(updatedCoins);
+
+    try {
+      await axios.put(
+        `http://localhost:5000/api/auth/${userId}/coins`,
+        {
+          coinName: selectedCoin,
+          amount: parseFloat(winnings),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar moedas na base de dados:", error);
+      return;
+    }
+
     setIsPlaying(false);
     setCashoutPressed(true);
     setHistory((prevHistory) => [
@@ -189,7 +222,7 @@ const CrashPage = () => {
       <NavBar />
       <div style={styles.mainContent}>
         <SideBar />
-        <div style={styles.gameContent}>
+        <div style={{ ...styles.gameContent, marginLeft: '15%' }}>
           <h1>Jogo Crash</h1>
           <div style={styles.controls}>
             <select

@@ -176,5 +176,32 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
+// Rota para atualizar as moedas de um utilizador
+router.put('/:userId/coins', async (req, res) => {
+    const { userId } = req.params;
+    const { coinName, amount } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Encontrar a moeda específica e atualizar o valor
+        const coin = user.coins.find(c => c.coinName === coinName);
+        if (!coin) {
+            return res.status(404).json({ message: 'Coin not found' });
+        }
+
+        coin.amount += amount;
+
+        await user.save();
+        res.status(200).json({ message: 'Coins updated successfully', coins: user.coins });
+    } catch (error) {
+        console.error('Erro ao atualizar moedas:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 module.exports = router;

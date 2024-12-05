@@ -2,8 +2,7 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
-function GamesPage
-() {
+function GamesPage() {
     const items = [
         {id: 1, image: require("../assets/crash.png"), text: "Online players: 12874", buttontext: "Try it"},
         {id: 2, image: require("../assets/roleta.jfif"), text: "Online players: 4321", buttontext: "Try it"},
@@ -24,9 +23,19 @@ function GamesPage
                     onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
                     onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
                     onClick={() => {
-                    if (item.id === 2) {
-                        window.location.href = "/roulette";
-                    }
+                        switch (item.id) {
+                            case 1:
+                                window.location.href = "/crash";
+                                break;
+                            case 2:
+                                window.location.href = "/roulette";
+                                break;
+                            case 3:
+                                window.location.href = "/slots";
+                                break;
+                            default:
+                                break;
+                        }
                     }}
                     >
                     {item.buttontext}
@@ -34,13 +43,11 @@ function GamesPage
                 </div>
                 ))}
             </div>
-
-
         </div>
-        
         </>
     );
 }
+
 const styles = {
     mainContent: {
         marginTop: 102,

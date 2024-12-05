@@ -379,10 +379,13 @@ const styles = {
         backgroundColor: '#f9f9f9',
         padding: '1.5vw',
         borderRadius: '1vh',
-        width: '12vw', // Alinhado com o tamanho da foto de perfil
-        height: '10vw',
+        width: '12vw', // Tamanho fixo para o container
+        height: '10.4vw', // Tamanho fixo para o container
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto', // Permite rolagem vertical se necessário
+        overflowX: 'hidden', // Evita rolagem horizontal
     },
+
     coinsTitle: {
         fontSize: '2.5vh',
         color: '#333',

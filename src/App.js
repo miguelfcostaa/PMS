@@ -12,6 +12,7 @@ import CreateCampaignPage from './views/CreateCampaignPage';
 import CampaignSelectedPage from './views/CampaignSelectedPage';
 import RoulettePage from './views/RoulettePage';
 import Challenges from './views/Challenges';
+import CrashPage from './views/CrashPage';
 import { SearchProvider } from './contexts/SearchContext';
 import { CategoryProvider } from './contexts/CategoryContext';
 
@@ -50,6 +51,7 @@ function App() {
           <Route path="/roulette" element={<RoulettePage />}/>
           <Route path="/create-campaign" element={<CreateCampaignPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/crash" element={<CrashPage />} />
         </Routes>
       </BackgroundColorWrapper>
       </CategoryProvider>

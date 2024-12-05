@@ -43,9 +43,9 @@ function GamesPage
 }
 const styles = {
     mainContent: {
-        marginTop: 142,
+        marginTop: 102,
         marginLeft: '20%',
-        marginRight: '5%',
+        marginRight: '3vh',
         paddingLeft: '20px',
         font: 'Inter',
     },
@@ -54,7 +54,6 @@ const styles = {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        gap: 10,
         flexWrap: "wrap",
         width: "100%",
     },
@@ -64,12 +63,14 @@ const styles = {
         justifyContent: "space-between",
         border: "2px solid #ccc",
         borderRadius: "10px",
-        width: "48vh",
+        width: "50vh",
         height: "70vh",
         padding: "10px",
         backgroundColor: "#d3d3d3",
         boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         textAlign: "center",
+        marginTop: '3vh',
+
     },
     image: {
         width: "400px",

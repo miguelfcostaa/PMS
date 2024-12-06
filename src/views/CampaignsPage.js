@@ -58,7 +58,7 @@ function CampaignsPage() {
             <div style={styles.mainContent}>
                 {showSearchResults && (searchTerm || selectedCategories.length > 0) && (
                     <>
-                        <h1 id="search-results-title">Search Results</h1>
+                        <h1 id="search-results-title" style={{ paddingTop: '1vh'}}>Search Results</h1>
 
                         <div style={styles.selectedCategories}>
                             {searchTerm && (
@@ -102,7 +102,7 @@ function CampaignsPage() {
 
 const styles = {
     mainContent: {
-        marginTop: 102,
+        marginTop: 105,
         marginLeft: '15%',
         paddingLeft: '2vh',
         font: 'Inter',

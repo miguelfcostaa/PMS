@@ -87,11 +87,11 @@ const styles = {
         position: 'fixed',
         top: '9.5vh',
         left: '0',
-        width: '10%',
+        width: '11%',
         height: '85vh',
         backgroundColor: '#425576',
         padding: '3vh', 
-        paddingLeft: '6vh',
+        paddingLeft: '4vh',
         paddingRight: '3vh', 
         color: 'white',
         font: 'Inter',
@@ -128,7 +128,7 @@ const styles = {
     },
     categories: {
         marginBottom: '0.5vh', 
-        paddingLeft: '5%', 
+        paddingLeft: '3%', 
     },
     categoryItem: {
         display: 'flex',

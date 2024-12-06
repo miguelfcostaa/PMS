@@ -274,7 +274,7 @@ const style = {
         width: "20.4vh",
         height: "7.6vh",
         paddingRight: '5.4vh',
-        paddingLeft: '5vh',
+        paddingLeft: '4vh',
         marginBottom: "1vh",
     },
     navbarSearch: {
@@ -283,7 +283,7 @@ const style = {
         backgroundColor: '#2e4a75',
         paddingLeft: '0.3vh',
         paddingRight: '0.3vh',
-        marginLeft: '2.5vh',
+        marginLeft: '3.5vh',
         marginRight: '1vh',
         width: "73.5vh",
         height: "6.1vh",

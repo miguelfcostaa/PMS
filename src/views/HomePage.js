@@ -117,7 +117,7 @@ const styles = {
 
     mainContent: {
         marginTop: 82,
-        marginLeft: '20%',
+        marginLeft: '15%',
         paddingLeft: '0px',
         font: 'Inter',
     },

@@ -74,7 +74,7 @@ function Challenges() {
 const styles = {
     mainContent: {
         marginTop: 102,
-        marginLeft: '20%',
+        marginLeft: '15%',
         paddingLeft: '20px',
         font: 'Inter',
     },

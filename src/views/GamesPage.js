@@ -51,7 +51,7 @@ function GamesPage() {
 const styles = {
     mainContent: {
         marginTop: 102,
-        marginLeft: '20%',
+        marginLeft: '15%',
         marginRight: '3vh',
         paddingLeft: '2vh',
         font: 'Inter',

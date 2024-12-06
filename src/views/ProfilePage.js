@@ -288,7 +288,7 @@ const styles = {
     pageContainer: {
         display: 'flex',
         flexDirection: 'column',
-        marginLeft: '19%',
+        marginLeft: '14%',
         height: '100vh',
         backgroundColor: '#f8f9fa',
     },

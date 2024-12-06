@@ -183,7 +183,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginLeft: "20%",
+        marginLeft: "15%",
     },
     buttonGroup: {
     },
@@ -191,7 +191,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginLeft: "20%",
+        marginLeft: "15%",
         marginTop: "100px",
     },
     buttonGroup: {

@@ -353,7 +353,7 @@ function CampaignSelectedPage() {
 const styles = {
     mainContent: {
         marginTop: 117,
-        marginLeft: '20%',
+        marginLeft: '15%',
         marginRight: 47,
         paddingLeft: '20px',
         font: 'Inter',

@@ -87,7 +87,7 @@ const styles = {
         position: 'fixed',
         top: '9.5vh',
         left: '0',
-        width: '15%',
+        width: '10%',
         height: '85vh',
         backgroundColor: '#425576',
         padding: '3vh', 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NavBar from "../components/NavBar";
 import SideBar from "../components/SideBar";
+import rocketImage from "../assets/rocket.png";
 
 const CrashPage = () => {
   const [coins, setCoins] = useState([]);
@@ -60,7 +61,8 @@ const CrashPage = () => {
       await axios.put(
         `http://localhost:5000/api/auth/${userId}/coins`,
         {
-          coins: [{ coinName: selectedCoin, amount: -parseFloat(betAmount) }],
+          coinName: selectedCoin,
+          amount: -parseFloat(betAmount), // Atualizando apenas uma moeda
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -109,10 +111,7 @@ const CrashPage = () => {
   // Finaliza o jogo após crash
   const endGame = (finalMultiplier) => {
     setIsPlaying(false);
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { multiplier: finalMultiplier, win: false },
-    ]);
+    setHistory((prevHistory) => [...prevHistory, finalMultiplier]);
     setGameResult("Perdeu! O multiplicador foi " + finalMultiplier);
   };
 
@@ -148,10 +147,7 @@ const CrashPage = () => {
 
     setIsPlaying(false);
     setCashoutPressed(true);
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { multiplier: currentMultiplier, win: true },
-    ]);
+    setHistory((prevHistory) => [...prevHistory, currentMultiplier]);
     setGameResult("Ganhou! Multiplicador: " + currentMultiplier);
   };
 
@@ -161,26 +157,30 @@ const CrashPage = () => {
       display: "flex",
       flexDirection: "column",
       height: "100vh",
-      backgroundColor: "#0d1117",
+      backgroundColor: "#010017",
       color: "#c9d1d9",
     },
     mainContent: {
       display: "flex",
       flex: 1,
     },
-    gameContent: {
-      flex: 1,
+    leftContainer: {
+      width: "25%",
+      backgroundColor: "#0d1117",
       padding: "20px",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "center",
     },
-    controls: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      marginBottom: "20px",
+    buttonToggle: {
+      padding: "10px 20px",
+      fontSize: "16px",
+      marginBottom: "10px",
+      cursor: "pointer",
+      borderRadius: "5px",
+      border: "none",
+      backgroundColor: "#238636",
+      color: "#fff",
     },
     input: {
       margin: "10px",
@@ -190,30 +190,50 @@ const CrashPage = () => {
       border: "1px solid #c9d1d9",
       backgroundColor: "#161b22",
       color: "#c9d1d9",
+      width: "100%",
     },
-    button: {
-      margin: "10px",
+    betButton: {
       padding: "10px 20px",
       fontSize: "16px",
       borderRadius: "5px",
       border: "none",
       cursor: "pointer",
-      backgroundColor: "#238636",
+      backgroundColor: isPlaying ? "#da3633" : "#238636",
       color: "#fff",
     },
-    gameInfo: {
-      marginTop: "20px",
-    },
-    history: {
-      marginTop: "20px",
-      textAlign: "left",
-      backgroundColor: "#161b22",
+    historyContainer: {
+      display: "flex",
+      flexDirection: "row",
+      overflowX: "scroll",
+      width: "75%",
+      backgroundColor: "#0d1117",
       padding: "10px",
-      borderRadius: "5px",
-      width: "80%",
+      borderBottom: "1px solid #ffffff",
     },
     historyItem: {
-      marginBottom: "5px",
+      padding: "5px 10px",
+      borderRadius: "5px",
+      margin: "5px",
+      color: "#fff",
+    },
+    gameContainer: {
+      flex: 1,
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+    },
+    multiplierText: {
+      fontSize: "48px",
+      color: "#fff",
+      marginBottom: "20px",
+    },
+    rocketImage: {
+      position: "absolute",
+      bottom: "10%",
+      transform: `translateY(-${currentMultiplier * 10}px)`,
     },
   };
 
@@ -221,66 +241,62 @@ const CrashPage = () => {
     <div style={styles.container}>
       <NavBar />
       <div style={styles.mainContent}>
-        <SideBar />
-        <div style={{ ...styles.gameContent, marginLeft: '15%' }}>
-          <h1>Jogo Crash</h1>
-          <div style={styles.controls}>
-            <select
-              value={selectedCoin}
-              onChange={(e) => setSelectedCoin(e.target.value)}
-              style={styles.input}
-            >
-              <option value="">Escolha uma moeda</option>
-              {coins.map((coin) => (
-                <option key={coin.coinName} value={coin.coinName}>
-                  {coin.coinName} (Saldo: {coin.amount})
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Valor da aposta"
-              value={betAmount}
-              onChange={(e) => setBetAmount(e.target.value)}
-              style={styles.input}
-            />
-            <input
-              type="number"
-              placeholder="Auto Cashout (opcional)"
-              value={autoCashout}
-              onChange={(e) => setAutoCashout(e.target.value)}
-              style={styles.input}
-            />
-            <button
-              onClick={startGame}
-              disabled={isPlaying}
-              style={styles.button}
-            >
-              Apostar
-            </button>
-            <button
-              onClick={handleCashout}
-              disabled={!isPlaying || cashoutPressed}
-              style={{ ...styles.button, backgroundColor: "#da3633" }}
-            >
-              Cashout
-            </button>
-          </div>
-          <div style={styles.gameInfo}>
-            <p>Multiplicador Atual: {currentMultiplier}x</p>
-            <p>{gameResult}</p>
-          </div>
-          <div style={styles.history}>
-            <h2>Histórico</h2>
-            <ul>
-              {history.map((item, index) => (
-                <li key={index} style={styles.historyItem}>
-                  Multiplicador: {item.multiplier},{" "}
-                  {item.win ? "Ganhou!" : "Perdeu!"}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div style={styles.leftContainer}>
+          <button style={styles.buttonToggle}>Manual</button>
+          <button style={styles.buttonToggle}>Auto</button>
+          <select
+            value={selectedCoin}
+            onChange={(e) => setSelectedCoin(e.target.value)}
+            style={styles.input}
+          >
+            <option value="">Choose a coin</option>
+            {coins.map((coin) => (
+              <option key={coin.coinName} value={coin.coinName}>
+                {coin.coinName} (Balance: {coin.amount})
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            placeholder="Bet value"
+            value={betAmount}
+            onChange={(e) => setBetAmount(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Auto Cashout (optional)"
+            value={autoCashout}
+            onChange={(e) => setAutoCashout(e.target.value)}
+            style={styles.input}
+          />
+          <button
+            onClick={isPlaying ? handleCashout : startGame}
+            style={styles.betButton}
+          >
+            {isPlaying ? "Cash Out" : "Bet (Next Round)"}
+          </button>
+          <h2>Leaderboard</h2>
+          <div>{/* Placeholder for future leaderboard implementation */}</div>
+        </div>
+
+        <div style={styles.historyContainer}>
+          {history.map((multiplier, index) => {
+            const color = multiplier < 2 ? "#ff0000" : multiplier < 50 ? "#ffcc00" : "#ffd700";
+            return (
+              <div
+                key={index}
+                style={{ ...styles.historyItem, backgroundColor: color }}
+              >
+                {multiplier}x
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={styles.gameContainer}>
+          <p style={styles.multiplierText}>{currentMultiplier}x</p>
+          <img src={rocketImage} alt="Rocket" style={styles.rocketImage} />
         </div>
       </div>
     </div>

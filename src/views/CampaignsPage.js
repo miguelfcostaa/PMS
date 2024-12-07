@@ -135,9 +135,8 @@ const styles = {
     campaignDisplay: {
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginRight: '3vh',
-        marginBottom: '3vh',
+        justifyContent: 'flex-start',
+        gap: '8vh',
     },
     searchIcon: {
         width: '2.2vh',

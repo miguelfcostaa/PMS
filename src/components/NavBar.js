@@ -16,7 +16,6 @@ function NavBar({ onSearch }) {
     const navigate = useNavigate();
     const [userId, setUserId] = useState(localStorage.getItem('userId')); // Para armazenar o userId do localStorage
     const { searchTerm, setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
-    const [localSearchTerm, setLocalSearchTerm] = useState('');
     const [verificationCompleted, setVerificationCompleted] = useState(
         JSON.parse(localStorage.getItem(`verificationCompleted_${userId}`)) || false // Recupera o estado de verificação do localStorage para cada userId
     ); // Para determinar o estado do perfil (verificado ou não)
@@ -114,7 +113,7 @@ function NavBar({ onSearch }) {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' || e.type === 'click') {
-            setSearchTerm(localSearchTerm);
+            setSearchTerm(searchTerm);
             navigate('/campaign');
         }
     };
@@ -138,7 +137,7 @@ function NavBar({ onSearch }) {
             <div style={style.navbarSearch}>
                 <Input
                     placeholder="Search campaigns..."
-                    variant="plain"
+                    variant="outlined"
                     style={style.searchInput}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -185,20 +184,20 @@ function NavBar({ onSearch }) {
                 <Menu style={style.dropdownMenuItem}>
                     {coins.length > 0 ? (
                         coins.map((coin, index) => (
-                            <MenuItem key={index}>
-                                <div style={style.coinRow}>
-                                    <button
+                            <div style={style.coinRow}>
+                                <MenuItem key={index}>
+                                    <img 
+                                        src={require('../assets/plus-icon.png')} 
+                                        alt="Add Icon" 
+                                        style={style.addCoinsIcon} 
                                         onClick={() => {
                                             if (!coin.campaignId) {
-                                                alert('Campaign ID not found for this coin.');
+                                                alert('Campaign ID não encontrado para esta moeda.');
                                                 return;
                                             }
-                                            navigate(`/campaign/${coin.campaignId}`);
+                                            window.location.href = `/campaign/${coin.campaignId}`;
                                         }}
-                                        style={style.addButton}
-                                    >
-                                        +
-                                    </button>
+                                    />
                                     <span style={style.coinAmount}>
                                         {coin.amount}
                                     </span>
@@ -210,8 +209,8 @@ function NavBar({ onSearch }) {
                                             title={coin.coinName} // Nome da moeda aparece no hover
                                         />
                                     </div>
-                                </div>
-                            </MenuItem>
+                                </MenuItem>
+                            </div>
                         ))
                     ) : (
                         <MenuItem>
@@ -290,7 +289,7 @@ const style = {
         borderRadius: "2vh",
     },
     searchInput: {
-        padding: '2vh',
+        padding: '1vh',
         paddingLeft: '2vh',
         fontSize: "2.5vh",
         background: 'none',
@@ -366,16 +365,57 @@ const style = {
         fontWeight: 'bold',
         flex: '1',
     },
+    dropdownMenuItem: {
+        width: 'auto',
+        borderRadius: '2vh',
+        backgroundColor: '#EFEFEF',
+        padding: '0.5vw 0.5vw 0.5vw 0.5vw',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto', 
+        overflowX: 'hidden',
+    },
     dropdownIcon: {
         width: "4vh",
         height: "2vh",
         paddingRight: '1.6vh',
     },
-    dropdownMenuItem: {
-        width: 'auto',
-        borderRadius: "2vh",
-        backgroundColor: '#EFEFEF',
-        marginTop: "2vh",
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative', 
+        padding: '0.5vh 0vh'
+    },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
+    },
+    coinAmount: {
+        fontSize: '3.5vh',
+        color: '#333',
+        fontWeight: 'bold',
+        width: '2vw',
+        maxWidth: '5vw',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
     },
     profileButton: {
         background: 'none',
@@ -428,47 +468,6 @@ const style = {
     notificationItem: {
         padding: '1.2vh',
         borderBottom: '1px solid #E0E0E0',
-    },
-    coinRow: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        marginBottom: '1vh',
-        gap: '1vw'
-    },
-    addButton: {
-        width: '2.5vw',
-        height: '2.5vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFFFFF',
-        border: '0.5vh solid #007bff',
-        color: '#007bff',
-        fontSize: '6vh',
-        cursor: 'pointer',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-    },
-    coinAmount: {
-        fontSize: '3vh',
-        color: '#333',
-        fontWeight: 'bold'
-    },
-    coinCircle: {
-        width: '3vw',
-        height: '3vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFAD00',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    coinImage: {
-        width: '80%',
-        height: '80%',
-        borderRadius: '50%',
-        objectFit: 'cover',
     },
     
 };

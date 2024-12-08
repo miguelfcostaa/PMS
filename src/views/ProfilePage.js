@@ -510,7 +510,6 @@ const styles = {
         width: '2.5vw',
         height: '2.5vw',
         borderRadius: '50%',
-        /*backgroundColor: '#f9f9f9',*/
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -522,20 +521,6 @@ const styles = {
         height: '80%',
         borderRadius: '50%',
         objectFit: 'cover',
-    },
-    addButton: {
-        width: '2.5vw',
-        height: '2.5vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFFFFF',
-        border: '0.5vh solid #007bff',
-        color: '#007bff',
-        fontSize: '6vh',
-        cursor: 'pointer',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
     },
     loading: {
         display: 'flex',

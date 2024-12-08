@@ -36,7 +36,8 @@ const CrashPage = () => {
     JSON.parse(sessionStorage.getItem("crashHistory")) || []
   );
   const [cashoutPressed, setCashoutPressed] = useState(false);
-  const [chartData, setChartData] = useState({ labels: [], data: [] });
+  const [chartData, setChartData] = useState({ labels: ["0s"], data: [1.0] });
+  const [backgroundPoints, setBackgroundPoints] = useState([]);
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
@@ -97,6 +98,7 @@ const CrashPage = () => {
     setCurrentMultiplier(1.0);
     setCashoutPressed(false);
     setChartData({ labels: ["0s"], data: [1.0] });
+    setBackgroundPoints([{ time: 0, multiplier: 1.0 }]);
     simulateGame();
   };
 
@@ -104,13 +106,19 @@ const CrashPage = () => {
     let time = 0;
     const interval = setInterval(() => {
       time += 0.1;
-      setCurrentMultiplier(() => {
+      setCurrentMultiplier((prevMultiplier) => {
         // Growth pattern: starts slow and accelerates
         const newMultiplier = Math.min(1 + Math.pow(time / 10, 2), 100).toFixed(2);
-        setChartData((prev) => ({
-          labels: [...prev.labels, `${time.toFixed(1)}s`],
-          data: [...prev.data, parseFloat(newMultiplier)],
-        }));
+
+        setBackgroundPoints((prevPoints) => {
+          const newPoints = [...prevPoints, { time, multiplier: parseFloat(newMultiplier) }];
+          // Update visible chart with smoothed data
+          const visibleLabels = newPoints.map((point) => `${point.time.toFixed(1)}s`);
+          const visibleData = newPoints.map((point) => point.multiplier);
+          setChartData({ labels: visibleLabels, data: visibleData });
+          return newPoints;
+        });
+
         if (Math.random() < 0.01 || newMultiplier >= 100) {
           endGame(newMultiplier);
           clearInterval(interval);

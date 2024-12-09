@@ -104,22 +104,23 @@ const styles = {
         marginLeft: '5%',
         height: '100%',
         background: '#FFFFFF',
-        borderRadius: '10px'
+        borderRadius: '10px',
     },
 
     campaignDisplay: {
+        marginLeft:'3vw',
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         background: "#D9D9D9",
-        width:'100%',
+        width:'93%',
         overflowX: 'scroll',
     },
 
     mainContent: {
-        marginTop: 82,
-        marginLeft: '15%',
+        marginTop: '5vh',
+        marginLeft: '14.75vw',
         paddingLeft: '0px',
         font: 'Inter',
     },

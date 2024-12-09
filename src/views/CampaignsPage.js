@@ -58,7 +58,7 @@ function CampaignsPage() {
             <div style={styles.mainContent}>
                 {showSearchResults && (searchTerm || selectedCategories.length > 0) && (
                     <>
-                        <h1 id="search-results-title">Search Results</h1>
+                        <h1 id="search-results-title" style={{ paddingTop: '1vh'}}>Search Results</h1>
 
                         <div style={styles.selectedCategories}>
                             {searchTerm && (
@@ -102,32 +102,32 @@ function CampaignsPage() {
 
 const styles = {
     mainContent: {
-        marginTop: 102,
-        marginLeft: '20%',
-        paddingLeft: '20px',
+        marginTop: 105,
+        marginLeft: '15%',
+        paddingLeft: '2vh',
         font: 'Inter',
     },
     line: {
-        borderBottom: '2px solid #D0D0D0',
-        marginBottom: '10px',
-        marginTop: '20px',
+        borderBottom: '0.2vh solid #D0D0D0',
+        marginBottom: '1vh',
+        marginTop: '2vh',
     },
     selectedCategories: {
-        marginTop: '20px',
-        padding: '10px 0',
+        marginTop: '2vh',
+        padding: '1vh 0',
         flexDirection: 'row',
         display: 'flex',
     },
     categorieSelected: {
         width: 'fit-content',
-        height: 43,
+        height: '4.3vh',
         backgroundColor: '#4A4A4A',
         color: 'white',
-        paddingLeft: 30,
-        paddingRight: 30,
-        borderRadius: 20,
-        marginRight: 10,
-        fontSize: 18,
+        paddingLeft: '3vh',
+        paddingRight: '3vh',
+        borderRadius: '2vh',
+        marginRight: '1vh',
+        fontSize: '1.8vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -135,14 +135,13 @@ const styles = {
     campaignDisplay: {
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginRight: 30,
-        marginBottom: 30,
+        justifyContent: 'flex-start',
+        gap: '8vh',
     },
     searchIcon: {
-        width: 22,
-        height: 22,
-        marginLeft: 10,
+        width: '2.2vh',
+        height: '2.2vh',
+        marginLeft: '1vh',
         cursor: 'pointer',
     },
 };

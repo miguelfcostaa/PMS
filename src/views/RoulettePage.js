@@ -1,8 +1,13 @@
-import React, { useEffect, useRef, useMemo, memo } from 'react';
+import React, { useEffect, useRef, useMemo, memo, useState } from 'react';
 import * as THREE from 'three';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
-
+import axios from 'axios';
+import Dropdown from '@mui/joy/Dropdown';
+import Menu from '@mui/joy/Menu';
+import MenuButton from '@mui/joy/MenuButton';
+import MenuItem from '@mui/joy/MenuItem';
+import { useNavigate } from 'react-router-dom';
 
 const colors = ["red", "black", "red", "black", "red", "black", "red", "black", "red", "blue", "black", "red", "black"];
 const red = 0x9D0208;
@@ -14,65 +19,15 @@ const spacing = 0.45
 const speed = 0.1;
 
 
+
 let position = -2.94
 let scene, canvas, renderer, camera
 let circles = []
 
-function roulette() {
-    const index = Math.floor(Math.random() * 10)
-    const result = circles[index]
-    let today = new Date()
-    let s = today.getSeconds()
-    let actualS = s
-    let sp = speed
-    const rouletteAnimation = () => {
-        circles.forEach((c, index) => {
-            if (actualS < s + 5) {
-                today = new Date()
-                actualS = today.getSeconds()
-                console.log(sp)
-                c.position.x -= sp
-                sp = sp - sp / 3000
-                if (c.position.x <= -2.5) {
-                    if (index !== 0) {
-                        c.position.x = circles[index - 1].position.x + spacing
-                    }
-                    else {
-                        c.position.x = circles[circles.length - 1].position.x + spacing
-                    }
-                }
-            }
-            else {
-                if (result.position.x >= -0.1 && result.position.x <= -0.3) {
-                    today = new Date()
-                    actualS = today.getSeconds()
-                    console.log(s)
-                    c.position.x -= sp
-                    sp = sp - sp / 3000
-                    if (c.position.x <= -2.5) {
-                        console.log(c.position.x)
-                        if (index !== 0) {
-                            c.position.x = circles[index - 1].position.x + spacing
-                        }
-                        else {
-                            c.position.x = circles[circles.length - 1].position.x + spacing
-                        }
-                    }
-                }
-            }
-        });
-    }
 
-    const animate = () => {
-        requestAnimationFrame(animate)
-        rouletteAnimation()
-        renderer.render(scene, camera)
-
-    };
-    animate()
-}
 
 function Init() {
+
     canvas = useRef(null)
     useEffect(() => {
         if (!scene) {
@@ -133,13 +88,105 @@ function Init() {
     }, [])
 }
 
+
 function RoulettePage() {
+
+    const [coins, setCoins] = useState([]);
+    const [selectedCoin, setSelectedCoin] = useState(null);
+    const [userData, setUserData] = useState({});
+    const userId = localStorage.getItem('userId');
+
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (response.status === 200) {
+                    const data = response.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, [userId]);
+
+
+
+    function roulette() {
+        const index = Math.floor(Math.random() * 10)
+        const result = circles[index]
+        let today = new Date()
+        let s = today.getSeconds()
+        let actualS = s
+        let sp = speed
+    
+        if (selectedCoin === null) {
+            alert('Please select a coin to bet.');
+            return;
+        }
+    
+        const rouletteAnimation = () => {
+            circles.forEach((c, index) => {
+                if (actualS < s + 5) {
+                    today = new Date()
+                    actualS = today.getSeconds()
+                    console.log(sp)
+                    c.position.x -= sp
+                    sp = sp - sp / 3000
+                    if (c.position.x <= -2.5) {
+                        if (index !== 0) {
+                            c.position.x = circles[index - 1].position.x + spacing
+                        }
+                        else {
+                            c.position.x = circles[circles.length - 1].position.x + spacing
+                        }
+                    }
+                }
+                else {
+                    if (result.position.x >= -0.1 && result.position.x <= -0.3) {
+                        today = new Date()
+                        actualS = today.getSeconds()
+                        console.log(s)
+                        c.position.x -= sp
+                        sp = sp - sp / 3000
+                        if (c.position.x <= -2.5) {
+                            console.log(c.position.x)
+                            if (index !== 0) {
+                                c.position.x = circles[index - 1].position.x + spacing
+                            }
+                            else {
+                                c.position.x = circles[circles.length - 1].position.x + spacing
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    
+        const animate = () => {
+            requestAnimationFrame(animate)
+            rouletteAnimation()
+            renderer.render(scene, camera)
+    
+        };
+        animate()
+    }
+
+
     const [inputValue, setInputValue] = React.useState('');
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
     };
+
     Init()
+
     return (
         <>
             <NavBar />
@@ -170,7 +217,77 @@ function RoulettePage() {
 
                 <div style={styles.inputGroup}>
                     <label htmlFor="quantity" style={styles.label}>Quantity:</label>
-                    <input type="number" id="quantity" value={inputValue} onChange={handleInputChange} style={styles.input} />
+                    <div style={styles.coinFlex}>
+                        <input type="number" id="quantity" value={inputValue} onChange={handleInputChange} style={styles.input} />
+                        
+                        <Dropdown>
+                            <MenuButton variant="solid" color="#FFFFFF">
+                                <div style={styles.coinsContainerDropdown}>
+                                    {selectedCoin ? (
+                                        <>
+                                            <span style={{...styles.coinAmount, marginRight: 10}}>
+                                                {selectedCoin.amount}
+                                            </span>
+                                            <div style={{...styles.coinCircle, width: '4vh', height: '4vh'}}>
+                                                <img
+                                                    src={selectedCoin.coinImage}
+                                                    alt={selectedCoin.coinName}
+                                                    style={styles.coinImage}
+                                                />
+                                            </div>
+                                            
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={styles.coinText}> Coins </span>
+                                            <img
+                                                src={require('../assets/dropdown-icon.png')}
+                                                alt="Dropdown Icon"
+                                                style={styles.dropdownIcon}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            </MenuButton>
+                            <Menu style={styles.dropdownMenuItem}>
+                                {coins.length > 0 ? (
+                                    coins.map((coin, index) => (
+                                        <div style={styles.coinRow} key={index}>
+                                            <MenuItem onClick={() => setSelectedCoin(coin)}>
+                                                <img 
+                                                    src={require('../assets/plus-icon.png')} 
+                                                    alt="Add Icon" 
+                                                    style={styles.addCoinsIcon} 
+                                                    onClick={() => {
+                                                        if (!coin.campaignId) {
+                                                            alert('Campaign ID não encontrado para esta moeda.');
+                                                            return;
+                                                        }
+                                                        window.location.href = `/campaign/${coin.campaignId}`;
+                                                    }}
+                                                />
+                                                <span style={styles.coinAmount}>
+                                                    {coin.amount}
+                                                </span>
+                                                <div style={styles.coinCircle}>
+                                                    <img
+                                                        src={coin.coinImage}
+                                                        alt={coin.coinName}
+                                                        style={styles.coinImage}
+                                                        title={coin.coinName} // Nome da moeda aparece no hover
+                                                    />
+                                                </div>
+                                            </MenuItem>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <MenuItem>
+                                        <span>No coins available</span>
+                                    </MenuItem>
+                                )}
+                            </Menu>
+                        </Dropdown>
+                    </div>
                 </div>
             </div>
         </>
@@ -183,7 +300,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginLeft: "20%",
+        marginLeft: "15%",
     },
     buttonGroup: {
     },
@@ -191,7 +308,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginLeft: "20%",
+        marginLeft: "15%",
         marginTop: "100px",
     },
     buttonGroup: {
@@ -211,30 +328,104 @@ const styles = {
         color: "white",
         cursor: 'pointer',
     },
-
     inputGroup: {
-        width: "920px",
         flexDirection: 'column',
         display: 'flex',
         justifyContent: 'center',
-        marginBottom: '10px',
     },
-
     label: {
-        margin: '5px',
-        fontSize: '18px',
-        color: "#A5A5A5",
-        fontFamily: "Helvetica",
+        fontSize: 22,
+        font: 'Inter',
+        width: '100%',
+        marginBottom: '1vh',
     },
-
     input: {
-        height: '30px',
-        width: "100%",
-        padding: '8px',
-        fontSize: '14px',
-        borderRadius: 20,
-        border: "none",
-        boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+        height: "6vh",
+        width: '100%',
+        fontSize: '2vh',
+        borderRadius: '2vh',
+        border: 'none',
+        paddingLeft: '1.5vh',
+        backgroundColor: '#fff',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+    },
+    coinFlex: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    coinsContainerDropdown: {
+        height: "6vh",
+        width: "17.2vh",
+        borderRadius: "2vh",
+        backgroundColor: '#FFFFFF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginLeft: '1.1vh',
+    },
+    coinText: {
+        color: '#1FA8FE',
+        fontSize: "2.6vh",
+        fontWeight: 'bold',
+        flex: '1',
+    },
+    dropdownMenuItem: {
+        width: 'auto',
+        borderRadius: '2vh',
+        backgroundColor: '#EFEFEF',
+        padding: '0.5vw 0.5vw 0.5vw 0.5vw',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto', 
+        overflowX: 'hidden',
+    },
+    dropdownIcon: {
+        width: "4vh",
+        height: "2vh",
+        paddingRight: '1.6vh',
+    },
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative', 
+        padding: '0.5vh 0vh'
+    },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
+    },
+    coinAmount: {
+        fontSize: '3.5vh',
+        color: '#333',
+        fontWeight: 'bold',
+        width: '2vw',
+        maxWidth: '5vw',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    buttonHover: {
+        backgroundColor: "#007bff",
     },
 }
 

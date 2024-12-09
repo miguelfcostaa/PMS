@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCategories } from '../contexts/CategoryContext';
+import { Button } from '@mui/joy';
+
 
 function SideBar() {
     const { selectedCategories, setSelectedCategories } = useCategories();
@@ -16,6 +18,11 @@ function SideBar() {
             return updatedCategories;
         });
         navigate('/campaign');
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/');
     };
 
     const location = useLocation();
@@ -41,7 +48,6 @@ function SideBar() {
                                 htmlFor={category}
                                 style={{
                                     ...styles.categoryLabel,
-                                    fontWeight: selectedCategories.includes(category) ? 'bold' : 'normal',
                                 }}
                             >
                                 {category}
@@ -61,8 +67,17 @@ function SideBar() {
             <NavLink to="/games" style={location.pathname === '/games' ? {...styles.link, ...styles.activeLink} : styles.link}>Games</NavLink>
             <NavLink to="/#" style={location.pathname === '/promotions' ? {...styles.link, ...styles.activeLink} : styles.link}>Promotions</NavLink>
             <NavLink to="/challenges" style={location.pathname === '/challenges' ? {...styles.link, ...styles.activeLink} : styles.link}>Challenges</NavLink>
-            <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}>Contact</NavLink>
-            <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}>About</NavLink>
+            <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}> Contact </NavLink>
+            <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}> About </NavLink>
+            <Button style={styles.logoutButton} onClick={handleLogout} > 
+                Logout 
+                <img 
+                    src={require('../assets/logout-icon.png')} 
+                    alt="Logout Icon" 
+                    style={styles.logoutIcon} 
+                />   
+            </Button>
+                
         </div>
     );
 }
@@ -72,24 +87,25 @@ const styles = {
         position: 'fixed',
         top: '9.5vh',
         left: '0',
-        width: '10%',
-        height: '100vh',
+        width: '11%',
+        height: '85vh',
         backgroundColor: '#425576',
         padding: '3vh', 
-        paddingLeft: '2%',
-        paddingRight: '2%', 
+        paddingLeft: '4vh',
+        paddingRight: '3vh', 
         color: 'white',
         font: 'Inter',
         fontSize: '2.6vh', 
         fontWeight: 'regular',
         overflowY: 'auto',
+        display: 'flex', 
+        flexDirection: 'column',
     },
     link: {
         color: 'white',
         textDecoration: 'none',
         display: 'block',
         padding: '1vh 0', 
-        fontWeight: 'normal',
     },
     activeLink: {
         fontWeight: 'bold', 
@@ -106,13 +122,13 @@ const styles = {
         flex: 1,
     },
     dropdownIcon: {
-        width: '18%', 
+        width: '4.5vh', 
         height: '2vh', 
         marginLeft: '10%', 
     },
     categories: {
-        marginTop: '1vh', 
-        paddingLeft: '5%', 
+        marginBottom: '0.5vh', 
+        paddingLeft: '3%', 
     },
     categoryItem: {
         display: 'flex',
@@ -121,13 +137,34 @@ const styles = {
     },
     categoryLabel: {
         color: 'white',
-        fontSize: '2vh', 
+        fontSize: '2.2vh', 
         marginLeft: '1%', 
         flex: 1,
     },
     checkBox: {
         transform: 'scale(1.6)', 
+        cursor: 'pointer',
     },
+    logoutButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        cursor: 'pointer',
+        textDecoration: 'none',
+        marginTop: 'auto',
+        color: 'white',
+        backgroundColor: 'transparent',
+        padding: '1vh 0', 
+        fontSize: '2.6vh', 
+        font: 'Inter',
+        fontWeight: '400',
+    },
+    logoutIcon: {
+        width: '3.7vh', 
+        height: '3.7vh', 
+        alignSelf: 'center',
+        marginLeft: '2vh',
+    }
 };
 
 export default SideBar;

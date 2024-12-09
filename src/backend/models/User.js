@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     TIN: { type: String },
     passportNumber: { type: String, required: true },
     IBAN: { type: String, default: '' },
+    paymentMethod: { type: String, default: '' },
     profilePicture: { type: String, default: '' }, // Novo campo para armazenar a imagem de perfil em Base64
     coins: [
         {

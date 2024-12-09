@@ -4,10 +4,14 @@ import SideBar from '../components/SideBar';
 import { useParams } from 'react-router-dom';
 import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
+import axios from 'axios';
 
 function CampaignSelectedPage() {
     const { id } = useParams();
     const [campaign, setCampaign] = useState({});
+    const [userData, setUserData] = useState({});
+    const userId = localStorage.getItem('userId');
+    const [coins, setCoins] = useState([]);
     const [open, setOpen] = useState(false);
     const [donationCompleted, setDonationCompleted] = useState(false);
     const [donation, setDonation] = useState({
@@ -17,6 +21,19 @@ function CampaignSelectedPage() {
     });
 
     useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (response.status === 200) {
+                    const data = response.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
         const fetchCampaign = async () => {
             try {
                 const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`);
@@ -31,6 +48,8 @@ function CampaignSelectedPage() {
                 console.log('Erro de conexão ao servidor:', err);
             }
         };
+
+        fetchUserData();
         fetchCampaign();
     }, [id]);
 
@@ -49,6 +68,11 @@ function CampaignSelectedPage() {
 
         if (donation.amount < 1) {
             alert("The minimum donation amount is €1.");
+            return;
+        }
+
+        if (userData.paymentMethod === null || userData.paymentMethod === "") {
+            alert("Please, add a payment method on your profile to donate.");
             return;
         }
 
@@ -74,7 +98,7 @@ function CampaignSelectedPage() {
                 const updatedCampaign = await response.json();
                 setCampaign(updatedCampaign);
                 setDonationCompleted(true);
-                setTimeout(() => setDonationCompleted(false), 3000);
+                setTimeout(() => setDonationCompleted(false), 500);
                 setOpen(false);
 
                 setDonation({
@@ -171,6 +195,15 @@ function CampaignSelectedPage() {
                                             required
                                         />
 
+                                        <label style={styles.label}>Payment Method: </label>
+                                        <input
+                                            type="text"
+                                            name="paymentMethod"
+                                            value={userData.paymentMethod}
+                                            style={styles.input}
+                                            disabled
+                                        />
+
                                         <button
                                             type="button"
                                             onClick={handleDonation}
@@ -265,7 +298,54 @@ function CampaignSelectedPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div style={styles.shopTitle}>
+                    <span> Campaign Store </span>
+                </div>                
+                <div style={styles.shopContainer}>
+                    {campaign?.shopItems?.length > 0 ? (
+                        campaign.shopItems.map((item, index) => {
+                            const matchingCoin = coins.find(
+                                (coin) => coin.coinName === campaign.coin[0]
+                            ); 
+
+                            return (
+                                <div key={index} style={styles.shopItemBox}>
+                                    <img
+                                        src={require('../assets/image.png')}
+                                        alt="Imagem do item"
+                                        style={styles.shopItemImage}
+                                    />
+                                    <span style={styles.shopItemName}> {item[0]} </span>
+                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
+                                        <span style={styles.shopItemPrice}> {item[1]} </span>
+                                        {matchingCoin && (
+                                            <div style={styles.coinCircle}>
+                                                <img
+                                                    src={matchingCoin.coinImage}
+                                                    alt={matchingCoin.coinName}
+                                                    style={styles.coinImage}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        style={styles.buyButton}
+                                    >
+                                        Buy
+                                    </button>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div style={styles.shopItemBox}>
+                            <span> No items available in the store. </span>
+                        </div>
+                    )}
+                </div>
+            </div>            
         </>
     );
 }
@@ -273,7 +353,7 @@ function CampaignSelectedPage() {
 const styles = {
     mainContent: {
         marginTop: 117,
-        marginLeft: '20%',
+        marginLeft: '15%',
         marginRight: 47,
         paddingLeft: '20px',
         font: 'Inter',
@@ -566,16 +646,18 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         width: 700,
-        margin: 100,
+        marginTop: "8vh",
+        marginRight: "10vh",
+        marginLeft: "5vh",
     },
     drawerTitle: {
-        fontSize: 50,
+        fontSize: 40,
         font: 'Inter',
         fontWeight: 'bold',
         marginBottom: 20,
     },
     label: {
-        marginTop: 20,
+        marginTop: 10,
         fontSize: 24,
         font: 'Inter',
         width: '90%',
@@ -594,7 +676,7 @@ const styles = {
     },
     textArea: {
         width: '100%',
-        height: '180px',
+        height: '100px',
         resize: 'none',
         marginTop: 10,
         padding: '1.5vh',
@@ -604,6 +686,7 @@ const styles = {
         backgroundColor: '#EFEFEF',
         outline: 'none',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
     },
     donationButton: {
         width: '50%',
@@ -625,6 +708,84 @@ const styles = {
         color: '#39AE39',
         marginTop: 10,
         marginLeft: 80,
+    },
+    shopTitle: {
+        fontSize: '4.5vh',
+        font: 'Inter',
+        fontWeight: 'bold',
+        color: '#000000',
+        paddingTop: 40,
+        paddingBottom: 20,
+    },
+    shopContainer: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        width: "101%",
+        height: "100%",
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 40,
+    },
+    shopItemBox: {
+        width: "36vh",	
+        height: "46vh",
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        boxShadow: "4px 4px 36.5px 3px rgba(0, 0, 0, 0.25)",
+        margin: '2vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    shopItemImage: {
+        width: "15vh",
+        height: "15vh",
+        borderRadius: 100,
+    },
+    shopItemName: {
+        fontSize: '3.5vh',
+        font: 'Inter',
+        color: '#000000',
+        marginTop: '1vh',
+    },
+    shopItemPrice: {
+        fontSize: '4vh',
+        font: 'Inter',
+        color: '#000000',
+        marginRight: '1vh',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    buyButton: {
+        width: '50%',
+        height: '55px',
+        backgroundColor: '#009DFF',
+        padding: '10px 20px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 15,
+        fontSize: 22,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginTop: '2vh',
     },
 };
 

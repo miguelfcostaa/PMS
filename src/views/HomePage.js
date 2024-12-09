@@ -118,8 +118,8 @@ const styles = {
     },
 
     mainContent: {
-        marginTop: '8vh',
-        marginLeft: '14.25vw',
+        marginTop: 82,
+        marginLeft: '15%',
         paddingLeft: '0px',
         font: 'Inter',
     },

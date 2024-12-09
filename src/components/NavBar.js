@@ -14,25 +14,28 @@ const socket = io('http://localhost:5000');
 
 function NavBar({ onSearch }) {
     const navigate = useNavigate();
-    const [userId, setUserId] = useState(null); // Para armazenar o userId do localStorage
+    const [userId, setUserId] = useState(localStorage.getItem('userId')); // Para armazenar o userId do localStorage
     const { searchTerm, setSearchTerm } = useSearch(); // Atualizar termo de pesquisa no contexto
-    const [localSearchTerm, setLocalSearchTerm] = useState('');
-    const [verificationCompleted, setVerificationCompleted] = useState(false); // Para determinar o estado do perfil (verificado ou não)
+    const [verificationCompleted, setVerificationCompleted] = useState(
+        JSON.parse(localStorage.getItem(`verificationCompleted_${userId}`)) || false // Recupera o estado de verificação do localStorage para cada userId
+    ); // Para determinar o estado do perfil (verificado ou não)
     const [notifications, setNotifications] = useState([]); // Lista de notificações
     const [showBanner, setShowBanner] = useState(false); // Para exibir o banner de notificação
     const [isNotificationOpen, setIsNotificationOpen] = useState(false); // Estado para mostrar ou esconder notificações
     const [coins, setCoins] = useState([]); // Estado para guardar as moedas do utilizador
+    const [profilePicture, setProfilePicture] = useState(
+        localStorage.getItem(`profilePicture_${userId}`) || '' // Recupera a imagem de perfil do localStorage para cada userId
+    ); // Estado para armazenar a imagem de perfil
 
     // Lê o userId do localStorage quando o componente é montado
     useEffect(() => {
-        const storedUserId = localStorage.getItem('userId');
-        if (storedUserId) {
-            setUserId(storedUserId);
-            fetchCoins(storedUserId);
+        if (userId) {
+            fetchCoins(userId);
+            fetchProfilePicture(userId);
         } else {
             console.error('User ID not found in localStorage');
         }
-    }, []);
+    }, [userId]);
 
     // Função para buscar as moedas do utilizador
     const fetchCoins = async (storedUserId) => {
@@ -41,6 +44,18 @@ function NavBar({ onSearch }) {
             setCoins(response.data.coins || []);
         } catch (error) {
             console.error('Error fetching user coins:', error);
+        }
+    };
+
+    // Função para buscar a imagem de perfil do utilizador
+    const fetchProfilePicture = async (storedUserId) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/auth/${storedUserId}`);
+            const fetchedProfilePicture = response.data.profilePicture || '';
+            setProfilePicture(fetchedProfilePicture);
+            localStorage.setItem(`profilePicture_${storedUserId}`, fetchedProfilePicture); // Armazena a imagem de perfil no localStorage para cada userId
+        } catch (error) {
+            console.error('Error fetching profile picture:', error);
         }
     };
 
@@ -53,6 +68,10 @@ function NavBar({ onSearch }) {
                 const response = await axios.get(`http://localhost:5000/api/auth/notifications/${userId}`);
                 if (response.data.role === 'criador/doador') {
                     setVerificationCompleted(true); // Atualiza o estado do ícone do perfil
+                    localStorage.setItem(`verificationCompleted_${userId}`, 'true'); // Armazena o estado de verificação no localStorage para cada userId
+                } else {
+                    setVerificationCompleted(false);
+                    localStorage.setItem(`verificationCompleted_${userId}`, 'false'); // Garante que o estado está correto para cada userId
                 }
                 if (response.data.notifications.length > 0) {
                     setNotifications(response.data.notifications); // Define as notificações recebidas
@@ -70,6 +89,7 @@ function NavBar({ onSearch }) {
         socket.on('userVerified', (data) => {
             if (data.userId === userId) {
                 setVerificationCompleted(true); // Atualiza o estado do perfil
+                localStorage.setItem(`verificationCompleted_${userId}`, 'true'); // Armazena o estado de verificação no localStorage para cada userId
                 setNotifications([
                     {
                         title: 'Your account was successfully verified',
@@ -93,7 +113,7 @@ function NavBar({ onSearch }) {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' || e.type === 'click') {
-            setSearchTerm(localSearchTerm);
+            setSearchTerm(searchTerm);
             navigate('/campaign');
         }
     };
@@ -117,7 +137,7 @@ function NavBar({ onSearch }) {
             <div style={style.navbarSearch}>
                 <Input
                     placeholder="Search campaigns..."
-                    variant="plain"
+                    variant="outlined"
                     style={style.searchInput}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,20 +184,20 @@ function NavBar({ onSearch }) {
                 <Menu style={style.dropdownMenuItem}>
                     {coins.length > 0 ? (
                         coins.map((coin, index) => (
-                            <MenuItem key={index}>
-                                <div style={style.coinRow}>
-                                    <button
+                            <div style={style.coinRow}>
+                                <MenuItem key={index}>
+                                    <img 
+                                        src={require('../assets/plus-icon.png')} 
+                                        alt="Add Icon" 
+                                        style={style.addCoinsIcon} 
                                         onClick={() => {
                                             if (!coin.campaignId) {
-                                                alert('Campaign ID not found for this coin.');
+                                                alert('Campaign ID não encontrado para esta moeda.');
                                                 return;
                                             }
-                                            navigate(`/campaign/${coin.campaignId}`);
+                                            window.location.href = `/campaign/${coin.campaignId}`;
                                         }}
-                                        style={style.addButton}
-                                    >
-                                        +
-                                    </button>
+                                    />
                                     <span style={style.coinAmount}>
                                         {coin.amount}
                                     </span>
@@ -189,9 +209,8 @@ function NavBar({ onSearch }) {
                                             title={coin.coinName} // Nome da moeda aparece no hover
                                         />
                                     </div>
-                                </div>
-                                
-                            </MenuItem>
+                                </MenuItem>
+                            </div>
                         ))
                     ) : (
                         <MenuItem>
@@ -203,7 +222,7 @@ function NavBar({ onSearch }) {
 
             <a href="/profile" style={style.profileButton}>
                 <img
-                    src={require('../assets/profile-icon.png')}
+                    src={profilePicture ? `data:image/png;base64,${profilePicture}` : require('../assets/profile-icon.png')}
                     alt="Profile Icon"
                     style={profileStyles}
                 />
@@ -238,16 +257,23 @@ const style = {
         top: '0%',
         left: '0%',
         width: '100%',
+        height: '11vh',
         display: 'flex',
         alignItems: 'center',
         backgroundColor: '#183059',
         zIndex: 10,
     },
+    loadingContainer: {
+        width: '100%',
+        textAlign: 'center',
+        color: 'white',
+        padding: '2vh',
+    },
     logo: {
-        width: "22.4vh",
-        height: "8.6vh",
+        width: "20.4vh",
+        height: "7.6vh",
         paddingRight: '5.4vh',
-        paddingLeft: '11vh',
+        paddingLeft: '4vh',
         marginBottom: "1vh",
     },
     navbarSearch: {
@@ -256,14 +282,14 @@ const style = {
         backgroundColor: '#2e4a75',
         paddingLeft: '0.3vh',
         paddingRight: '0.3vh',
-        marginLeft: '6vh',
+        marginLeft: '3.5vh',
         marginRight: '1vh',
-        width: "71.5vh",
+        width: "73.5vh",
         height: "6.1vh",
         borderRadius: "2vh",
     },
     searchInput: {
-        padding: '2vh',
+        padding: '1vh',
         paddingLeft: '2vh',
         fontSize: "2.5vh",
         background: 'none',
@@ -295,19 +321,19 @@ const style = {
     },
     textCreate: {
         fontWeight: 'bold',
-        fontSize: "2.8vh",
+        fontSize: "3vh",
         color: 'white',
     },
     plusIcon: {
         width: "3vh",
         height: "3vh",
-        paddingLeft: '3vh',
+        paddingLeft: '2vh',
     },
     notificationButton: {
         background: 'none',
         border: 'none',
         cursor: 'pointer',
-        marginLeft: '30vh',
+        marginLeft: '40vh',
         position: 'relative',
     },
     notificationIcon: {
@@ -339,16 +365,57 @@ const style = {
         fontWeight: 'bold',
         flex: '1',
     },
+    dropdownMenuItem: {
+        width: 'auto',
+        borderRadius: '2vh',
+        backgroundColor: '#EFEFEF',
+        padding: '0.5vw 0.5vw 0.5vw 0.5vw',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto', 
+        overflowX: 'hidden',
+    },
     dropdownIcon: {
         width: "4vh",
         height: "2vh",
         paddingRight: '1.6vh',
     },
-    dropdownMenuItem: {
-        width: 'auto',
-        borderRadius: "2vh",
-        backgroundColor: '#EFEFEF',
-        marginTop: "2vh",
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative', 
+        padding: '0.5vh 0vh'
+    },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
+    },
+    coinAmount: {
+        fontSize: '3.5vh',
+        color: '#333',
+        fontWeight: 'bold',
+        width: '2vw',
+        maxWidth: '5vw',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
     },
     profileButton: {
         background: 'none',
@@ -401,47 +468,6 @@ const style = {
     notificationItem: {
         padding: '1.2vh',
         borderBottom: '1px solid #E0E0E0',
-    },
-    coinRow: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        marginBottom: '1vh',
-        gap: '1vw'
-    },
-    addButton: {
-        width: '2.5vw',
-        height: '2.5vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFFFFF',
-        border: '0.5vh solid #007bff',
-        color: '#007bff',
-        fontSize: '6vh',
-        cursor: 'pointer',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-    },
-    coinAmount: {
-        fontSize: '3vh',
-        color: '#333',
-        fontWeight: 'bold'
-    },
-    coinCircle: {
-        width: '3vw',
-        height: '3vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFAD00',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    coinImage: {
-        width: '80%',
-        height: '80%',
-        borderRadius: '50%',
-        objectFit: 'cover',
     },
     
 };

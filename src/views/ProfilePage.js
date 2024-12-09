@@ -89,7 +89,7 @@ function ProfilePage() {
     };
 
     if (!userData) {
-        return <div>Loading...</div>;
+        return <div style={styles.loading}>Loading...</div>;
     }
 
     return (
@@ -121,14 +121,18 @@ function ProfilePage() {
                                         src={
                                             userData?.profilePicture
                                                 ? `data:image/png;base64,${userData.profilePicture}`
-                                                : '/default-avatar.png'
+                                                : require('../assets/default-avatar.png')
                                         }
                                         alt="Profile"
                                         style={styles.picture}
                                     />
                                 </div>
                                 <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    +
+                                    <img 
+                                        src={require('../assets/adicionar-imagem.png')} 
+                                        alt="Add Icon" 
+                                        style={styles.addIcon} 
+                                    /> 
                                     <input
                                         id="profilePictureUpload"
                                         type="file"
@@ -144,7 +148,10 @@ function ProfilePage() {
                                 {coins.length > 0 ? (
                                     coins.map((coin, index) => (
                                         <div key={index} style={styles.coinRow}>
-                                            <button
+                                            <img 
+                                                src={require('../assets/plus-icon.png')} 
+                                                alt="Add Icon" 
+                                                style={styles.addCoinsIcon} 
                                                 onClick={() => {
                                                     if (!coin.campaignId) {
                                                         alert('Campaign ID não encontrado para esta moeda.');
@@ -152,10 +159,7 @@ function ProfilePage() {
                                                     }
                                                     window.location.href = `/campaign/${coin.campaignId}`;
                                                 }}
-                                                style={styles.addButton}
-                                            >
-                                                +
-                                            </button>
+                                            />
                                             <span style={styles.coinAmount}>
                                                 {coin.amount}
                                             </span>
@@ -179,7 +183,7 @@ function ProfilePage() {
 
                         {/* Fields */}
                         <div style={styles.profileRight}>
-                            {['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN'].map(
+                            {['firstName', 'lastName', 'email', 'password', 'TIN', 'PassportNumber', 'IBAN' , 'paymentMethod'].map(
                                 (field) => (
                                     <div key={field} style={styles.fieldRow}>
                                         <h4 style={styles.label}>
@@ -284,24 +288,25 @@ const styles = {
     pageContainer: {
         display: 'flex',
         flexDirection: 'column',
+        marginLeft: '14%',
         height: '100vh',
         backgroundColor: '#f8f9fa',
     },
     contentContainer: {
         display: 'flex',
-        marginTop: '12vh', // Ajuste para a Navbar
-        marginRight: '1vw', // Espaçamento à direita alinhado
+        marginTop: '12vh',
+        marginRight: '1vw',
     },
     profileContainer: {
-        marginLeft: '15%', // Espaçamento da Sidebar
+        marginLeft: '3vh', 
         padding: '2vh 4vw',
         flex: 1,
         borderRadius: '10px',
         backgroundColor: '#fff',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         border: '1px solid #ddd',
-        overflowY: 'auto', // Scroll interno se necessário
-        maxHeight: 'calc(100vh - 17vh)', // Limitar o tamanho do container para caber na tela
+        overflowY: 'auto', 
+        maxHeight: 'calc(100vh - 17vh)', 
     },
     header: {
         display: 'flex',
@@ -335,7 +340,7 @@ const styles = {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start', // Alinha no mesmo eixo que "Profile"
+        alignItems: 'flex-start', 
         gap: '1vh',
         margin: '3vh 0',
     },
@@ -348,7 +353,7 @@ const styles = {
         position: 'relative',
         width: '100%',
         height: '100%',
-        borderRadius: '10%', // Mantém bordas arredondadas
+        borderRadius: '10%', 
         overflow: 'hidden',
         border: '2px solid #ddd',
     },
@@ -359,29 +364,33 @@ const styles = {
     },
     uploadButton: {
         position: 'absolute',
-        top: '-8%', // Metade fora do placeholder
-        right: '-8%', // Metade fora do placeholder
+        top: '-8%', 
+        right: '-8%', 
         backgroundColor: '#007bff',
         color: '#fff',
         borderRadius: '50%',
         border: 'none',
-        width: '3vw', // Ajuste do tamanho do botão
-        height: '3vw', // Ajuste do tamanho do botão
+        width: '2vw', 
+        height: '2vw', 
         cursor: 'pointer',
-        fontSize: '5vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     },
-    
+    addIcon: {
+        width: '1.5vw',
+        height: '1.5vw',
+    },
     coinsContainer: {
         backgroundColor: '#f9f9f9',
-        padding: '1.5vw',
+        padding: '0.5vw 1vw 0.5vw 1vw',
         borderRadius: '1vh',
-        width: '12vw', // Alinhado com o tamanho da foto de perfil
-        height: '10vw',
+        width: '13vw',
+        height: '17vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto', 
+        overflowX: 'hidden',
     },
     coinsTitle: {
         fontSize: '2.5vh',
@@ -449,9 +458,9 @@ const styles = {
     },
     campaignsContainer: {
         display: 'flex',
-        overflowX: 'auto', // Rolagem horizontal
-        gap: '2vw', // Espaçamento entre as campanhas
-        padding: '1vh 0', // Espaçamento interno para a área de campanhas
+        overflowX: 'auto', 
+        gap: '2vw', 
+        padding: '1vh 0', 
     },
     campaignShadow: {
         marginLeft: '1vw',
@@ -470,12 +479,17 @@ const styles = {
     coinRow: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between', // Alinha tudo horizontalmente
-        padding: '10px 0', // Espaçamento interno
-        position: 'relative', // Para a linha separadora
+        justifyContent: 'space-between', 
+        padding: '1.2vh 0', 
+        position: 'relative', 
+    },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
     },
     coinAmount: {
-        fontSize: '2vh',
+        fontSize: '3.5vh',
         color: '#333',
         fontWeight: 'bold',
         maxWidth: '5vw',
@@ -493,10 +507,9 @@ const styles = {
         opacity: 0.5,
     },
     coinCircle: {
-        width: '3vw',
-        height: '3vw',
+        width: '2.5vw',
+        height: '2.5vw',
         borderRadius: '50%',
-        backgroundColor: '#f9f9f9',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -509,19 +522,12 @@ const styles = {
         borderRadius: '50%',
         objectFit: 'cover',
     },
-    addButton: {
-        width: '2.5vw',
-        height: '2.5vw',
-        borderRadius: '50%',
-        backgroundColor: '#FFFFFF',
-        border: '0.5vh solid #007bff',
-        color: '#007bff',
-        fontSize: '6vh',
-        cursor: 'pointer',
+    loading: {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        height: '100vh',
+        fontSize: '5vh',
     },
 };
 

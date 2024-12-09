@@ -2,8 +2,7 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
-function GamesPage
-() {
+function GamesPage() {
     const items = [
         {id: 1, image: require("../assets/crash.png"), text: "Online players: 12874", buttontext: "Try it"},
         {id: 2, image: require("../assets/roleta.jfif"), text: "Online players: 4321", buttontext: "Try it"},
@@ -24,9 +23,19 @@ function GamesPage
                     onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
                     onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
                     onClick={() => {
-                    if (item.id === 2) {
-                        window.location.href = "/roulette";
-                    }
+                        switch (item.id) {
+                            case 1:
+                                window.location.href = "/crash";
+                                break;
+                            case 2:
+                                window.location.href = "/roulette";
+                                break;
+                            case 3:
+                                window.location.href = "/slots";
+                                break;
+                            default:
+                                break;
+                        }
                     }}
                     >
                     {item.buttontext}
@@ -34,60 +43,64 @@ function GamesPage
                 </div>
                 ))}
             </div>
-
-
         </div>
-        
         </>
     );
 }
+
 const styles = {
     mainContent: {
         marginTop: 102,
-        marginLeft: '20%',
-        paddingLeft: '20px',
+        marginLeft: '15%',
+        marginRight: '3vh',
+        paddingLeft: '2vh',
         font: 'Inter',
     },
     container: {
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-around",
+        justifyContent: "space-between",
         alignItems: "center",
-        padding: "100px",
+        flexWrap: "wrap",
+        width: "100%",
     },
     box: {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        border: "2px solid #ccc",
-        borderRadius: "10px",
-        width: "350px",
-        height: "450px",
-        padding: "10px",
+        border: "0.2vh solid #ccc",
+        borderRadius: "1vh",
+        width: "50vh",
+        height: "70vh",
+        padding: "1vh",
         backgroundColor: "#d3d3d3",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 0.4vh 0.6vh rgba(0, 0, 0, 0.1)",
         textAlign: "center",
+        marginTop: '3vh',
+
     },
     image: {
-        width: "350px",
-        height: "350px",
-        objectFit: "center", 
-        borderRadius: "10px",
+        marginTop: '1vh',
+        width: "45vh",
+        height: "45vh",
+        borderRadius: "1vh",
+        alignSelf: "center",
     },
     text: {
-        fontSize: "16px",
+        fontSize: "3vh",
         color: "#333",
-        margin: "10px 0",
+        margin: "1vh 0",
     },
     button: {
-        padding: "10px 5px",
+        margin: "2vh",
+        padding: "1vh 0.5vh",
         backgroundColor: "#28a745",
         color: "#fff",
         border: "none",
-        borderRadius: "5px",
+        borderRadius: "0.5vh",
         cursor: "pointer",
         fontWeight: "bold",
-        fontSize: "16px",
+        fontSize: "2.5vh",
     },
     buttonHover: {
         backgroundColor: "#218838",

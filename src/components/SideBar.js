@@ -68,7 +68,7 @@ function SideBar() {
             <NavLink to="/#" style={location.pathname === '/promotions' ? {...styles.link, ...styles.activeLink} : styles.link}>Promotions</NavLink>
             <NavLink to="/challenges" style={location.pathname === '/challenges' ? {...styles.link, ...styles.activeLink} : styles.link}>Challenges</NavLink>
             <NavLink to="/#" style={location.pathname === '/contact' ? {...styles.link, ...styles.activeLink} : styles.link}> Contact </NavLink>
-            <NavLink to="/#" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}> About </NavLink>
+            <NavLink to="/about" style={location.pathname === '/about' ? {...styles.link, ...styles.activeLink} : styles.link}> About </NavLink>
             <Button style={styles.logoutButton} onClick={handleLogout} > 
                 Logout 
                 <img 

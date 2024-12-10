@@ -34,63 +34,45 @@ function HomePage() {
         <>                    
         <NavBar  />       
         
-            <div style={styles.mainContent}>
-                <div style={styles.container}>
-                    <div style={styles.quadrado2}> </div>                    
-                    <div style={styles.circulo1}></div>
-                    <div style={styles.quadrado1}></div>
-                    <div style={styles.circulo2}></div>
+        <div style={styles.mainContent}>
+            <div style={styles.container}>
+                <div style={styles.quadrado2}></div>                    
+                <div style={styles.circulo1}></div>
+                <div style={styles.quadrado1}></div>
+                <div style={styles.circulo2}></div>
 
-                    <div style={styles.leftsection}>
-                        <p style={styles.leftsection}>Your place to do <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>GOOD!</b></span></p>
-                        <a href='/create-campaign'> <button style={styles.button1}>Start Creating Campaign </button></a>
-                        <p style={{fontSize: '5vh', marginTop:'10vh'}}>Start creating and <br/> organizing a campaign <br/><span style={{fontWeight: '350'}}><b>free of charge!</b></span></p>
-                    </div>     
+                <div style={styles.leftsection}>
+                    <p style={styles.leftsection}>Your place to do <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>GOOD!</b></span></p>
+                    <a href='/create-campaign'> <button style={styles.button1}>Start Creating Campaign </button></a>
+                    <p style={{fontSize: '5vh', marginTop:'10vh'}}>Start creating and <br/> organizing a campaign <br/><span style={{fontWeight: '350'}}><b>free of charge!</b></span></p>
+                </div>     
 
-                    <div style={styles.rightsection}>
-                        <p style={{fontSize: '5vh', marginTop:'4vh'}}>Play games and <span style={{fontWeight: '350'}}><b>help</b></span> a <br/> campaign of <span style={{fontWeight: '350'}}><b>your choice!</b></span></p>
-                        <a href='/games'><button style={styles.button2}>Start Playing</button></a>
-                        <p style={styles.rightsection1}>Your chance to <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>HELP!</b></span></p>
+                <div style={styles.rightsection}>
+                    <p style={{fontSize: '5vh', marginTop:'4vh'}}>Play games and <span style={{fontWeight: '350'}}><b>help</b></span> a <br/> campaign of <span style={{fontWeight: '350'}}><b>your choice!</b></span></p>
+                    <a href='/games'><button style={styles.button2}>Start Playing</button></a>
+                    <p style={styles.rightsection1}>Your chance to <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>HELP!</b></span></p>
                 </div> 
 
                 <div style={styles.botcontainer}>
-                    <p style={{fontSize: '64px', textAlign: 'center',}}><b>POPULAR CAMPAIGNS</b></p>
-                    <div style={styles.campaignDisplay} >
-                            <div onClick={() => handleCampaignClick(campaigns._id)} style={{display:'flex', gap:'3%'}}>
-                                <CampaignBox style={styles.campanha}
-                                    key="123"
-                                    title="123"
-                                    description="123"
-                                    goal="123"
-                                    timeToCompleteGoal="123"
-                                    currentAmount="123"
-                                    nameBankAccount="123"
-                                />      
-                                <CampaignBox style={styles.campanha}
-                                    key= '123'
-                                    title="123"
-                                    description="123"
-                                    goal="123"
-                                    timeToCompleteGoal="123"
-                                    currentAmount="123"
-                                    nameBankAccount="123"
-                                />   
-                                <CampaignBox style={styles.campanha}
-                                    key="123"
-                                    title="123"
-                                    description="123"
-                                    goal="123"
-                                    timeToCompleteGoal="123"
-                                    currentAmount="123"
-                                    nameBankAccount="123"
-                                />   
+                    <p style={{fontSize: '64px', textAlign: 'center', marginTop: '15vh'}}><b>POPULAR CAMPAIGNS</b></p>
+                    <div style={styles.campaignDisplay} onClick={() => handleCampaignClick(campaigns._id)} >
+                        {campaigns.map((campaign) => (
+                            <div style={styles.campanha}>
+                                <CampaignBox 
+                                    key={campaign._id}
+                                    title={campaign.title}
+                                    description={campaign.description}
+                                    goal={campaign.goal}
+                                    timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                    currentAmount={campaign.currentAmount}
+                                    nameBankAccount={campaign.nameBankAccount}
+                                />
                             </div>
+                        ))}
                     </div>
                 </div>     
-                </div>
-
-                
             </div>
+        </div>
             
         <SideBar  />
         </>
@@ -100,51 +82,46 @@ function HomePage() {
 const styles = {
     
     campanha:{
-        flex:'auto',
-        marginLeft: '5%',
-        height: '100%',
-        background: '#FFFFFF',
-        borderRadius: '10px',
+        width: '100%',
+        height: '10%',
     },
 
     campaignDisplay: {
-        marginLeft:'3vw',
         display: 'flex',
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        background: "#D9D9D9",
+        justifyContent: 'center',
+        alignContent: 'center',
+        borderRadius: '10px',
+        marginLeft: '5%',
+        gap: '1vh',
         width:'93%',
-        overflowX: 'scroll',
+        overflowX: 'auto',
+        marginBottom: '7vh',
     },
 
     mainContent: {
-        marginTop: '5vh',
-        marginLeft: '14.75vw',
-        paddingLeft: '0px',
-        font: 'Inter',
+        marginTop: '9.4vh',
+        marginLeft: '15%',
+        paddingLeft: '2vh',
+        overflow: 'hidden',
     },
     
     botcontainer: {
         marginTop:"100vh",
-        marginLeft:"-1.7vw",
+        marginLeft:"-2.7vw",
         width: "86vw",
-        height: "150vh",
         display: 'flex',
         flexDirection: 'column',
-        marginBottom: 40,        
         position:'absolute',
-        background: "#D9D9D9",
+        backgroundColor: "#D9D9D9",
     },
 
     container: {
-        paddingLeft: '20px',
         width: "80vw",
         height: "100%",
         display: 'flex',
         flexDirection: 'column',
-        marginBottom: 40,        
-        position:'absolute'
+        position:'absolute',
     },
 
     circulo1: {
@@ -185,7 +162,7 @@ const styles = {
         width: "50.8vw", //1009
         borderRadius: "0%",
         background: "#425576",
-        marginLeft:"33.5vw",
+        marginLeft:"32.5vw",
         position:'absolute',
     },
 

@@ -29,7 +29,7 @@ function HomePage() {
     const handleCampaignClick = (id) => {
         navigate(`/campaign/${id}`); // Redireciona para a página da campanha com o ID
     };
-
+    
     return (
         <>                    
         <NavBar  />       
@@ -115,7 +115,7 @@ const styles = {
         justifyContent: 'space-between',
         background: "#D9D9D9",
         width:'93%',
-        overflowX: 'scroll',
+        overflowX: 'auto',
     },
 
     mainContent: {
@@ -123,6 +123,7 @@ const styles = {
         marginLeft: '14.75vw',
         paddingLeft: '0px',
         font: 'Inter',
+        overflowX:'hidden'
     },
     
     botcontainer: {

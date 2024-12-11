@@ -9,6 +9,7 @@ import CampaignsPage from './views/CampaignsPage';
 import GamesPage from './views/GamesPage';
 import ProfilePage from './views/ProfilePage';
 import CreateCampaignPage from './views/CreateCampaignPage';
+import SlotsPage from './views/SlotsPage';
 import CampaignSelectedPage from './views/CampaignSelectedPage';
 import RoulettePage from './views/RoulettePage';
 import Challenges from './views/Challenges';
@@ -52,6 +53,7 @@ function App() {
           <Route path="/create-campaign" element={<CreateCampaignPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/crash" element={<CrashPage />} />
+          <Route path="/slots" element={<SlotsPage />} />
         </Routes>
       </BackgroundColorWrapper>
       </CategoryProvider>

@@ -90,11 +90,11 @@ function Init() {
 
 
 function RoulettePage() {
-
     const [coins, setCoins] = useState([]);
     const [selectedCoin, setSelectedCoin] = useState(null);
     const [userData, setUserData] = useState({});
     const userId = localStorage.getItem('userId');
+    const [playRoll, setPlayRoll] = useState(true);
 
 
     const navigate = useNavigate();
@@ -125,18 +125,21 @@ function RoulettePage() {
         let s = today.getSeconds()
         let actualS = s
         let sp = speed
-    
+        
         if (selectedCoin === null) {
             alert('Please select a coin to bet.');
             return;
         }
     
         const rouletteAnimation = () => {
+            setPlayRoll((prev) => {
+                return false;
+            });
             circles.forEach((c, index) => {
+                console.log("play2: " + playRoll)
                 if (actualS < s + 5) {
                     today = new Date()
                     actualS = today.getSeconds()
-                    console.log(sp)
                     c.position.x -= sp
                     sp = sp - sp / 3000
                     if (c.position.x <= -2.5) {
@@ -149,12 +152,13 @@ function RoulettePage() {
                     }
                 }
                 else {
-                    if (result.position.x >= -0.1 && result.position.x <= -0.3) {
+                    if (result.position.x == 0 ) {
+                    //if (result.position.x >= -0.1 && result.position.x <= -0.3) {
                         today = new Date()
                         actualS = today.getSeconds()
                         console.log(s)
                         c.position.x -= sp
-                        sp = sp - sp / 3000
+                        //sp = sp - sp / 3000
                         if (c.position.x <= -2.5) {
                             console.log(c.position.x)
                             if (index !== 0) {
@@ -164,6 +168,12 @@ function RoulettePage() {
                                 c.position.x = circles[circles.length - 1].position.x + spacing
                             }
                         }
+                    }
+                    else{
+                        setPlayRoll((prev) => {
+                            console.log("Valor anterior de playRoll: ", prev);
+                            return true; 
+                        });
                     }
                 }
             });
@@ -196,18 +206,18 @@ function RoulettePage() {
 
             <div style={styles.container}>
                 <div style={styles.buttonGroup}>
-                    <button onClick={roulette} 
+                    <button onClick={playRoll ? roulette : null} 
                     disabled={!inputValue.trim()} 
                     style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
                     </button>
-                    <button onClick={roulette} 
+                    <button onClick={playRoll ? roulette : null} 
                     disabled={!inputValue.trim()} 
                     style={{ ...styles.button, backgroundColor: "#009DFF" }}
                     onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
                         Place Bet x10
                     </button>
-                    <button onClick={roulette} 
+                    <button onClick={playRoll ? roulette : null} 
                     disabled={!inputValue.trim()} 
                     style={{ ...styles.button, backgroundColor: "#000000" }}
                     onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
@@ -296,13 +306,11 @@ function RoulettePage() {
 
 const styles = {
     canvas: {
-        height: "350px",
+        height: "20%",
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         marginLeft: "15%",
-    },
-    buttonGroup: {
     },
     container: {
         display: 'flex',

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const documentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     type: { type: String, required: true },
-    content: { type: String, required: true } // Será uma string Base64
+    content: { type: String, required: true }
 });
 
 const userSchema = new mongoose.Schema({
@@ -15,15 +15,13 @@ const userSchema = new mongoose.Schema({
     passportNumber: { type: String, required: true },
     IBAN: { type: String, default: '' },
     paymentMethod: { type: String, default: '' },
-    profilePicture: { type: String, default: '' }, // Novo campo para armazenar a imagem de perfil em Base64
-    coins: [
-        {
-            coinName: { type: String, required: true },
-            coinImage: { type: String, required: true },
-            amount: { type: Number, required: true, default: 0 },
-            campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true } // Associando à campanha
-        }
-    ],
+    profilePicture: { type: String, default: '' },
+    coins: [{
+        coinName: { type: String, required: true },
+        coinImage: { type: String, required: true },
+        amount: { type: Number, required: true, default: 0 },
+        campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true }
+    }],
     role: { 
         type: String, 
         enum: ['doador', 'criador/doador', 'admin'], 
@@ -32,6 +30,9 @@ const userSchema = new mongoose.Schema({
     documents: [documentSchema],
     notificationSeen: { type: Boolean, default: false },
 }, { timestamps: true });
+
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
 
 const User = mongoose.model('User', userSchema);
 

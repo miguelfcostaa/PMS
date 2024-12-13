@@ -295,7 +295,7 @@ const CrashPage = () => {
         borderWidth: 2,
         pointBackgroundColor: "red",
         pointRadius: 0, // Set point radius to 0 for smooth line
-        tension: 0.4, // Add smoothing to the line
+        tension: 0.2, // Add smoothing to the line
       },
     ],
   };

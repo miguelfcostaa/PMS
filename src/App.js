@@ -55,6 +55,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/crash" element={<CrashPage />} />
           <Route path='/about' element={<About />} />
+          <Route path='/slots' element={<SlotsPage />} />
         </Routes>
       </BackgroundColorWrapper>
       </CategoryProvider>

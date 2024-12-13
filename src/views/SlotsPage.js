@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef}  from 'react';
+import React, { useState, useEffect}  from 'react';
 import NavBar from '../components/NavBar';
 import axios from "axios";
 import SideBar from '../components/SideBar';
-import { useNavigate } from 'react-router-dom';
 import background from "../assets/slotreel.webp";
 
 const icon_width = 79;
 const icon_height = 79;
 const num_icons= 9;
-const num_reels = 5;
-const slot = [0,0,0,0,0];
+const num_reels = 3;
+const slot = [0,0,0];
 const iconMap = [ "cherry", "plum", "orange", "bell", "bar", "lemon", "melon","banana", "seven",]
 const time_per_icon = 100
 let multiplier = 0;
@@ -43,12 +42,72 @@ function SlotsPage() {
     const token = localStorage.getItem("token");
     const [sendoUsado, setSendoUsado] = useState(false)
 
+    const getSelectedCoinAmount = () => {
+        const coin = coins.find((c) => c.coinName === selectedCoin);
+        return coin ? coin.amount : 0;
+    };
+    
+    useEffect(() => {
+        if (userId) {
+            fetchCoins(userId);
+        } else {
+            console.error('User ID not found in localStorage');
+        }
+    }, [userId]);
+
+    // Função para buscar as moedas do utilizador
+    const fetchCoins = async (storedUserId) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/auth/${storedUserId}`);
+            setCoins(response.data.coins || []);
+        } catch (error) {
+            console.error('Error fetching user coins:', error);
+        }
+    };
+
+
     useEffect(() => {
         console.log("sendoUsado atualizado: ", sendoUsado);
     }, [sendoUsado]);
 
-    function rollAll() {
-        setSendoUsado(true);
+    async function rollAll() {
+        if (!selectedCoin || !betAmount) {
+            alert("Escolha uma moeda e insira o valor da aposta!");
+            return;
+          }
+          if (betAmount > getSelectedCoinAmount()) {
+            alert("Saldo insuficiente!");
+            return;
+          }
+          
+          
+         setSendoUsado(true);
+
+          const updatedCoins = coins.map((coin) => {
+            if (coin.coinName === selectedCoin) {
+              return { ...coin, amount: coin.amount - parseFloat(betAmount) };
+            }
+            return coin;
+          });
+      
+          setCoins(updatedCoins);
+      
+          try {
+            await axios.put(
+              `http://localhost:5000/api/auth/${userId}/coins`,
+              {
+                coinName: selectedCoin,
+                amount: -parseFloat(betAmount),
+              },
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+          } catch (error) {
+            console.error("Erro ao atualizar moedas na base de dados:", error);
+            return;
+          }
+
         multiplier = 0;
         const faixaList = document.querySelectorAll('.slot > .faixa');
         
@@ -60,13 +119,32 @@ function SlotsPage() {
                 console.log(deltas)
                 let textContent = slot.map((i) => iconMap[i]).join(' - ');
                 console.log(textContent + '\n' + slot);
-                if (slot[0] == slot[1]) {
+                if (slot[0] === slot[1]) {
                     multiplier = multiplier + 1 + ((slot[0] + slot[1]) * 0.6)
                     console.log(multiplier);
-                    if (slot[1] == slot[2]){
+                    if (slot[1] === slot[2]){
                         multiplier = multiplier + 1 + ((slot[1] + slot[2]) * 0.6)
                         console.log(multiplier);
                     }
+                }
+
+                if(multiplier !== 0){
+                    const winnings = betAmount * multiplier;
+                    const updatedCoins = coins.map((coin) => {
+                    if (coin.coinName === selectedCoin) { 
+                        alert('Ganhou ' + winnings + ' ' + coin.coinName);
+                        return { ...coin, amount: coin.amount + parseFloat(winnings) };
+                    }
+                    return coin;
+                    });
+                
+                    setCoins(updatedCoins);
+                
+                    axios.put(
+                        `http://localhost:5000/api/auth/${userId}/coins`,
+                        {coinName: selectedCoin,amount: parseFloat(winnings),},
+                        {headers: { Authorization: `Bearer ${token}` },}
+                    );
                 }
                 setSendoUsado(false);
             })
@@ -82,18 +160,43 @@ function SlotsPage() {
             <div class='slot' style={styles.slot}>
                 <div class='faixa' style={styles.faixa}></div>    
                 <div class='faixa' style={styles.faixa}></div>       
-                <div class='faixa' style={styles.faixa}></div>
-                <div class='faixa' style={styles.faixa}></div> 
-                <div class='faixa' style={styles.faixa}></div>           
+                <div class='faixa' style={styles.faixa}></div>       
             </div>
             
+            <h1 style={styles.header}><b>Slots do Coelho</b></h1>
             <button 
                 style={sendoUsado ? styles.buttonUsado : styles.button} 
                 onClick={sendoUsado ? null : rollAll}
-                disabled={sendoUsado}
-            > 
+                disabled={sendoUsado}> 
                 Roll All 
             </button>
+
+            <div style={styles.controlsContainer}>
+
+                <select 
+                    value={selectedCoin}
+                    onChange={(e) => setSelectedCoin(e.target.value)}
+                    style={styles.input}>
+
+                    <option value="">Choose a coin</option>
+
+                    {coins.map((coin) => (
+                        <option key={coin.coinName} value={coin.coinName}>
+                        {coin.coinName} (Saldo: {coin.amount})
+                        </option>
+                    ))}
+
+                </select>
+
+                <input
+                    type="number"
+                    placeholder="Bet Value"
+                    value={betAmount}
+                    onChange={(e) => setBetAmount(e.target.value)}
+                    style={styles.input}
+                />
+            </div>
+
         </div>
 
 
@@ -103,8 +206,31 @@ function SlotsPage() {
 }
 
 const styles = {
+    header:{
+        position:'absolute',
+        marginTop: '-25vh',
+        color:'white',
+        fontSize:'6vh'
+    },
+    input:{
+        border: '2px solid black',
+        borderRadius: '4px',
+        width: 'auto',
+        alignItems:'left',
+        color:'lightgray',
+        backgroundImage: 'linear-gradient(to right, #731919, #9e1919, #731919)',
+        fontWeight:'10vh'
+    },
+
+    controlsContainer:{
+        marginTop:'97vh',
+        position:'absolute',
+        display: "flex",
+        gap:'30vw',
+    },
+
     button:{
-        top: '85vh',
+        top: '78vh',
         position:'absolute',
         padding: '10px 20px',
         width: "25vw",
@@ -121,7 +247,7 @@ const styles = {
     },
 
     buttonUsado:{
-        top: '85vh',
+        top: '78vh',
         position:'absolute',
         padding: '10px 20px',
         width: "25vw",
@@ -139,18 +265,17 @@ const styles = {
 
     slot:{
         position: 'relative',
-        width: (num_reels + 0.5) * icon_width + 'px',
-        height: 3 * icon_height + 'px',
+        width: (num_reels) * 0.2 * icon_width + 'vh',
+        height: 0.51 * icon_height + 'vh',
         display: 'flex',
-        top:106,
+        top:'10vh',
         justifyContent: 'space-between',
         padding: 0.6 * icon_width + 'px',
         paddingLeft: 3 * icon_width + 'px',
-        
         paddingRight: 3 * icon_width + 'px',
-        border: '10px solid black',
-        borderRadius: '5px',
-        backgroundImage: 'linear-gradient(to right, #999797, gray, #999797)',
+        border: '2vh solid black',
+        borderRadius: '5vh',
+        backgroundImage: 'linear-gradient(to right, #e05e1d, #9e1919, #e05e1d)',
         borderRadius: '3px',
     },
 
@@ -164,16 +289,6 @@ const styles = {
 		backgroundImage: 'url(' + background + ')',
 		backgroundPositionY: '0',
 		backgroundRepeat: 'repeat-y'
-    },
-
-    canvas: {
-        marginTop: '20vh',
-        height: "0px",
-        width: '0px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        marginLeft: "15%",
     },
     
     mainContent: {

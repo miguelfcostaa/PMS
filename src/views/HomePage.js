@@ -54,7 +54,7 @@ function HomePage() {
                 </div> 
 
                 <div style={styles.botcontainer}>
-                    <p style={{fontSize: '64px', textAlign: 'center', marginTop: '15vh'}}><b>POPULAR CAMPAIGNS</b></p>
+                    <p style={{fontSize: '10vh', textAlign: 'center', marginTop: '15vh'}}><b>POPULAR CAMPAIGNS</b></p>
                     <div style={styles.campaignDisplay} onClick={() => handleCampaignClick(campaigns._id)} >
                         {campaigns.map((campaign) => (
                             <div style={styles.campanha}>
@@ -96,31 +96,20 @@ const styles = {
         gap: '1vh',
         width:'93%',
         overflowX: 'auto',
-<<<<<<< HEAD
-    },
-
-    mainContent: {
-        marginTop: '5vh',
-        marginLeft: '14.75vw',
-        paddingLeft: '0px',
-        font: 'Inter',
-        overflowX:'hidden'
-=======
         marginBottom: '7vh',
     },
 
     mainContent: {
-        marginTop: '9.4vh',
-        marginLeft: '15%',
-        paddingLeft: '2vh',
-        overflow: 'hidden',
->>>>>>> 08cc0ea81e65e9c47e6d29dd1aae7828068de474
+        marginTop: '5vh',
+        marginLeft: '15.8vw',
+        paddingLeft: '0px',
+        font: 'Inter',
     },
     
     botcontainer: {
         marginTop:"100vh",
         marginLeft:"-2.7vw",
-        width: "86vw",
+        width: "86.9vw",
         display: 'flex',
         flexDirection: 'column',
         position:'absolute',
@@ -170,7 +159,7 @@ const styles = {
     quadrado2: {
         marginTop: 14,
         height: "99vh",
-        width: "50.8vw", //1009
+        width: "51.7vw", //1009
         borderRadius: "0%",
         background: "#425576",
         marginLeft:"32.5vw",

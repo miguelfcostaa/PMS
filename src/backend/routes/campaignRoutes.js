@@ -144,4 +144,33 @@ router.post('/donate/:id', async (req, res) => {
     }
 });
 
+//rota para atualizar as informacoes da campanha
+router.put('/update-campaign/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
+
+    try {
+        const campaign = await Campaign.findById(id);
+        if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+
+        campaign.title = title;
+        campaign.description = description;
+        campaign.goal = goal;
+        campaign.timeToCompleteGoal = timeToCompleteGoal;
+        campaign.contact = contact;
+        campaign.nameBankAccount = nameBankAccount;
+        campaign.bankAccount = bankAccount;
+        campaign.category = category;
+        campaign.image = image;
+        campaign.shopItems = shopItems;
+        campaign.coin = coin;
+
+        await campaign.save();
+
+    } catch (error) {
+        console.error('Error updating campaign:', error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 module.exports = router;

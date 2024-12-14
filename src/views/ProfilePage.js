@@ -95,6 +95,12 @@ function ProfilePage() {
         }
     };
     
+    const handleEditCampaign = (campaignId) => {
+        return () => {
+            window.location.href = `/edit-campaign/${campaignId}`;
+        };
+    };
+
 
     if (!userData) {
         return <div style={styles.loading}>Loading...</div>;
@@ -239,18 +245,23 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {myCampaigns.length > 0 ? (
                                 myCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
+                                    <div style={{ display: 'flex', flexDirection: 'column'}}>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                currentAmount={campaign.currentAmount}
+                                                nameBankAccount={campaign.nameBankAccount}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                        <button style={styles.button} onClick={handleEditCampaign(campaign._id)} >
+                                            <span> Edit </span>
+                                        </button>
                                     </div>
                                 ))
                             ) : (
@@ -267,19 +278,21 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {donatedCampaigns.length > 0 ? (
                                 donatedCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
-                                    </div>
+                                    <>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                currentAmount={campaign.currentAmount}
+                                                nameBankAccount={campaign.nameBankAccount}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                    </>
                                 ))
                             ) : (
                                 <p style={styles.noCampaignsMessage}>You haven't donated to any campaigns yet.</p>
@@ -468,13 +481,11 @@ const styles = {
     campaignsContainer: {
         display: 'flex',
         overflowX: 'auto', 
-        gap: '2vw', 
-        padding: '1vh 0', 
+        gap: '1vw', 
     },
     campaignShadow: {
-        marginLeft: '1vw',
+        margin: '1vw',
         boxShadow: '0px 1px 8px 1px rgba(0, 0, 0, 0.25)',
-        marginBottom: '7vh',
         borderRadius: 10,
     },
     noCampaignsMessage: {
@@ -537,6 +548,20 @@ const styles = {
         alignItems: 'center',
         height: '100vh',
         fontSize: '5vh',
+    },
+
+    button: {
+        backgroundColor: '#393939',
+        marginLeft: '2vh',
+        color: '#fff',
+        padding: '1vh',
+        width: '15vh',
+        border: 'none',
+        borderRadius: '1vh',
+        cursor: 'pointer',
+        fontSize: '2vh',
+        marginBottom: '1vh',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.25)',
     },
 };
 

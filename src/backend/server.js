@@ -1,9 +1,9 @@
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
-const connectDB = require('./db');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const connectDB = require('./db');
+const { initIO } = require('./socket'); // Importar initIO para inicializar o io
 const authRoutes = require('./routes/authRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
 
@@ -11,13 +11,6 @@ dotenv.config({ path: './src/backend/.env' });
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true // Garantir que as credenciais de cookies/sessões estão ativas
-    },
-});
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -25,23 +18,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json({ limit: '10mb' })); 
-app.use(express.urlencoded({ extended: true, limit: '10mb' })); 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/campaign', campaignRoutes);
 
-io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-    });
-
-    socket.on('message', (message) => {
-        console.log('Message received from client:', message);
-    });
-});
+// Inicializar o io depois que o servidor for criado
+initIO(server);
 
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);

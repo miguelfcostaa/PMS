@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     passportNumber: { type: String, required: true },
     IBAN: { type: String, default: '' },
     paymentMethod: { type: String, default: '' },
-    profilePicture: { type: String, default: '' },
+    profilePicture: { type: String, default: '' }, 
     coins: [{
         coinName: { type: String, required: true },
         coinImage: { type: String, required: true },
@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
     documents: [documentSchema],
     notificationSeen: { type: Boolean, default: false },
 }, { timestamps: true });
+
 
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });

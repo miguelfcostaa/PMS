@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 import CampaignBox from '../components/CampaignBox';
 import axios from 'axios';
+import defaultAvatar from '../assets/default-avatar.png';
 
 function ProfilePage() {
     const [userData, setUserData] = useState(null);
@@ -38,14 +39,16 @@ function ProfilePage() {
             setMyCampaigns(userCampaigns);
 
             const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
-                campaign.donators.some(donator => donator.userId === userId)
+                campaign?.donators?.some(donator => donator?.userId === userId)
             );
+            
             setDonatedCampaigns(userDonatedCampaigns);
         };
 
         fetchUserData();
         fetchCampaigns();
-    }, [userId]);
+        fetchUserData();
+    }, [userId, userData?.profilePicture]); 
 
     const handleEdit = (field) => {
         if (userData) {
@@ -66,27 +69,32 @@ function ProfilePage() {
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
+        
         if (!file) {
             console.error('No file selected');
             return;
         }
-
+        
         const formData = new FormData();
         formData.append('profilePicture', file);
-
+        
         try {
             const response = await axios.put(
                 `http://localhost:5000/api/auth/${userId}/profile-picture`,
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } }
             );
-
-            console.log('Profile picture updated:', response.data);
-            setUserData({ ...userData, profilePicture: response.data.profilePicture });
+    
+            setUserData({
+                ...userData, 
+                profilePicture: response.data.profilePicture
+            });
+            
         } catch (error) {
             console.error('Error uploading profile picture:', error);
         }
     };
+    
 
     if (!userData) {
         return <div style={styles.loading}>Loading...</div>;
@@ -117,22 +125,17 @@ function ProfilePage() {
                         <div style={styles.profileLeft}>
                             <div style={styles.profilePictureContainer}>
                                 <div style={styles.profilePicture}>
-                                    <img
-                                        src={
-                                            userData?.profilePicture
-                                                ? `data:image/png;base64,${userData.profilePicture}`
-                                                : require('../assets/default-avatar.png')
-                                        }
-                                        alt="Profile"
-                                        style={styles.picture}
+                                <img
+                                    src={
+                                        userData?.profilePicture
+                                            ? `data:image/png;base64,${userData.profilePicture}`
+                                            : defaultAvatar
+                                    }
+                                    alt="Profile"
+                                    style={styles.picture}
                                     />
                                 </div>
                                 <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    <img 
-                                        src={require('../assets/adicionar-imagem.png')} 
-                                        alt="Add Icon" 
-                                        style={styles.addIcon} 
-                                    /> 
                                     <input
                                         id="profilePictureUpload"
                                         type="file"
@@ -140,7 +143,13 @@ function ProfilePage() {
                                         onChange={handleProfilePictureUpload}
                                         style={{ display: 'none' }}
                                     />
+                                    <img 
+                                        src={require('../assets/adicionar-imagem.png')} 
+                                        alt="Add Icon" 
+                                        style={styles.addIcon} 
+                                    /> 
                                 </label>
+
                             </div>
 
                             <h3 style={styles.coinsTitle}>Your Coins</h3>

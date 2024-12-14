@@ -55,7 +55,7 @@ function CampaignSelectedPage() {
 
         fetchUserData();
         fetchCampaign();
-    }, [id, isModalOpen]);
+    }, [id, isModalOpen, userId]);
 
     const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
 
@@ -121,7 +121,7 @@ function CampaignSelectedPage() {
     const handleBuyItem = async (item) => {
         const itemPrice = item[1];
         const itemName = item[0]; 
-        const coinName = campaign.coin[0]; 
+        const coinName = campaign?.coin[0]; 
     
         const matchingCoin = coins.find((coin) => coin.coinName === coinName);
         if (!matchingCoin || matchingCoin.amount < itemPrice) {
@@ -134,7 +134,7 @@ function CampaignSelectedPage() {
     };
 
     const confirmPurchase = async () => {
-        const { itemName, itemPrice, coinName } = itemToBuy;
+        const { itemPrice, coinName } = itemToBuy;
     
         const response = await axios.put(`http://localhost:5000/api/auth/${userId}/coins`, {
             coinName: coinName,
@@ -815,7 +815,11 @@ const styles = {
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+        alignContent: 'center',
+        alignItems: 'center',
+        gap: '4.3vh',	
+        padding: '2vh',
     },
     shopContainerFlex: {
         display: 'flex',
@@ -836,33 +840,33 @@ const styles = {
         alignItems: 'center', 
     },
     coinsText: {
-        marginRight: '10px',  
+        marginLeft: '1vh',
+        marginRight: '1vh',  
     },
     shopItemBox: {
-        width: "36vh",	
-        height: "46vh",
+        width: "30vh",	
+        height: "40vh",
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         boxShadow: "4px 4px 36.5px 3px rgba(0, 0, 0, 0.25)",
-        margin: '2vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
     },
     shopItemImage: {
-        width: "15vh",
-        height: "15vh",
+        width: "12vh",
+        height: "12vh",
         borderRadius: 100,
     },
     shopItemName: {
-        fontSize: '3.5vh',
+        fontSize: '3vh',
         font: 'Inter',
         color: '#000000',
         marginTop: '1vh',
     },
     shopItemPrice: {
-        fontSize: '4vh',
+        fontSize: '3vh',
         font: 'Inter',
         color: '#000000',
         marginRight: '1vh',

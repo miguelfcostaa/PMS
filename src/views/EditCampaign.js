@@ -543,8 +543,8 @@ function EditCampaign() {
                         
                         { parte3 && (
                             <>
-                                <h1> Campaign Created Successfully! </h1>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20}}> Your campaign has been successfully created! To make any edits, click on your profile, find your campaigns and click "Edit". </p>
+                                <h1> Campaign Updated Successfully! </h1>
+                                <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20}}> Your campaign has been successfully updated! If you miss anything, click on your profile, find your campaigns and click "Edit". </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> If you have any questions, feel free to contact us. </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> Best regards, </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}>The Worth+ Team </p>

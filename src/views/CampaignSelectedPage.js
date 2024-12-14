@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
 import axios from 'axios';
+import Modal from 'react-modal';
 
 function CampaignSelectedPage() {
     const { id } = useParams();
@@ -19,6 +20,9 @@ function CampaignSelectedPage() {
         amount: "",
         comment: "",
     });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [itemToBuy, setItemToBuy] = useState(null);
+    const [confirmBuy, setConfirmBuy] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -51,7 +55,7 @@ function CampaignSelectedPage() {
 
         fetchUserData();
         fetchCampaign();
-    }, [id]);
+    }, [id, isModalOpen]);
 
     const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
 
@@ -114,10 +118,80 @@ function CampaignSelectedPage() {
         }
     };
 
+    const handleBuyItem = async (item) => {
+        const itemPrice = item[1];
+        const itemName = item[0]; 
+        const coinName = campaign.coin[0]; 
+    
+        const matchingCoin = coins.find((coin) => coin.coinName === coinName);
+        if (!matchingCoin || matchingCoin.amount < itemPrice) {
+            alert("You don't have enough coins to buy this item.");
+            return;
+        }
+    
+        setItemToBuy({ itemName, itemPrice, coinName });
+        setIsModalOpen(true);
+    };
+
+    const confirmPurchase = async () => {
+        const { itemName, itemPrice, coinName } = itemToBuy;
+    
+        const response = await axios.put(`http://localhost:5000/api/auth/${userId}/coins`, {
+            coinName: coinName,
+            amount: -itemPrice, 
+        });
+    
+        if (response.status === 200) {
+            const updatedCoins = response.data.coins;
+            setCoins(updatedCoins);
+            setConfirmBuy(true);  
+        } else {
+            alert("Failed to update your coins. Please try again.");
+        }
+    };
+    
+    const cancelPurchase = () => {
+        setConfirmBuy(false);
+        setIsModalOpen(false);
+    }
+
     return (
         <>
             <NavBar />
             <SideBar />
+            <Modal
+                isOpen={isModalOpen}
+                onRequestClose={cancelPurchase}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    },
+                    content: {
+                        backgroundColor: '#FFF',
+                        margin: '10% 30% 20% 30%',
+                        padding: '20px',
+                        borderRadius: '10px',
+                        textAlign: 'center',
+                    },
+                }}
+            >
+                { !confirmBuy ? (
+                    <>
+                        <h2>Are you sure you want to buy this item?</h2>
+                        <p style={{fontSize: 24, margin: 20}}> {itemToBuy?.itemName} - Price: {itemToBuy?.itemPrice} </p>
+                        <div>
+                            <button onClick={confirmPurchase} style={styles.confirmButton}>Confirm</button>
+                            <button onClick={cancelPurchase} style={styles.cancelButton}>Cancel</button>
+                        </div>
+                    </>
+                ) : ( 
+                    <> 
+                        <h2>Item purchased successfully!</h2>
+                        <p style={{fontSize: 20, marginTop: '4vh'}}> Your purchase will make a difference in the lives of the campaign beneficiaries, bringing hope and support directly to those in need. </p>
+                        <p style={{fontSize: 20}}> Thank You!</p>
+                    </>
+                )}
+            </Modal>
             <div style={styles.mainContent}>
                 <div style={styles.container}>
                     <span style={styles.title}>{campaign.title}</span>
@@ -302,48 +376,68 @@ function CampaignSelectedPage() {
                 <div style={styles.shopTitle}>
                     <span> Campaign Store </span>
                 </div>                
-                <div style={styles.shopContainer}>
-                    {campaign?.shopItems?.length > 0 ? (
-                        campaign.shopItems.map((item, index) => {
-                            const matchingCoin = coins.find(
-                                (coin) => coin.coinName === campaign.coin[0]
-                            ); 
+                <div style={styles.shopContainerFlex}>
+                    <div style={styles.currentCoins}>
+                        <span style={styles.coinsText}>
+                            <b>You have: </b> 
+                            {coins.length > 0 
+                                ? coins.find((coin) => coin.coinName === campaign.coin[0])?.amount || 0 
+                                : 0}
+                        </span>
+                        {coins.length > 0 && (
+                            <div style={styles.coinCircle}>
+                                <img
+                                    src={coins.find((coin) => coin.coinName === campaign.coin[0])?.coinImage}
+                                    alt={coins.find((coin) => coin.coinName === campaign.coin[0])?.coinName}
+                                    style={styles.coinImage}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div style={styles.shopContainer}>
+                        {campaign?.shopItems?.length > 0 ? (
+                            campaign.shopItems.map((item, index) => {
+                                const matchingCoin = coins.find(
+                                    (coin) => coin.coinName === campaign.coin[0]
+                                ); 
 
-                            return (
-                                <div key={index} style={styles.shopItemBox}>
-                                    <img
-                                        src={require('../assets/image.png')}
-                                        alt="Imagem do item"
-                                        style={styles.shopItemImage}
-                                    />
-                                    <span style={styles.shopItemName}> {item[0]} </span>
-                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
-                                        <span style={styles.shopItemPrice}> {item[1]} </span>
-                                        {matchingCoin && (
-                                            <div style={styles.coinCircle}>
-                                                <img
-                                                    src={matchingCoin.coinImage}
-                                                    alt={matchingCoin.coinName}
-                                                    style={styles.coinImage}
-                                                />
-                                            </div>
-                                        )}
+                                return (
+                                    <div key={index} style={styles.shopItemBox}>
+                                        <img
+                                            src={require('../assets/image.png')}
+                                            alt="Imagem do item"
+                                            style={styles.shopItemImage}
+                                        />
+                                        <span style={styles.shopItemName}> {item[0]} </span>
+                                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
+                                            <span style={styles.shopItemPrice}> {item[1]} </span>
+                                            {matchingCoin && (
+                                                <div style={styles.coinCircle}>
+                                                    <img
+                                                        src={matchingCoin.coinImage}
+                                                        alt={matchingCoin.coinName}
+                                                        style={styles.coinImage}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            style={styles.buyButton}
+                                            onClick={() => handleBuyItem(item)}
+                                        >
+                                            Buy
+                                        </button>
                                     </div>
-
-                                    <button
-                                        type="button"
-                                        style={styles.buyButton}
-                                    >
-                                        Buy
-                                    </button>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div style={styles.shopItemBox}>
-                            <span> No items available in the store. </span>
-                        </div>
-                    )}
+                                );
+                            })
+                        ) : (
+                            <div style={styles.shopItemBox}>
+                                <span> No items available in the store. </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>            
         </>
@@ -718,15 +812,31 @@ const styles = {
         paddingBottom: 20,
     },
     shopContainer: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        width: "101%",
-        height: "100%",
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
+    },
+    shopContainerFlex: {
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        width: "101%",
+        height: "100%",
         marginBottom: 40,
+    },
+    currentCoins: {
+        fontSize: '3vh',
+        font: 'Inter',  
+        color: '#000000',
+        paddingTop: 20,
+        paddingLeft: 20,
+        display: 'flex', 
+        alignItems: 'center', 
+    },
+    coinsText: {
+        marginRight: '10px',  
     },
     shopItemBox: {
         width: "36vh",	
@@ -758,8 +868,8 @@ const styles = {
         marginRight: '1vh',
     },
     coinCircle: {
-        width: '2.5vw',
-        height: '2.5vw',
+        width: '2.2vw',
+        height: '2.2vw',
         borderRadius: '50%',
         display: 'flex',
         justifyContent: 'center',
@@ -786,6 +896,33 @@ const styles = {
         fontWeight: 'bold',
         cursor: 'pointer',
         marginTop: '2vh',
+    },
+    confirmButton: {
+        width: '20%',
+        backgroundColor: '#009DFF',
+        padding: '10px 10px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 10,
+        fontSize: 20,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginRight: '2vh',
+    },
+    cancelButton: {
+        width: '20%',
+        backgroundColor: '#FF0000',
+        padding: '10px 10px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignContent: 'center',
+        fontSize: 20,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
     },
 };
 

@@ -382,8 +382,8 @@ const style = {
     coinRow: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'relative', 
+        flexDirection: 'row',
+        justifyContent: "space-between",
         padding: '0.5vh 0vh'
     },
     addCoinsIcon: {
@@ -394,9 +394,8 @@ const style = {
     coinAmount: {
         fontSize: '3.5vh',
         color: '#333',
+        width: '5vw',
         fontWeight: 'bold',
-        width: '2vw',
-        maxWidth: '5vw',
         textAlign: 'center',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -405,9 +404,9 @@ const style = {
         width: '2.5vw',
         height: '2.5vw',
         borderRadius: '50%',
-        display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
+        display: 'flex',
         boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
         backgroundColor: '#FFAD00',
     },
@@ -416,6 +415,7 @@ const style = {
         height: '80%',
         borderRadius: '50%',
         objectFit: 'cover',
+
     },
     profileButton: {
         background: 'none',

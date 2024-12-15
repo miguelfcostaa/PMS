@@ -2,7 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const verifyUser = require('../verificationJob'); 
+const verifyUser = require('../verificationJob');
 const mongoose = require('mongoose');
 const multer = require('multer');
 
@@ -241,6 +241,139 @@ router.put('/:userId/coins', async (req, res) => {
     } catch (error) {
         console.error('Error updating coins:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+router.get('/challenges/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    try {
+        const challenges = await Challenge.aggregate([
+            {
+                $lookup: {
+                    from: 'userchallenges', // Coleção de progresso de desafios
+                    localField: '_id', // Campo do desafio
+                    foreignField: 'challengeId', // Campo no progresso
+                    as: 'userProgress', // Nome do campo onde o progresso será anexado
+                },
+            },
+            {
+                $unwind: {
+                    path: '$userProgress',
+                    preserveNullAndEmptyArrays: true, // Permitir desafios sem progresso
+                },
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'userProgress.userId': mongoose.Types.ObjectId(userId) }, // Progresso do usuário
+                        { 'userProgress': null }, // Ou desafios ainda não iniciados
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    description: 1,
+                    isMedal: 1,
+                    image: 1,
+                    progress: { $ifNull: ['$userProgress.progress', 0] }, // Progresso ou 0
+                    completed: { $ifNull: ['$userProgress.completed', false] }, // Concluído ou falso
+                },
+            },
+        ]);
+
+        res.status(200).json(challenges);
+    } catch (error) {
+        console.error('Error fetching challenges:', error);
+        res.status(500).json({ error: 'Error fetching challenges' });
+    }
+});
+
+router.get('/list-challenges/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId).select('challenges');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(user.challenges);
+    } catch (error) {
+        console.error('Error fetching challenges:', error);
+        res.status(500).json({ error: 'Failed to fetch challenges' });
+    }
+});
+
+// Rota para atualizar o progresso de um desafio de um usuário
+router.put('/challenges/:userId/:challengeId', async (req, res) => {
+    const { userId, challengeId } = req.params;
+    const { progress } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(challengeId)) {
+        return res.status(400).json({ message: 'Invalid user ID or challenge ID' });
+    }
+
+    try {
+        const userChallenge = await UserChallenge.findOneAndUpdate(
+            { userId, challengeId },
+            { progress, completed: progress >= 100 }, // Marca como completo se progresso >= 100
+            { upsert: true, new: true } // Cria se não existir
+        );
+
+        res.status(200).json(userChallenge);
+    } catch (error) {
+        console.error('Error updating challenge progress:', error);
+        res.status(500).json({ error: 'Error updating challenge progress' });
+    }
+});
+
+// Rota para criar novos desafios (pode ser usada para administração)
+router.post('/challenges', async (req, res) => {
+    const { description, isMedal, image } = req.body;
+
+    if (!description || !image) {
+        return res.status(400).json({ message: 'Description and image are required' });
+    }
+
+    try {
+        const newChallenge = new Challenge({
+            description,
+            isMedal: isMedal || false,
+            image,
+        });
+
+        await newChallenge.save();
+
+        res.status(201).json({ message: 'Challenge created successfully', challenge: newChallenge });
+    } catch (error) {
+        console.error('Error creating challenge:', error);
+        res.status(500).json({ error: 'Error creating challenge' });
+    }
+});
+
+router.delete('/challenges/:challengeId', async (req, res) => {
+    const { challengeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(challengeId)) {
+        return res.status(400).json({ message: 'Invalid challenge ID' });
+    }
+
+    try {
+        const deletedChallenge = await Challenge.findByIdAndDelete(challengeId);
+
+        if (!deletedChallenge) {
+            return res.status(404).json({ message: 'Challenge not found' });
+        }
+
+        res.status(200).json({ message: 'Challenge deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting challenge:', error);
+        res.status(500).json({ error: 'Error deleting challenge' });
     }
 });
 

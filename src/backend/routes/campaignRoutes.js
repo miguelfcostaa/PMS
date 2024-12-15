@@ -1,5 +1,5 @@
 const express = require('express');
-const Campaign = require('../models/Campaign'); 
+const Campaign = require('../models/Campaign');
 const User = require('../models/User');
 
 const router = express.Router();
@@ -8,9 +8,9 @@ router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
+        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin, challengeId } = req.body;
 
-        if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category ) {
+        if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
@@ -22,7 +22,7 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Time to complete goal must be a positive number' });
         }
 
-        const userId = req.body.creator; 
+        const userId = req.body.creator;
 
         if (!userId) {
             return res.status(400).json({ error: 'Creator ID is required' });
@@ -42,12 +42,26 @@ router.post('/create-campaign', async (req, res) => {
             image,
             donators: [],
             shopItems,
-            creator: userId, 
+            creator: userId,
             coin,
+            challengeId,
         });
 
         console.log('Saving campaign...');
         await newCampaign.save();
+
+        if (challengeId) {
+            const challengeToUpdate = user.challenges.find(
+                (challenge) => challenge._id.toString() === challengeId
+            );
+
+            if (challengeToUpdate) {
+                // Atualiza o progresso e marca o desafio como completo
+                challengeToUpdate.progress = 100;
+                challengeToUpdate.completed = true;
+                await user.save();
+            }
+        }
 
         console.log('Campaign registered successfully:', newCampaign);
         res.status(201).json(newCampaign);
@@ -63,7 +77,7 @@ router.get('/all-campaigns', async (req, res) => {
     try {
         const campaigns = await Campaign.find();
         res.json(campaigns);
-    } 
+    }
     catch (err) {
         console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });
@@ -106,7 +120,7 @@ router.post('/donate/:id', async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const coinAmount = Math.floor(donationDetails[1] * 0.55);
-        
+
         const existingCoin = user.coins.find(coin => coin.coinName === campaign.coin[0]);
         if (existingCoin) {
             existingCoin.amount += coinAmount;
@@ -115,12 +129,12 @@ router.post('/donate/:id', async (req, res) => {
                 coinName: campaign.coin[0],
                 coinImage: campaign.coin[1],
                 amount: coinAmount,
-                campaignId: campaign._id, 
+                campaignId: campaign._id,
             });
         }
 
         await user.save();
-        
+
         res.json(campaign);
     } catch (error) {
         console.error(error);

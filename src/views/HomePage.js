@@ -1,13 +1,14 @@
 import React, { useState, useEffect }  from 'react';
 import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
-import CampaignBox from '../components/CampaignBox';
-import { useNavigate } from 'react-router-dom';
+import '../App.css';
 
 function HomePage() {
     const [campaigns, setCampaigns] = useState([]);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+
         const fetchCampaigns = async () => {
             try {
                 const response = await fetch('http://localhost:5000/api/campaign/all-campaigns');
@@ -22,21 +23,20 @@ function HomePage() {
             }
         };
         fetchCampaigns();
+
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+
     }, []);
 
-    const navigate = useNavigate();
-
-    const handleCampaignClick = (id) => {
-        navigate(`/campaign/${id}`); // Redireciona para a página da campanha com o ID
-        window.scrollTo(0, 0);
-    };
-    
     return (
         <>                    
-        <NavBar  />       
-        
-        <div style={styles.mainContent}>
-            <div style={styles.container}>
+            <NavBar  />       
+            
+            <div style={styles.mainContent}>
                 <div style={styles.quadrado2}></div>                    
                 <div style={styles.circulo1}></div>
                 <div style={styles.quadrado1}></div>
@@ -54,27 +54,9 @@ function HomePage() {
                     <p style={styles.rightsection1}>Your chance to <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>HELP!</b></span></p>
                 </div> 
 
-                {/* <div style={styles.botcontainer}>
-                    <p style={{fontSize: '10vh', textAlign: 'center', marginTop: '15vh'}}><b>POPULAR CAMPAIGNS</b></p>
-                    <div style={styles.campaignDisplay} >
-                        {campaigns.map((campaign) => (
-                            <div onClick={() => handleCampaignClick(campaign._id)} key={campaign._id}>
-                                <CampaignBox 
-                                    title={campaign.title}
-                                    description={campaign.description}
-                                    goal={campaign.goal}
-                                    timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                    currentAmount={campaign.currentAmount}
-                                    nameBankAccount={campaign.nameBankAccount}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>      */}
             </div>
-        </div>
-            
-        <SideBar  />
+                
+            <SideBar  />
         </>
     );
 }
@@ -83,26 +65,13 @@ const styles = {
     mainContent: {
         marginTop: '5vh',
         marginLeft: '15.8vw',
-        paddingLeft: '0px',
         font: 'Inter',
-    },
-    
-    botcontainer: {
-        marginTop:"100vh",
-        marginLeft:"-3.6vw",
-        width: "86.9vw",
-        display: 'flex',
-        flexDirection: 'column',
-        position:'absolute',
-        backgroundColor: "#D9D9D9",
-    },
-
-    container: {
+        height: '100vh',
         width: "80vw",
-        height: "100%",
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        position:'absolute',
+        
     },
 
     circulo1: {
@@ -110,10 +79,11 @@ const styles = {
         width: "30vw",
         borderRadius: "100%",
         background: "#C7D5E5",
+        position:'absolute',
         marginLeft:"15vw",
         marginTop:"-2%vh",
-        position:'absolute',
-        zindex:30
+        zIndex: 0,
+
     },
 
     circulo2: {
@@ -124,7 +94,8 @@ const styles = {
         marginLeft:"23.1vw",
         marginTop:"62.1vh",
         position:'absolute',
-        zindex:30
+        zIndex: 1,
+        clipPath: "inset(0 0 52% 0)",
     },
 
     quadrado1: {
@@ -135,6 +106,7 @@ const styles = {
         borderRadius: "0%",
         background: "#C7D5E5",
         position:'absolute',
+        overflow: "hidden",
     },
 
     quadrado2: {
@@ -143,8 +115,9 @@ const styles = {
         width: "50.8vw", 
         borderRadius: "0%",
         background: "#425576",
-        marginLeft:"32.5vw",
+        marginLeft:"33.5vw",
         position:'absolute',
+        overflow: "hidden",
     },
 
     leftsection:{
@@ -154,7 +127,8 @@ const styles = {
         fontSize: "7vh",
         fontWeight: "200",
         position:"absolute",
-        color:"#425576"
+        color:"#425576",
+        zIndex: 3,
     },
     
     rightsection:{
@@ -164,8 +138,10 @@ const styles = {
         fontWeight: "200",
         position:"absolute",
         color: '#C7D5E5',
-        marginLeft: '57vw',
+        marginLeft: '54vw',
         marginTop:'2.5%',
+        zIndex: 3,
+        
     },
 
     rightsection1:{
@@ -177,7 +153,8 @@ const styles = {
         position:"absolute",
         color: '#C7D5E5',
         marginTop:'10vh',
-        marginLeft: '-50%'
+        marginLeft: '-50%',
+        zIndex: 3,
     },
 
     button1:{
@@ -211,20 +188,6 @@ const styles = {
         marginLeft:"-100%",
         marginTop:"4vh",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
-    },
-        
-    campaignDisplay: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingBottom: '1vh',
-        borderRadius: '10px',
-        marginLeft: '5%',
-        marginRight: '10%',
-        gap: '4vh',
-        width:'93%',
-        overflowX: 'auto',
-        marginBottom: '7vh',
     },
 
 };

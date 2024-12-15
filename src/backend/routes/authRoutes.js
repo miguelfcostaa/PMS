@@ -36,8 +36,10 @@ router.post('/register', async (req, res) => {
             password: hashedPassword,
             TIN,
             passportNumber,
-            documents,
+            IBAN: '',
+            paymentMethod: '',
             role: 'doador',
+            documents,
         });
 
         // Salvar o utilizador na base de dados

@@ -36,7 +36,7 @@ function Init() {
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000)
             renderer = new THREE.WebGLRenderer()
 
-            renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5)
+            renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7)
             //renderer.setClearColor(0xC7D5E5);
             renderer.setClearColor(0xE8E8E8)
             canvas.current.appendChild(renderer.domElement)
@@ -92,10 +92,11 @@ function Init() {
 function RoulettePage() {
     const [coins, setCoins] = useState([]);
     const [selectedCoin, setSelectedCoin] = useState(null);
+    //const [betAmount, setBetAmount] = useState("");
     const [userData, setUserData] = useState({});
-    const userId = localStorage.getItem('userId');
     const [playRoll, setPlayRoll] = useState(true);
-
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem("token");
 
     const navigate = useNavigate();
 
@@ -116,9 +117,13 @@ function RoulettePage() {
         fetchUserData();
     }, [userId]);
 
+    const getSelectedCoinAmount = () => {
+        const coin = coins.find((c) => c.coinName === selectedCoin.coinName);
+        console.log("name: " + " " + selectedCoin.coinName)
+        return coin ? coin.amount : 0;
+    };
 
-
-    function roulette(color) {
+    async function roulette(color) {
         const index = Math.floor(Math.random() * 10)
         const result = circles[index]
         const colorWinner = colors[index]
@@ -129,11 +134,43 @@ function RoulettePage() {
         let actualS = s
         let sp = speed
         let control = true
+        let winnings = 0
+        console.log("token: " + token)
 
-        // if (selectedCoin === null) {
-        //     alert('Please select a coin to bet.');
-        //     return;
-        // }
+        if (selectedCoin === null) {
+            alert('Please select a coin to bet.');
+            return;
+        }
+        if (inputValue > getSelectedCoinAmount()) {
+            alert("Saldo insuficiente! " + getSelectedCoinAmount());
+            return;
+        }
+
+        const updatedCoins = coins.map((coin) => {
+            if (coin.coinName === selectedCoin.coinName) {
+                return { ...coin, amount: coin.amount - parseFloat(inputValue) };
+            }
+            return coin;
+        });
+
+        setCoins(updatedCoins);
+        console.log( "asdasd " +  selectedCoin.coinName + " " + -parseFloat(inputValue));
+        try {
+            await axios.put(
+                `http://localhost:5000/api/auth/${userId}/coins`,
+                {
+                    coinName: selectedCoin.coinName,
+                    amount: -parseFloat(inputValue),
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+        } catch (error) {
+            console.error("Erro ao atualizar moedas na base de dados:", error);
+            return;
+        }
+
 
         const rouletteAnimation = () => {
             setPlayRoll((prev) => {
@@ -141,7 +178,8 @@ function RoulettePage() {
             });
             //result.scale.set(0.25, 0.25, 0.25)
             circles.forEach((c, index) => {
-                if (actualS < s + 5) {
+                console.log("time: " + actualS + " " + s)
+                if (((actualS - s + 60) % 60) < 5) {
                     today = new Date()
                     actualS = today.getSeconds()
                     c.position.x -= sp
@@ -162,8 +200,35 @@ function RoulettePage() {
                             return true;
                         });
                         if (control) {
-                            alert(didWin ? "Ganhou" : "Perdeu");
+                            //alert(didWin ? "Ganhou" : "Perdeu");
                             control = false;
+                            if (didWin) {
+                                if (color === "red" || color === "black") {
+                                    winnings = inputValue * 2
+                                    console.log("Ganhou red ou black")
+                                }
+                                else if (color === "blue") {
+                                    winnings = inputValue * 10
+                                    console.log("Ganhou blue")
+                                }
+                                const updatedCoins = coins.map((coin) => {
+                                    if (coin.coinName === selectedCoin.coinName) {
+                                        alert('Ganhou ' + winnings + ' ' + coin.coinName);
+                                        return { ...coin, amount: coin.amount + parseFloat(winnings) };
+                                    }
+                                    return coin;
+                                });
+                                setCoins(updatedCoins);
+                                
+                                axios.put(
+                                    `http://localhost:5000/api/auth/${userId}/coins`,
+                                    {coinName: selectedCoin.coinName,amount: parseFloat(winnings),},
+                                    {headers: { Authorization: `Bearer ${token}` },}
+                                );
+                            }
+                            else{
+                                alert("Perdeu")
+                            }
                         }
                     }
                     else {
@@ -187,7 +252,7 @@ function RoulettePage() {
         }
 
         const animate = () => {
-            if (control)requestAnimationFrame(animate)
+            if (control) requestAnimationFrame(animate)
             rouletteAnimation()
             renderer.render(scene, camera)
             console.log("posiçao: " + result.position.x)

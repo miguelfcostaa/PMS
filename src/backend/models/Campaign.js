@@ -10,12 +10,13 @@ const campaignSchema = new mongoose.Schema({
     bankAccount: { type: String, required: true },
     category: { type: String, required: true },
     currentAmount: { type: Number, default: 0 },
-    image: { type: String, required: false },
-    contentType: { type: String, required: false },
-    donators: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        donationDetails: { type: Array, default: [] },
-    }],
+    donators: {
+        type: [{ 
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            donationDetails: { type: Array, default: [] },
+        }],
+        default: [] // Garante que é sempre um array vazio por padrão
+    },
     shopItems: { type: Array, default: [] },
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     coin: { type: [String], required: true },
@@ -23,6 +24,7 @@ const campaignSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 campaignSchema.index({ creator: 1 });
+campaignSchema.index({ title: 1 });
 
 const Campaign = mongoose.model('Campaign', campaignSchema);
 

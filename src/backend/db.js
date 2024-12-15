@@ -6,12 +6,10 @@ dotenv.config({ path: './src/backend/.env' });
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      maxPoolSize: 10, // Alterado de poolSize para maxPoolSize
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000
+      maxPoolSize: 10, // Limite máximo de conexões simultâneas
+      serverSelectionTimeoutMS: 5000, 
+      socketTimeoutMS: 45000, 
+      connectTimeoutMS: 10000,
     });
     console.log('Connected to MongoDB successfully!');
   } catch (error) {

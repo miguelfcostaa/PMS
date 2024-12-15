@@ -28,6 +28,7 @@ function HomePage() {
 
     const handleCampaignClick = (id) => {
         navigate(`/campaign/${id}`); // Redireciona para a página da campanha com o ID
+        window.scrollTo(0, 0);
     };
     
     return (
@@ -53,13 +54,12 @@ function HomePage() {
                     <p style={styles.rightsection1}>Your chance to <br/><span style={{fontSize: '15vh', fontWeight: '350'}}><b>HELP!</b></span></p>
                 </div> 
 
-                <div style={styles.botcontainer}>
+                {/* <div style={styles.botcontainer}>
                     <p style={{fontSize: '10vh', textAlign: 'center', marginTop: '15vh'}}><b>POPULAR CAMPAIGNS</b></p>
-                    <div style={styles.campaignDisplay} onClick={() => handleCampaignClick(campaigns._id)} >
+                    <div style={styles.campaignDisplay} >
                         {campaigns.map((campaign) => (
-                            <div style={styles.campanha}>
+                            <div onClick={() => handleCampaignClick(campaign._id)} key={campaign._id}>
                                 <CampaignBox 
-                                    key={campaign._id}
                                     title={campaign.title}
                                     description={campaign.description}
                                     goal={campaign.goal}
@@ -70,7 +70,7 @@ function HomePage() {
                             </div>
                         ))}
                     </div>
-                </div>     
+                </div>      */}
             </div>
         </div>
             
@@ -80,25 +80,6 @@ function HomePage() {
 }
 
 const styles = {
-    
-    campanha:{
-        width: '100%',
-        height: '10%',
-    },
-
-    campaignDisplay: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignContent: 'center',
-        borderRadius: '10px',
-        marginLeft: '5%',
-        gap: '1vh',
-        width:'93%',
-        overflowX: 'auto',
-        marginBottom: '7vh',
-    },
-
     mainContent: {
         marginTop: '5vh',
         marginLeft: '15.8vw',
@@ -108,7 +89,7 @@ const styles = {
     
     botcontainer: {
         marginTop:"100vh",
-        marginLeft:"-2.7vw",
+        marginLeft:"-3.6vw",
         width: "86.9vw",
         display: 'flex',
         flexDirection: 'column',
@@ -159,7 +140,7 @@ const styles = {
     quadrado2: {
         marginTop: 14,
         height: "99vh",
-        width: "51.7vw", //1009
+        width: "50.8vw", 
         borderRadius: "0%",
         background: "#425576",
         marginLeft:"32.5vw",
@@ -231,6 +212,21 @@ const styles = {
         marginTop:"4vh",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
     },
+        
+    campaignDisplay: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingBottom: '1vh',
+        borderRadius: '10px',
+        marginLeft: '5%',
+        marginRight: '10%',
+        gap: '4vh',
+        width:'93%',
+        overflowX: 'auto',
+        marginBottom: '7vh',
+    },
+
 };
 
 export default HomePage;

@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 import CampaignBox from '../components/CampaignBox';
 import axios from 'axios';
+import defaultAvatar from '../assets/default-avatar.png';
 
 function ProfilePage() {
     const [userData, setUserData] = useState(null);
@@ -38,14 +39,16 @@ function ProfilePage() {
             setMyCampaigns(userCampaigns);
 
             const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
-                campaign.donators.some(donator => donator.userId === userId)
+                campaign?.donators?.some(donator => donator?.userId === userId)
             );
+            
             setDonatedCampaigns(userDonatedCampaigns);
         };
 
         fetchUserData();
         fetchCampaigns();
-    }, [userId]);
+        fetchUserData();
+    }, [userId, userData?.profilePicture]); 
 
     const handleEdit = (field) => {
         if (userData) {
@@ -66,27 +69,38 @@ function ProfilePage() {
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
+        
         if (!file) {
             console.error('No file selected');
             return;
         }
-
+        
         const formData = new FormData();
         formData.append('profilePicture', file);
-
+        
         try {
             const response = await axios.put(
                 `http://localhost:5000/api/auth/${userId}/profile-picture`,
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } }
             );
-
-            console.log('Profile picture updated:', response.data);
-            setUserData({ ...userData, profilePicture: response.data.profilePicture });
+    
+            setUserData({
+                ...userData, 
+                profilePicture: response.data.profilePicture
+            });
+            
         } catch (error) {
             console.error('Error uploading profile picture:', error);
         }
     };
+    
+    const handleEditCampaign = (campaignId) => {
+        return () => {
+            window.location.href = `/edit-campaign/${campaignId}`;
+        };
+    };
+
 
     if (!userData) {
         return <div style={styles.loading}>Loading...</div>;
@@ -117,22 +131,17 @@ function ProfilePage() {
                         <div style={styles.profileLeft}>
                             <div style={styles.profilePictureContainer}>
                                 <div style={styles.profilePicture}>
-                                    <img
-                                        src={
-                                            userData?.profilePicture
-                                                ? `data:image/png;base64,${userData.profilePicture}`
-                                                : require('../assets/default-avatar.png')
-                                        }
-                                        alt="Profile"
-                                        style={styles.picture}
+                                <img
+                                    src={
+                                        userData?.profilePicture
+                                            ? `data:image/png;base64,${userData.profilePicture}`
+                                            : defaultAvatar
+                                    }
+                                    alt="Profile"
+                                    style={styles.picture}
                                     />
                                 </div>
                                 <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    <img 
-                                        src={require('../assets/adicionar-imagem.png')} 
-                                        alt="Add Icon" 
-                                        style={styles.addIcon} 
-                                    /> 
                                     <input
                                         id="profilePictureUpload"
                                         type="file"
@@ -140,7 +149,13 @@ function ProfilePage() {
                                         onChange={handleProfilePictureUpload}
                                         style={{ display: 'none' }}
                                     />
+                                    <img 
+                                        src={require('../assets/adicionar-imagem.png')} 
+                                        alt="Add Icon" 
+                                        style={styles.addIcon} 
+                                    /> 
                                 </label>
+
                             </div>
 
                             <h3 style={styles.coinsTitle}>Your Coins</h3>
@@ -230,18 +245,23 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {myCampaigns.length > 0 ? (
                                 myCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
+                                    <div style={{ display: 'flex', flexDirection: 'column'}}>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                currentAmount={campaign.currentAmount}
+                                                nameBankAccount={campaign.nameBankAccount}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                        <button style={styles.button} onClick={handleEditCampaign(campaign._id)} >
+                                            <span> Edit </span>
+                                        </button>
                                     </div>
                                 ))
                             ) : (
@@ -258,19 +278,21 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {donatedCampaigns.length > 0 ? (
                                 donatedCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
-                                    </div>
+                                    <>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                currentAmount={campaign.currentAmount}
+                                                nameBankAccount={campaign.nameBankAccount}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                    </>
                                 ))
                             ) : (
                                 <p style={styles.noCampaignsMessage}>You haven't donated to any campaigns yet.</p>
@@ -459,13 +481,11 @@ const styles = {
     campaignsContainer: {
         display: 'flex',
         overflowX: 'auto', 
-        gap: '2vw', 
-        padding: '1vh 0', 
+        gap: '1vw', 
     },
     campaignShadow: {
-        marginLeft: '1vw',
+        margin: '1vw',
         boxShadow: '0px 1px 8px 1px rgba(0, 0, 0, 0.25)',
-        marginBottom: '7vh',
         borderRadius: 10,
     },
     noCampaignsMessage: {
@@ -528,6 +548,20 @@ const styles = {
         alignItems: 'center',
         height: '100vh',
         fontSize: '5vh',
+    },
+
+    button: {
+        backgroundColor: '#393939',
+        marginLeft: '2vh',
+        color: '#fff',
+        padding: '1vh',
+        width: '15vh',
+        border: 'none',
+        borderRadius: '1vh',
+        cursor: 'pointer',
+        fontSize: '2vh',
+        marginBottom: '1vh',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.25)',
     },
 };
 

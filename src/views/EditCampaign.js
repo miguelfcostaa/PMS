@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import NavBar from '../components/NavBar';
+import { useParams } from 'react-router-dom';
 
-function CreateCampaignPage() {
-    const userId = localStorage.getItem('userId');
+function EditCampaign() {
+    const { id } = useParams(); // Obter o ID da campanha a partir da rota
+
+    const [loading, setLoading] = useState(true);
 
     const [parte1, setParte1] = useState(true);
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
     const [formData, setFormData] = useState({
-        id: '',
         title: '',
         description: '',
         goal: '',
@@ -17,6 +19,7 @@ function CreateCampaignPage() {
         nameBankAccount: '',
         bankAccount: '',
         category: '',
+        timeToCompleteGoal: '',
         currentAmount: 0,
         image: '',
         donators: [],
@@ -28,6 +31,30 @@ function CreateCampaignPage() {
         itemPrice: "",
         itemImage: "",
     });
+
+    useEffect(() => {
+        async function fetchCampaign() {
+            try {
+                const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setFormData(data); 
+                } else {
+                    alert('Failed to load campaign details.');
+                }
+            } catch (err) {
+                console.error('Error fetching campaign:', err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchCampaign();
+    }, [id]);
 
 
     const handleInputChange = (e) => {
@@ -84,32 +111,32 @@ function CreateCampaignPage() {
                 };
     
                 console.log("Data being sent to the server:", finalData); // Verifica os dados
-    
+                
                 // Envia os dados para o backend
-                const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
-                    method: 'POST',
+                const response = await fetch(`http://localhost:5000/api/campaign/update-campaign/${id}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Certifique-se de que o token está armazenado
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
-                    body: JSON.stringify(finalData),
+                    body: JSON.stringify(formData),
                 });
     
-                if (!response.ok) {
+                if (response.ok) {
+                    alert('Campaign updated successfully!');
+                } else {
                     const errorData = await response.json();
-                    console.error("Error creating campaign:", errorData);
-                    alert(errorData.error || "Failed to create campaign");
-                    return;
+                    alert(errorData.error || 'Failed to update campaign.');
                 }
     
-                alert('Campaign created successfully!');
                 setParte1(false);
                 setParte2(false);
                 setParte3(true); // Avança para a terceira parte
                 window.scrollTo(0, 0);
+
             } catch (err) {
-                console.error("Unexpected error creating campaign:", err.message);
-                alert('Unexpected error creating campaign.');
+                console.error('Error updating campaign:', err);
+                alert('Unexpected error updating campaign.');
             }
         }
     };
@@ -516,8 +543,8 @@ function CreateCampaignPage() {
                         
                         { parte3 && (
                             <>
-                                <h1> Campaign Created Successfully! </h1>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20}}> Your campaign has been successfully created! To make any edits, click on your profile, find your campaigns and click "Edit". </p>
+                                <h1> Campaign Updated Successfully! </h1>
+                                <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20}}> Your campaign has been successfully updated! If you miss anything, click on your profile, find your campaigns and click "Edit". </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> If you have any questions, feel free to contact us. </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> Best regards, </p>
                                 <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}>The Worth+ Team </p>
@@ -786,4 +813,4 @@ const styles = {
     },
 }
 
-export default CreateCampaignPage;
+export default EditCampaign;

@@ -1,24 +1,14 @@
 const express = require('express');
-const Campaign = require('../models/Campaign'); 
+const Campaign = require('../models/Campaign');
 const User = require('../models/User');
 
 const router = express.Router();
 
 router.post('/create-campaign', async (req, res) => {
     try {
-        const { 
-            title, 
-            description, 
-            goal, 
-            timeToCompleteGoal, 
-            contact, 
-            nameBankAccount, 
-            bankAccount, 
-            category, 
-            image, 
-            shopItems, 
-            coin 
-        } = req.body;
+        console.log('Received campaign registration request:', req.body);
+
+        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
 
         if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -33,6 +23,7 @@ router.post('/create-campaign', async (req, res) => {
         }
 
         const userId = req.body.creator; 
+
         if (!userId) {
             return res.status(400).json({ error: 'Creator ID is required' });
         }
@@ -50,11 +41,25 @@ router.post('/create-campaign', async (req, res) => {
             image,
             donators: [],
             shopItems,
-            creator: userId, 
+            creator: userId,
             coin,
+            challengeId,
         });
 
         await newCampaign.save();
+
+        if (challengeId) {
+            const challengeToUpdate = user.challenges.find(
+                (challenge) => challenge._id.toString() === challengeId
+            );
+
+            if (challengeToUpdate) {
+                // Atualiza o progresso e marca o desafio como completo
+                challengeToUpdate.progress = 100;
+                challengeToUpdate.completed = true;
+                await user.save();
+            }
+        }
 
         console.log('Campaign registered successfully:', newCampaign);
         res.status(201).json(newCampaign);
@@ -77,8 +82,9 @@ router.get('/all-campaigns', async (req, res) => {
             .select('title description goal currentAmount category creator');
 
         res.json(campaigns);
-    } catch (err) {
-        console.error('Error fetching campaigns:', err);
+    } 
+    catch (err) {
+        console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -121,7 +127,8 @@ router.post('/donate/:id', async (req, res) => {
         const user = await User.findById(userId).select('coins');
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const coinAmount = Math.floor(donationAmount * 0.55);
+        const coinAmount = Math.floor(donationDetails[1] * 0.55);
+        
         const existingCoin = user.coins.find(coin => coin.coinName === campaign.coin[0]);
 
         if (existingCoin) {
@@ -136,37 +143,8 @@ router.post('/donate/:id', async (req, res) => {
         }
 
         await user.save();
-
-        res.json({ message: 'Donation processed successfully' });
-    } catch (error) {
-        console.error('Error processing donation:', error);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-//rota para atualizar as informacoes da campanha
-router.put('/update-campaign/:id', async (req, res) => {
-    const { id } = req.params;
-    const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
-
-    try {
-        const campaign = await Campaign.findById(id);
-        if (!campaign) return res.status(404).json({ message: "Campaign not found" });
-
-        campaign.title = title;
-        campaign.description = description;
-        campaign.goal = goal;
-        campaign.timeToCompleteGoal = timeToCompleteGoal;
-        campaign.contact = contact;
-        campaign.nameBankAccount = nameBankAccount;
-        campaign.bankAccount = bankAccount;
-        campaign.category = category;
-        campaign.image = image;
-        campaign.shopItems = shopItems;
-        campaign.coin = coin;
-
-        await campaign.save();
-
+        
+        res.json(campaign);
     } catch (error) {
         console.error('Error updating campaign:', error);
         res.status(500).json({ message: "Server error" });

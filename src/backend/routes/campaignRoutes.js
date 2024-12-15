@@ -22,7 +22,7 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Time to complete goal must be a positive number' });
         }
 
-        const userId = req.body.creator; 
+        const userId = req.body.creator;
 
         if (!userId) {
             return res.status(400).json({ error: 'Creator ID is required' });
@@ -43,23 +43,17 @@ router.post('/create-campaign', async (req, res) => {
             shopItems,
             creator: userId,
             coin,
-            challengeId,
         });
 
         await newCampaign.save();
 
-        if (challengeId) {
-            const challengeToUpdate = user.challenges.find(
-                (challenge) => challenge._id.toString() === challengeId
-            );
-
-            if (challengeToUpdate) {
-                // Atualiza o progresso e marca o desafio como completo
-                challengeToUpdate.progress = 100;
-                challengeToUpdate.completed = true;
-                await user.save();
-            }
-        }
+        user.challenges.push({
+            name: 'Criar uma campanha',
+            description: `Desafio de criar a campanha "${title}"`,
+            progress: 100,
+            completed: true,
+            associatedCampaign: newCampaign._id,
+        });
 
         console.log('Campaign registered successfully:', newCampaign);
         res.status(201).json(newCampaign);
@@ -69,7 +63,6 @@ router.post('/create-campaign', async (req, res) => {
         res.status(500).json({ error: 'Failed to create campaign: ' + err.message });
     }
 });
-
 
 router.get('/all-campaigns', async (req, res) => {
     try {
@@ -82,7 +75,7 @@ router.get('/all-campaigns', async (req, res) => {
             .select('title description goal currentAmount category creator');
 
         res.json(campaigns);
-    } 
+    }
     catch (err) {
         console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });
@@ -128,7 +121,7 @@ router.post('/donate/:id', async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const coinAmount = Math.floor(donationDetails[1] * 0.55);
-        
+
         const existingCoin = user.coins.find(coin => coin.coinName === campaign.coin[0]);
 
         if (existingCoin) {
@@ -143,7 +136,7 @@ router.post('/donate/:id', async (req, res) => {
         }
 
         await user.save();
-        
+
         res.json(campaign);
     } catch (error) {
         console.error('Error updating campaign:', error);

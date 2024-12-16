@@ -106,6 +106,7 @@ const styles = {
         marginLeft: '15%',
         paddingLeft: '2vh',
         font: 'Inter',
+        marginBottom: '3vh',
     },
     line: {
         borderBottom: '0.2vh solid #D0D0D0',
@@ -136,7 +137,7 @@ const styles = {
         display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'flex-start',
-        gap: '8vh',
+        gap: '2.7vh',
     },
     searchIcon: {
         width: '2.2vh',

@@ -66,16 +66,11 @@ router.post('/create-campaign', async (req, res) => {
 
 router.get('/all-campaigns', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-
         const campaigns = await Campaign.find()
-            .skip((page - 1) * limit)
-            .limit(limit)
             .select('title description goal currentAmount category creator');
 
         res.json(campaigns);
-    }
+    } 
     catch (err) {
         console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });

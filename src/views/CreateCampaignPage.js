@@ -8,7 +8,6 @@ function CreateCampaignPage() {
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
     const [formData, setFormData] = useState({
-        id: '',
         title: '',
         description: '',
         goal: '',
@@ -17,19 +16,16 @@ function CreateCampaignPage() {
         nameBankAccount: '',
         bankAccount: '',
         category: '',
-        currentAmount: 0,
-        image: '', 
-        donators: [],
-        shopItems: [], 
-        coin: ['', ''], 
+        image: '',
+        shopItems: [],
+        coin: { name: '', image: '' },
     });
-    
+
     const [newShopItem, setNewShopItem] = useState({
         itemName: "",
         itemPrice: "",
         itemImage: "",
     });
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -40,39 +36,28 @@ function CreateCampaignPage() {
         });
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         // Validar os campos obrigatórios
         if (!formData.image) {
             alert('Please upload a campaign image.');
             return;
         }
-        if (!formData.coin[0] || !formData.coin[1]) {
-            alert('Please provide both a coin name and image.');
+        if (!formData.coin.name || !formData.coin.image) {
+            alert('Please provide both a coin name and coin image.');
             return;
         }
-        if (formData.shopItems.some(item => !item[0] || !item[1] || !item[2])) {
+        if (formData.shopItems.some(item => !item.itemName || !item.itemPrice || !item.itemImage)) {
             alert('All shop items must have a name, price, and image.');
             return;
         }
-    
-        // Prepara os dados finais
+
         const finalData = {
             ...formData,
-            coin: {
-                name: formData.coin[0],
-                image: formData.coin[1],
-            },
-            shopItems: formData.shopItems.map(([itemName, itemPrice, itemImage]) => ({
-                itemName,
-                itemPrice,
-                itemImage,
-            })),
             creator: localStorage.getItem('userId'),
         };
-    
+
         try {
             const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
                 method: 'POST',
@@ -82,14 +67,13 @@ function CreateCampaignPage() {
                 },
                 body: JSON.stringify(finalData),
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error("Error creating campaign:", errorData);
                 alert(errorData.error || "Failed to create campaign");
                 return;
             }
-    
+
             alert('Campaign created successfully!');
             setParte1(false);
             setParte2(false);
@@ -100,72 +84,50 @@ function CreateCampaignPage() {
             alert('Unexpected error creating campaign.');
         }
     };
-    
-    
 
     const handleInputChangeStore = (e) => {
         const { name, value } = e.target;
-
-        const numericFields = ['itemPrice'];
         setNewShopItem({
             ...newShopItem,
-            [name]: numericFields.includes(name) ? Number(value) : value,
+            [name]: name === 'itemPrice' ? Number(value) : value,
         });
-
     };
 
     const handleAddShopItems = () => {
-        if (newShopItem.itemName && newShopItem.itemPrice) {
+        if (newShopItem.itemName && newShopItem.itemPrice && newShopItem.itemImage) {
             setFormData({
                 ...formData,
                 shopItems: [
-                    ...formData.shopItems, 
-                    [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage || ''],
+                    ...formData.shopItems,
+                    { ...newShopItem },
                 ],
             });
+        } else {
+            alert('Please provide name, price and image for the item.');
         }
-        setNewShopItem({
-            itemName: "",
-            itemPrice: "",
-            itemImage: "",
-        });
+        setNewShopItem({ itemName: "", itemPrice: "", itemImage: "" });
     };
-
 
     const handleFileChange = (e, type) => {
-    const file = e.target.files[0];
-    if (!file) return; // Verifica se o arquivo foi selecionado
+        const file = e.target.files[0];
+        if (!file) return;
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-        const base64Image = reader.result;
-        if (type === 'campaign') {
-            setFormData({ ...formData, image: base64Image }); // Salva a imagem da campanha
-        } else if (type === 'coin') {
-            const updatedCoin = [...formData.coin];
-            updatedCoin[1] = base64Image; // Salva a imagem da moeda
-            setFormData({ ...formData, coin: updatedCoin });
-        } else if (type === 'item') {
-            setNewShopItem({ ...newShopItem, itemImage: base64Image }); // Salva a imagem do item
-        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            const base64Image = reader.result;
+            if (type === 'campaign') {
+                setFormData({ ...formData, image: base64Image });
+            } else if (type === 'coin') {
+                setFormData({
+                    ...formData,
+                    coin: { ...formData.coin, image: base64Image }
+                });
+            } else if (type === 'item') {
+                setNewShopItem({ ...newShopItem, itemImage: base64Image });
+            }
+        };
     };
-};
-
-    
-    
-
-
-    // Converter ficheiro para Base64
-    const convertFileToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    };
-    
 
     return (
         <>
@@ -177,277 +139,276 @@ function CreateCampaignPage() {
                 <span style={styles.inspiringAction}> Inspiring <b>Action!</b></span>
             </div>
             <div style={styles.mainContent}>
-                <>
-                    <div style={styles.form}>
-                        <form onSubmit={handleSubmit}>
-                            { parte1 && (
+                <div style={styles.form}>
+                    <form onSubmit={handleSubmit}>
+                        {parte1 && (
                             <>
-                            <h1>About the Cause</h1>
-                            {/* Title and Category */}
-                            <div style={styles.rowContainer}>
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Title:</label>
-                                    <input
-                                        type="text"
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleInputChange}
-                                        style={styles.input}
-                                        required
-                                    />
-                                </div>
-                                
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Category:</label>
-                                    <select
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleInputChange}
-                                        style={styles.inputDropdown}
-                                        required
-                                    >
-                                        <option value="">Select a category</option>
-                                        <option value="Health"> Health </option>
-                                        <option value="Animals"> Animals </option>
-                                        <option value="Environment"> Environment </option>
-                                        <option value="Education"> Education </option>
-                                        <option value="Children"> Children </option>
-                                        <option value="Human Rights"> Human Rights </option>
-                                        <option value="Food Security"> Food Security </option>
-                                        <option value="Social Justice"> Social Justice </option>
-                                        <option value="Natural Disasters"> Natural Disasters </option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div style={styles.inputContainer}>
-                                <label style={styles.label}>Talk about your cause:</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                    style={styles.textArea}
-                                    required
-                                />
-                            </div>
-                            
-                            {/* Category and Goal */}
-                            <div style={styles.rowContainer}>
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Goal (€):</label>
-                                    <input
-                                        type="number"
-                                        name="goal"
-                                        value={formData.goal}
-                                        onChange={handleInputChange}
-                                        style={styles.input}
-                                        required
-                                    />
-                                </div>
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Time to Complete (days):</label>
-                                    <input
-                                        type="number"
-                                        name="timeToCompleteGoal"
-                                        value={formData.timeToCompleteGoal}
-                                        onChange={handleInputChange}
-                                        style={styles.input}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-
-                            {/* Contact */}
-                            <div style={styles.inputContainer}>
-                                <label style={styles.label}>Contact:</label>
-                                <input
-                                    type="text"
-                                    name="contact"
-                                    value={formData.contact}
-                                    onChange={handleInputChange}
-                                    style={styles.input}
-                                    required
-                                />
-                            </div>
-
-                            <h1>Bank Details</h1>
-                            {/* Bank Account */}
-                            <div style={styles.rowContainer}>
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Name:</label>
-                                    <input
-                                        type="text"
-                                        name="nameBankAccount"
-                                        value={formData.nameBankAccount}
-                                        onChange={handleInputChange}
-                                        style={styles.input}
-                                        required
-                                    />
-                                </div>
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>IBAN:</label>
-                                    <input
-                                        type="number"
-                                        name="bankAccount"
-                                        value={formData.bankAccount}
-                                        onChange={handleInputChange}
-                                        style={styles.input}
-                                        required
-
-                                    />
-                                </div>
-                            </div>
-
-
-                            <h1>Media</h1>
-                            {/* Campaign Image */}
-                            <div style={styles.rowContainer}>
-                            <div style={styles.inputHalf}>
-                                <label style={styles.label}>Campaign Image:</label>
-                                <div 
-                                    style={styles.inputCoinImage} 
-                                    onClick={() => document.getElementById('campaignFileInput').click()}
-                                >
-                                    {formData.image ? (
-                                        <>
-                                            <img 
-                                                src={formData.image} 
-                                                alt="Campaign Image" 
-                                                style={{
-                                                    maxWidth: '50%',
-                                                    maxHeight: '140px',
-                                                    objectFit: 'cover',
-                                                    borderRadius: '50%',
-                                                }} 
-                                            />
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setFormData({ ...formData, image: '' });
-                                                }} 
-                                                style={styles.removeButton}
-                                            >
-                                                x
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <img 
-                                                src={require('../assets/upload-icon.png')} 
-                                                alt="Upload Icon" 
-                                                style={styles.uploadIcon} 
-                                            />
-                                            <span style={styles.uploadTextPrimary}>Upload Campaign Image</span>
-                                        </>
-                                    )}
-                                </div>
-
-                        <input
-                            type="file"
-                            id="campaignFileInput"
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e, 'campaign')}
-                            style={styles.inputfile}
-                        />
-                            </div>
-
-                                {/* Imagem da Moeda */}
-                                <div style={styles.inputHalf}>
-                                    <label style={styles.label}>Coin Name:</label>
-                                    <input
-                                        type="text"
-                                        name="coinName"
-                                        value={formData.coin[0]} // O nome da moeda está no índice 0 do array
-                                        onChange={(e) => {
-                                            const newCoin = [...formData.coin];
-                                            newCoin[0] = e.target.value; // Atualiza o nome da moeda
-                                            setFormData({ ...formData, coin: newCoin });
-                                        }}
-                                        style={styles.input}
-                                        required
-                                    />
-
-                                    <label style={styles.label}>Coin Image:</label>
-                                    <div 
-                                        style={styles.inputCoinImage} 
-                                        onClick={() => document.getElementById('coinFileInput').click()}
-                                    >
-                                        {formData.coin[1] ? (
-                                            <img 
-                                                src={formData.coin[1]} 
-                                                alt="Coin" 
-                                                style={{ maxWidth: '50%', maxHeight: '140px', objectFit: 'cover', borderRadius: '50%' }} 
-                                            />
-                                        ) : (
-                                            <>
-                                                <img 
-                                                    src={require('../assets/upload-icon.png')} 
-                                                    alt="Upload Icon" 
-                                                    style={styles.uploadIcon} 
-                                                />
-                                                <span style={styles.uploadTextPrimary}>Upload Coin Image</span>
-                                            </>
-                                        )}
-                                        {formData.coin[1] && (
-                                            <button 
-                                                onClick={() => {
-                                                    const newCoin = [...formData.coin];
-                                                    newCoin[1] = '';
-                                                    setFormData({ ...formData, coin: newCoin });
-                                                }} 
-                                                style={styles.removeButton}
-                                            >
-                                                x
-                                            </button>
-                                        )}
+                                <h1>About the Cause</h1>
+                                {/* Title and Category */}
+                                <div style={styles.rowContainer}>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Title:</label>
+                                        <input
+                                            type="text"
+                                            name="title"
+                                            value={formData.title}
+                                            onChange={handleInputChange}
+                                            style={styles.input}
+                                            required
+                                        />
                                     </div>
-                                    <input
-                                        type="file"
-                                        id="coinFileInput"
-                                        accept="image/*"
-                                        onChange={(e) => handleFileChange(e, 'coin')}
-                                        style={styles.inputfile}
+
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Category:</label>
+                                        <select
+                                            name="category"
+                                            value={formData.category}
+                                            onChange={handleInputChange}
+                                            style={styles.inputDropdown}
+                                            required
+                                        >
+                                            <option value="">Select a category</option>
+                                            <option value="Health"> Health </option>
+                                            <option value="Animals"> Animals </option>
+                                            <option value="Environment"> Environment </option>
+                                            <option value="Education"> Education </option>
+                                            <option value="Children"> Children </option>
+                                            <option value="Human Rights"> Human Rights </option>
+                                            <option value="Food Security"> Food Security </option>
+                                            <option value="Social Justice"> Social Justice </option>
+                                            <option value="Natural Disasters"> Natural Disasters </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <div style={styles.inputContainer}>
+                                    <label style={styles.label}>Talk about your cause:</label>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleInputChange}
+                                        style={styles.textArea}
+                                        required
                                     />
                                 </div>
 
-                            </div>
+                                {/* Goal and Time */}
+                                <div style={styles.rowContainer}>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Goal (€):</label>
+                                        <input
+                                            type="number"
+                                            name="goal"
+                                            value={formData.goal}
+                                            onChange={handleInputChange}
+                                            style={styles.input}
+                                            required
+                                        />
+                                    </div>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Time to Complete (days):</label>
+                                        <input
+                                            type="number"
+                                            name="timeToCompleteGoal"
+                                            value={formData.timeToCompleteGoal}
+                                            onChange={handleInputChange}
+                                            style={styles.input}
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                            <button
-                                type="button" // Alterado de "submit" para "button"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Previne o envio do formulário
-                                    if (!formData.title || !formData.description || !formData.goal || !formData.timeToCompleteGoal || !formData.contact || !formData.nameBankAccount || !formData.bankAccount || !formData.category) {
-                                        alert('Please fill in all required fields.');
-                                        return;
-                                    }
-                                    if (formData.goal <= 0) {
-                                        alert('Goal must be a positive number.');
-                                        return;
-                                    }
-                                    if (formData.timeToCompleteGoal <= 0) {
-                                        alert('Time to complete goal must be a positive number.');
-                                        return;
-                                    }
-                                    if (!formData.coin[0] || !formData.coin[1]) {
-                                        alert('Please provide both a name and an image for the campaign coin.');
-                                        return;
-                                    }
 
-                                    // Passa para a próxima parte do formulário
-                                    setParte1(false);
-                                    setParte2(true);
-                                    window.scrollTo(0, 0);
-                                }}
-                                style={styles.submitButton}
-                            >
-                                Next
-                            </button>
+                                {/* Contact */}
+                                <div style={styles.inputContainer}>
+                                    <label style={styles.label}>Contact:</label>
+                                    <input
+                                        type="text"
+                                        name="contact"
+                                        value={formData.contact}
+                                        onChange={handleInputChange}
+                                        style={styles.input}
+                                        required
+                                    />
+                                </div>
 
-                            </>   
-                            )}
-                            {parte2 && (
+                                <h1>Bank Details</h1>
+                                {/* Bank Account */}
+                                <div style={styles.rowContainer}>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Name:</label>
+                                        <input
+                                            type="text"
+                                            name="nameBankAccount"
+                                            value={formData.nameBankAccount}
+                                            onChange={handleInputChange}
+                                            style={styles.input}
+                                            required
+                                        />
+                                    </div>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>IBAN:</label>
+                                        <input
+                                            type="number"
+                                            name="bankAccount"
+                                            value={formData.bankAccount}
+                                            onChange={handleInputChange}
+                                            style={styles.input}
+                                            required
+
+                                        />
+                                    </div>
+                                </div>
+
+
+                                <h1>Media</h1>
+                                {/* Campaign Image */}
+                                <div style={styles.rowContainer}>
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Campaign Image:</label>
+                                        <div
+                                            style={styles.inputCoinImage}
+                                            onClick={() => document.getElementById('campaignFileInput').click()}
+                                        >
+                                            {formData.image ? (
+                                                <>
+                                                    <img
+                                                        src={formData.image}
+                                                        alt="Campaign Image"
+                                                        style={{
+                                                            maxWidth: '50%',
+                                                            maxHeight: '140px',
+                                                            objectFit: 'cover',
+                                                            borderRadius: '50%',
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFormData({ ...formData, image: '' });
+                                                        }}
+                                                        style={styles.removeButton}
+                                                    >
+                                                        x
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={require('../assets/upload-icon.png')}
+                                                        alt="Upload Icon"
+                                                        style={styles.uploadIcon}
+                                                    />
+                                                    <span style={styles.uploadTextPrimary}>Upload Campaign Image</span>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <input
+                                            type="file"
+                                            id="campaignFileInput"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, 'campaign')}
+                                            style={styles.inputfile}
+                                        />
+                                    </div>
+
+                                    {/* Coin */}
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Coin Name:</label>
+                                        <input
+                                            type="text"
+                                            name="coinName"
+                                            value={formData.coin.name}
+                                            onChange={(e) => {
+                                                setFormData({
+                                                    ...formData,
+                                                    coin: { ...formData.coin, name: e.target.value }
+                                                });
+                                            }}
+                                            style={styles.input}
+                                            required
+                                        />
+
+                                        <label style={styles.label}>Coin Image:</label>
+                                        <div
+                                            style={styles.inputCoinImage}
+                                            onClick={() => document.getElementById('coinFileInput').click()}
+                                        >
+                                            {formData.coin.image ? (
+                                                <>
+                                                    <img
+                                                        src={formData.coin.image}
+                                                        alt="Coin"
+                                                        style={{ maxWidth: '50%', maxHeight: '140px', objectFit: 'cover', borderRadius: '50%' }}
+                                                    />
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFormData({ ...formData, coin: { ...formData.coin, image: '' } });
+                                                        }}
+                                                        style={styles.removeButton}
+                                                    >
+                                                        x
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={require('../assets/upload-icon.png')}
+                                                        alt="Upload Icon"
+                                                        style={styles.uploadIcon}
+                                                    />
+                                                    <span style={styles.uploadTextPrimary}>Upload Coin Image</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            id="coinFileInput"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, 'coin')}
+                                            style={styles.inputfile}
+                                        />
+                                    </div>
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (!formData.title || !formData.description || !formData.goal || !formData.timeToCompleteGoal || !formData.contact || !formData.nameBankAccount || !formData.bankAccount || !formData.category) {
+                                            alert('Please fill in all required fields.');
+                                            return;
+                                        }
+                                        if (formData.goal <= 0) {
+                                            alert('Goal must be a positive number.');
+                                            return;
+                                        }
+                                        if (formData.timeToCompleteGoal <= 0) {
+                                            alert('Time to complete goal must be a positive number.');
+                                            return;
+                                        }
+                                        if (!formData.coin.name || !formData.coin.image) {
+                                            alert('Please provide both a name and an image for the campaign coin.');
+                                            return;
+                                        }
+
+                                        // Passa para a próxima parte do formulário
+                                        setParte1(false);
+                                        setParte2(true);
+                                        window.scrollTo(0, 0);
+                                    }}
+                                    style={styles.submitButton}
+                                >
+                                    Next
+                                </button>
+
+                            </>
+                        )}
+                        {parte2 && (
                             <>
                                 <h1>Campaign Store</h1>
 
@@ -494,7 +455,7 @@ function CreateCampaignPage() {
                                 <div style={styles.inputContainer}>
                                     <label style={styles.label}>Item Image:</label>
                                     <div
-                                        style={styles.inputCoinImage} // Usar estilos consistentes com Coin e Campaign Image
+                                        style={styles.inputCoinImage}
                                         onClick={() => document.getElementById('itemFileInput').click()}
                                     >
                                         {newShopItem.itemImage ? (
@@ -506,12 +467,12 @@ function CreateCampaignPage() {
                                                         maxWidth: '50%',
                                                         maxHeight: '140px',
                                                         objectFit: 'cover',
-                                                        borderRadius: '50%', // Consistência com Coin Image
+                                                        borderRadius: '50%',
                                                     }}
                                                 />
                                                 <button
                                                     onClick={(e) => {
-                                                        e.stopPropagation(); // Previne clique no container
+                                                        e.stopPropagation();
                                                         setNewShopItem({ ...newShopItem, itemImage: '' });
                                                     }}
                                                     style={styles.removeButton}
@@ -545,7 +506,7 @@ function CreateCampaignPage() {
                                         <p>No items added to the store yet.</p>
                                     ) : (
                                         <ul>
-                                            {formData.shopItems.map(([itemName, itemPrice, itemImage], index) => (
+                                            {formData.shopItems.map((item, index) => (
                                                 <li
                                                     key={index}
                                                     style={{
@@ -557,14 +518,14 @@ function CreateCampaignPage() {
                                                     }}
                                                 >
                                                     <span style={{ marginLeft: '1vh', fontSize: '3vh', textAlign: 'center' }}>
-                                                        {itemName}
+                                                        {item.itemName}
                                                     </span>
                                                     <span style={{ marginLeft: '1vh', fontSize: '3vh' }}>
-                                                        {itemPrice}€
+                                                        {item.itemPrice}€
                                                     </span>
-                                                    {itemImage && (
+                                                    {item.itemImage && (
                                                         <img
-                                                            src={itemImage}
+                                                            src={item.itemImage}
                                                             alt="Item"
                                                             style={{
                                                                 width: '50px',
@@ -599,22 +560,20 @@ function CreateCampaignPage() {
                             </>
                         )}
 
-                        </form>  
+                    </form>
 
-                        
-                        { parte3 && (
-                            <>
-                                <h1> Campaign Created Successfully! </h1>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20}}> Your campaign has been successfully created! To make any edits, click on your profile, find your campaigns and click "Edit". </p>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> If you have any questions, feel free to contact us. </p>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> Best regards, </p>
-                                <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}>The Worth+ Team </p>
+                    {parte3 && (
+                        <>
+                            <h1> Campaign Created Successfully! </h1>
+                            <p style={{ fontSize: 24, font: 'Inter', width: '60%', paddingTop: 20 }}> Your campaign has been successfully created! To make any edits, click on your profile, find your campaigns and click "Edit". </p>
+                            <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> If you have any questions, feel free to contact us. </p>
+                            <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}> Best regards, </p>
+                            <p style={{ fontSize: 24, font: 'Inter', width: '60%' }}>The Worth+ Team </p>
 
-                                <a href="/campaign" style={{ fontSize: 24, font: 'Inter', color: '#26A300', marginTop: 20 }}> Go back to campaigns </a>
-                            </>
-                        )}
-                    </div>
-                </>
+                            <a href="/campaign" style={{ fontSize: 24, font: 'Inter', color: '#26A300', marginTop: 20 }}> Go back to campaigns </a>
+                        </>
+                    )}
+                </div>
             </div>
         </>
     )
@@ -712,25 +671,6 @@ const styles = {
         backgroundColor: '#EFEFEF',
         outline: 'none',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
-    },
-    inputImage: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        height: 250,
-        marginTop: 10,
-        paddingTop: '50px',
-        paddingBottom: '50px',
-        fontSize: '2vh',
-        borderRadius: '1vh',
-        border: 'none',
-        backgroundColor: '#EFEFEF',
-        outline: 'none',
-        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
-        marginBottom: 20,
-        overflow: 'hidden', // Impede que a imagem saia do container
     },
     inputCoinImage: {
         display: 'flex',
@@ -868,11 +808,11 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
     },
-    plusIcon: { 
+    plusIcon: {
         width: 28,
         height: 28,
-        
+
     },
-}
+};
 
 export default CreateCampaignPage;

@@ -5,15 +5,18 @@ import CampaignBox from '../components/CampaignBox';
 import axios from 'axios';
 import defaultAvatar from '../assets/default-avatar.png';
 
+const fields = ['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN', 'paymentMethod'];
+
 function ProfilePage() {
     const [userData, setUserData] = useState(null);
     const [editingField, setEditingField] = useState(null);
     const [updatedData, setUpdatedData] = useState({});
     const [coins, setCoins] = useState([]);
     const [isVerified, setIsVerified] = useState(false);
-    const [myCampaigns, setMyCampaigns] = useState([]);
+    const [myCampaigns, setMyCampaigns] = useState([])
     const [donatedCampaigns, setDonatedCampaigns] = useState([]);
     const userId = localStorage.getItem('userId');
+    
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -32,18 +35,33 @@ function ProfilePage() {
         
 
         const fetchCampaigns = async () => {
-            const userId = localStorage.getItem('userId');
-            const campaignsResponse = await axios.get('http://localhost:5000/api/campaign/all-campaigns');
-
-            const userCampaigns = campaignsResponse.data.filter(campaign => campaign.creator === userId);
-            setMyCampaigns(userCampaigns);
-
-            const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
-                campaign?.donators?.some(donator => donator?.userId === userId)
-            );
+            const userId = localStorage.getItem('userId'); // Obtém o ID do utilizador do localStorage
             
-            setDonatedCampaigns(userDonatedCampaigns);
+            try {
+                const campaignsResponse = await axios.get('http://localhost:5000/api/campaign/all-campaigns');
+        
+                // Filtra campanhas criadas pelo utilizador
+                const userCampaigns = campaignsResponse.data.filter(campaign => 
+                    campaign.creator && campaign.creator._id.toString() === userId
+                );
+                setMyCampaigns(userCampaigns);
+        
+                // Filtra campanhas doadas pelo utilizador (verifica se donators existe)
+                // Filtra campanhas doadas pelo utilizador (verifica se donators existe)
+                const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
+                    Array.isArray(campaign.donators) && 
+                    campaign.donators.some(donator => donator.userId?.toString() === userId)
+                );
+
+                setDonatedCampaigns(userDonatedCampaigns);
+        
+            } catch (error) {
+                console.error('Error fetching campaigns:', error);
+            }
         };
+        
+        
+        
 
         fetchUserData();
         fetchCampaigns();
@@ -59,13 +77,20 @@ function ProfilePage() {
 
     const handleSave = async () => {
         try {
-            const response = await axios.put(`http://localhost:5000/api/auth/${userId}`, updatedData);
-            setUserData({ ...userData, ...response.data });
-            setEditingField(null);
+            const response = await axios.put(
+                `http://localhost:5000/api/auth/${userId}`, 
+                updatedData
+            );
+            if (response.status === 200) {
+                setUserData({ ...userData, ...updatedData });
+                setEditingField(null);
+            }
         } catch (error) {
             console.error('Error updating user data:', error);
         }
     };
+    
+    
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
@@ -207,15 +232,14 @@ function ProfilePage() {
                                         <div style={styles.inputContainer}>
                                             {editingField === field ? (
                                                 <input
-                                                    type="text"
-                                                    value={updatedData[field]}
-                                                    onChange={(e) =>
-                                                        setUpdatedData({ ...updatedData, [field]: e.target.value })
-                                                    }
-                                                    onBlur={handleSave}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                                                    style={styles.input}
-                                                />
+                                                type="text"
+                                                value={updatedData[field]}
+                                                onChange={(e) => setUpdatedData({ ...updatedData, [field]: e.target.value })}
+                                                onBlur={() => handleSave()} // Salva as alterações ao perder o foco
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSave()} // Salva ao pressionar "Enter"
+                                                style={styles.input}
+                                            />
+                                            
                                             ) : (
                                                 <span style={styles.fieldValue}>
                                                     {userData[field] !== undefined && userData[field] !== ''
@@ -253,9 +277,13 @@ function ProfilePage() {
                                                 title={campaign.title}
                                                 description={campaign.description}
                                                 goal={campaign.goal}
-                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
                                                 currentAmount={campaign.currentAmount}
-                                                nameBankAccount={campaign.nameBankAccount}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                nameBankAccount={campaign.creator ? `${campaign.creator.firstName} ${campaign.creator.lastName}` : campaign.nameBankAccount}
+                                                image={campaign.image}
+                                                creatorPicture={campaign.creator?.profilePicture}
+                                                creatorFirstName={campaign.creator?.firstName}
+                                                creatorLastName={campaign.creator?.lastName}
                                                 onClick={() => window.location.href = `/campaign/${campaign._id}`}
                                             />
                                         </div>
@@ -286,9 +314,13 @@ function ProfilePage() {
                                                 title={campaign.title}
                                                 description={campaign.description}
                                                 goal={campaign.goal}
-                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
                                                 currentAmount={campaign.currentAmount}
-                                                nameBankAccount={campaign.nameBankAccount}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                nameBankAccount={campaign.creator ? `${campaign.creator.firstName} ${campaign.creator.lastName}` : campaign.nameBankAccount}
+                                                image={campaign.image}
+                                                creatorPicture={campaign.creator?.profilePicture}
+                                                creatorFirstName={campaign.creator?.firstName}
+                                                creatorLastName={campaign.creator?.lastName}
                                                 onClick={() => window.location.href = `/campaign/${campaign._id}`}
                                             />
                                         </div>

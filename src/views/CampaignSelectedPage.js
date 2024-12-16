@@ -12,7 +12,7 @@ function CampaignSelectedPage() {
     const [campaign, setCampaign] = useState({
         shopItems: [], 
         donators: [],
-        coin: [] // Adiciona isso para evitar problemas de undefined
+        coin: { name: '', image: '' }
     });
     
     const [userData, setUserData] = useState({});
@@ -50,7 +50,7 @@ function CampaignSelectedPage() {
                 const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`);
                 if (response.ok) {
                     const data = await response.json();
-                    setCampaign(data ?? { shopItems: [], donators: [] }); // Defina valores padrão se a resposta for null
+                    setCampaign(data ?? { shopItems: [], donators: [], coin: { name: '', image: '' } });
                 }
             } catch (err) {
                 console.log('Erro de conexão ao servidor:', err);
@@ -79,7 +79,7 @@ function CampaignSelectedPage() {
             return;
         }
     
-        if (userData.paymentMethod === null || userData.paymentMethod === "") {
+        if (!userData.paymentMethod || userData.paymentMethod.trim() === "") {
             alert("Please, add a payment method on your profile to donate.");
             return;
         }
@@ -104,11 +104,15 @@ function CampaignSelectedPage() {
     
             if (response.ok) {
                 const updatedCampaign = await response.json();
-                if (updatedCampaign && updatedCampaign.donators) {
-                    setCampaign(updatedCampaign);
-                } else {
-                    console.error("Dados inválidos recebidos:", updatedCampaign);
+                setCampaign(updatedCampaign ?? { shopItems: [], donators: [], coin: { name: '', image: '' } });
+    
+                const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (userResponse.status === 200) {
+                    const data = userResponse.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
                 }
+    
                 setDonationCompleted(true);
                 setTimeout(() => setDonationCompleted(false), 500);
                 setOpen(false);
@@ -121,12 +125,11 @@ function CampaignSelectedPage() {
         }
     };
     
-
     const handleBuyItem = async (item) => {
-        const itemPrice = item?.[1] ?? 0; // Usa ?? para garantir que itemPrice não é undefined
-        const itemName = item?.[0] ?? ''; 
-        const coinName = Array.isArray(campaign.coin) ? campaign.coin[0] : ''; 
-
+        // Agora item é um objeto { itemName, itemPrice, itemImage }
+        const itemPrice = item?.itemPrice ?? 0; 
+        const itemName = item?.itemName ?? ''; 
+        const coinName = campaign?.coin?.name || '';
     
         if (!Array.isArray(coins)) {
             alert("Coin list is not loaded yet.");
@@ -152,8 +155,14 @@ function CampaignSelectedPage() {
         });
     
         if (response.status === 200) {
-            const updatedCoins = response.data.coins || [];
-            setCoins(updatedCoins);
+            try {
+                const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (userResponse.status === 200) {
+                    setCoins(userResponse.data.coins || []);
+                }
+            } catch (error) {
+                console.error('Error fetching updated user data:', error);
+            }
             setConfirmBuy(true);  
         } else {
             alert("Failed to update your coins. Please try again.");
@@ -207,7 +216,7 @@ function CampaignSelectedPage() {
                     <span style={styles.title}>{campaign.title}</span>
                     <div style={styles.imageAndDonate}>
                         <img
-                            src={require('../assets/image.png')}
+                            src={campaign.image ? campaign.image : require('../assets/image.png')}
                             alt="Imagem da campanha"
                             style={styles.image}
                         />
@@ -283,10 +292,11 @@ function CampaignSelectedPage() {
                                         <input
                                             type="text"
                                             name="paymentMethod"
-                                            value={userData.paymentMethod}
+                                            value={userData.paymentMethod || ''}
                                             style={styles.input}
                                             disabled
                                         />
+
 
                                         <button
                                             type="button"
@@ -322,15 +332,23 @@ function CampaignSelectedPage() {
                             <div style={styles.line}></div>
 
                             <div style={styles.personInfo}>
-                                <img
-                                    src={require('../assets/image.png')}
-                                    alt="Imagem da campanha"
-                                    style={styles.personImage}
-                                />
-                                <div style={styles.namePerson}>
-                                    <span> Created by: </span>
-                                    <span> {campaign.nameBankAccount} </span>
-                                </div>
+                            <img
+                                src={campaign.creator && campaign.creator.profilePicture 
+                                    ? `data:image/jpeg;base64,${campaign.creator.profilePicture}`
+                                    : require('../assets/image.png')}
+                                alt="Creator Image"
+                                style={styles.personImage}
+                            />
+
+                            <div style={styles.namePerson}>
+                                <span> Created by: </span>
+                                <span>
+                                {campaign.creator 
+                                    ? `${campaign.creator.firstName} ${campaign.creator.lastName}` 
+                                    : campaign.nameBankAccount}
+                                </span>
+                            </div>
+
                             </div>
 
                             <div style={styles.description}>
@@ -352,21 +370,19 @@ function CampaignSelectedPage() {
                             <div style={styles.donatorsFlex}>
                             {campaign.donators && campaign.donators.length > 0 ? (
                                 campaign.donators.map((donater, index) => (
-                                    <>
-                                        <div key={index} style={styles.donators}>
-                                            <div style={styles.nameAndComment}>
-                                                <span style={styles.donaterName}>
-                                                    {donater?.donationDetails?.[0] || 'Anonymous'}
-                                                </span>
-                                                <span style={styles.donaterComment}>
-                                                    {donater?.donationDetails?.[2] || ''}
-                                                </span>
-                                            </div>
-                                            <div style={styles.ammountDonated}>
-                                                <span> € {donater?.donationDetails?.[1] || '0'} </span>
-                                            </div>
+                                    <div key={index} style={styles.donators}>
+                                        <div style={styles.nameAndComment}>
+                                            <span style={styles.donaterName}>
+                                                {donater?.donationDetails?.[0] || 'Anonymous'}
+                                            </span>
+                                            <span style={styles.donaterComment}>
+                                                {donater?.donationDetails?.[2] || ''}
+                                            </span>
                                         </div>
-                                    </>
+                                        <div style={styles.ammountDonated}>
+                                            <span> € {donater?.donationDetails?.[1] || '0'} </span>
+                                        </div>
+                                    </div>
                                 ))
                             ) : (
                                 <div style={styles.donatorsFlex}>
@@ -388,14 +404,14 @@ function CampaignSelectedPage() {
                         <span style={styles.coinsText}>
                             <b>You have: </b> 
                             {Array.isArray(coins) && coins.length > 0 
-                                ? coins.find((coin) => coin.coinName === campaign.coin?.[0])?.amount || 0 
+                                ? coins.find((coin) => coin.coinName === campaign?.coin?.name)?.amount || 0 
                                 : 0}
                         </span>
-                        {coins.length > 0 && (
+                        {coins.length > 0 && campaign.coin && campaign.coin.name && (
                             <div style={styles.coinCircle}>
                                 <img
-                                    src={coins.find((coin) => coin.coinName === campaign.coin[0])?.coinImage}
-                                    alt={coins.find((coin) => coin.coinName === campaign.coin[0])?.coinName}
+                                    src={coins.find((coin) => coin.coinName === campaign?.coin?.name)?.coinImage}
+                                    alt={coins.find((coin) => coin.coinName === campaign?.coin?.name)?.coinName}
                                     style={styles.coinImage}
                                 />
                             </div>
@@ -404,7 +420,7 @@ function CampaignSelectedPage() {
                     <div style={styles.shopContainer}>
                         {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
                             campaign.shopItems.map((item, index) => {
-                                const matchingCoin = coins.find((coin) => coin.coinName === campaign.coin[0]);
+                                const matchingCoin = coins.find((coin) => coin.coinName === campaign?.coin?.name);
                                 return (
                                     <div key={index} style={styles.shopItemBox}>
                                         <img 
@@ -413,9 +429,9 @@ function CampaignSelectedPage() {
                                             style={styles.shopItemImage} 
                                         />
 
-                                        <span style={styles.shopItemName}> {item?.[0] ?? 'Unknown Item'} </span>
+                                        <span style={styles.shopItemName}> {item.itemName || 'Unknown Item'} </span>
                                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
-                                            <span style={styles.shopItemPrice}> {item?.[1] ?? 0} </span>
+                                            <span style={styles.shopItemPrice}> {item.itemPrice ?? 0} </span>
                                             {matchingCoin && (
                                                 <div style={styles.coinCircle}>
                                                     <img
@@ -442,10 +458,10 @@ function CampaignSelectedPage() {
                                 <span> No items available in the store. </span>
                             </div>
                         )}
-
                     </div>
                 </div>
-            </div>            
+            </div>
+           
         </>
     );
 }
@@ -554,18 +570,6 @@ const styles = {
         textAlign: 'center',
         alignContent: 'center',
         cursor: 'pointer',
-    },
-    donateButtonDisabled: {
-        backgroundColor: '#F8B422',
-        width: '100%',
-        height: 82,
-        borderRadius: 20,
-        marginTop: 60,
-        fontSize: 32,
-        font: 'Inter',
-        textAlign: 'center',
-        alignContent: 'center',
-        cursor: 'not-allowed',
     },
     shareCampaign: {
         backgroundColor: '#F8B422',
@@ -691,11 +695,10 @@ const styles = {
         marginLeft: 50,
         paddingLeft: 30,
         paddingRight: 30,
-        paddingTop  : 30,
-        paddingBottom  : 20,
+        paddingTop: 30,
+        paddingBottom: 20,
         marginBottom: 40,
         overflow: 'auto',
-
     },
     donationsTitle: {
         fontSize: 30,
@@ -716,7 +719,6 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width: '80%',
-        
     },
     donaterName: {
         fontSize: 20,

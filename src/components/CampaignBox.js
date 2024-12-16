@@ -1,24 +1,49 @@
 import React from 'react';
 
-function CampaignBox({ id, title, description, goal, timeToCompleteGoal, currentAmount, nameBankAccount, onClick }) {
+function CampaignBox({ 
+    id, 
+    title, 
+    description, 
+    goal, 
+    timeToCompleteGoal, 
+    currentAmount, 
+    nameBankAccount, 
+    image, 
+    creatorPicture, 
+    creatorFirstName, 
+    creatorLastName,
+    onClick 
+}) {
     const progressPercentage = (currentAmount / goal) * 100;
+
+    const creatorImageSrc = creatorPicture 
+        ? `data:image/jpeg;base64,${creatorPicture}` 
+        : require('../assets/image.png');
+
+    const campaignImageSrc = image && image.startsWith('data:image/') 
+        ? image 
+        : (image ? `data:image/jpeg;base64,${image}` : require('../assets/image.png'));
+
+    const creatorName = (creatorFirstName && creatorLastName) 
+        ? `${creatorFirstName} ${creatorLastName}` 
+        : nameBankAccount;
 
     return (
         <div style={style.container} onClick={onClick}>
             <img 
-                src={require('../assets/image.png')} 
-                alt="Logo" 
+                src={campaignImageSrc} 
+                alt="Campaign Image" 
                 style={style.campaignImage} 
             />
             <div style={style.campaignInfo}>
                 <img 
-                    src={require('../assets/image.png')} 
-                    alt="Logo" 
+                    src={creatorImageSrc} 
+                    alt="Creator Image" 
                     style={style.campaignPersonImage} 
                 />
                 <div style={style.campaignPersonInfo}>
                     <span style={style.campaignTitle}>{title}</span>
-                    <span style={style.campaignPerson}>{nameBankAccount}</span>
+                    <span style={style.campaignPerson}>{creatorName}</span>
                 </div>
             </div>
             <div>
@@ -61,6 +86,7 @@ const style = {
         marginTop: 10,
         justifyContent: 'center',
         alignSelf: 'center',
+        objectFit: 'cover',
     },
     campaignInfo: {
         display: 'flex',
@@ -74,6 +100,7 @@ const style = {
         borderRadius: 50,
         marginTop: 10,
         marginRight: 20,
+        objectFit: 'cover',
     },
     campaignPersonInfo: {
         display: 'flex',
@@ -125,6 +152,7 @@ const style = {
         height: 8,
         backgroundColor: '#AAD89B',
         marginTop: 10,
+        borderRadius: 10,
     },
     progress: {
         height: '100%',

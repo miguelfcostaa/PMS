@@ -350,4 +350,31 @@ router.delete('/challenges/:challengeId', async (req, res) => {
     }
 });
 
+// Rota para atualizar as informações do utilizador
+router.put('/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    try {
+        const updatedData = req.body;
+
+        // Atualiza os dados do utilizador
+        const updatedUser = await User.findByIdAndUpdate(userId, updatedData, { new: true, runValidators: true });
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user data:', error);
+        res.status(500).json({ error: 'Error updating user data' });
+    }
+});
+
+
+
 module.exports = router;

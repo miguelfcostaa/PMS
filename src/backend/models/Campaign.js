@@ -10,6 +10,7 @@ const campaignSchema = new mongoose.Schema({
     bankAccount: { type: String, required: true },
     category: { type: String, required: true },
     currentAmount: { type: Number, default: 0 },
+    image: { type: String, default: '' }, // ✅ Adiciona o campo "image" no esquema
     donators: {
         type: [{
             userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -4,13 +4,28 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+// Criar nova campanha
 router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { title, description, goal, timeToCompleteGoal, contact, nameBankAccount, bankAccount, category, image, shopItems, coin } = req.body;
+        const { 
+            title, 
+            description, 
+            goal, 
+            timeToCompleteGoal, 
+            contact, 
+            nameBankAccount, 
+            bankAccount, 
+            category, 
+            image, 
+            shopItems, 
+            coin, 
+            creator 
+        } = req.body;
 
-        if (!title || !description || !goal || !timeToCompleteGoal || !contact || !nameBankAccount || !bankAccount || !category) {
+        // Verifica se todos os campos obrigatórios estão presentes
+        if (!title || !description || goal == null || timeToCompleteGoal == null || !contact || !nameBankAccount || !bankAccount || !category || !creator) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
@@ -22,12 +37,11 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Time to complete goal must be a positive number' });
         }
 
-        const userId = req.body.creator;
-
-        if (!userId) {
-            return res.status(400).json({ error: 'Creator ID is required' });
+        if (!coin || !coin.name || !coin.image) {
+            return res.status(400).json({ error: 'Coin (with name and image) is required' });
         }
 
+        // Criar a campanha
         const newCampaign = new Campaign({
             title,
             description,
@@ -38,55 +52,63 @@ router.post('/create-campaign', async (req, res) => {
             bankAccount,
             category,
             currentAmount: 0,
-            image, 
+            image: typeof image === 'string' ? image : '',
             donators: [],
-            shopItems, 
-            creator: userId, 
+            shopItems: Array.isArray(shopItems) ? shopItems : [],
+            creator,
             coin,
         });
-        
 
         await newCampaign.save();
 
-        user.challenges.push({
-            name: 'Criar uma campanha',
-            description: `Desafio de criar a campanha "${title}"`,
-            progress: 100,
-            completed: true,
-            associatedCampaign: newCampaign._id,
-        });
+        // Tentar atualizar desafios do utilizador
+        const user = await User.findById(creator).select('challenges');
+        if (user) {
+            user.challenges.push({
+                name: 'Criar uma campanha',
+                description: `Desafio de criar a campanha "${title}"`,
+                progress: 100,
+                completed: true,
+                associatedCampaign: newCampaign._id,
+            });
+            await user.save();
+        }
 
         console.log('Campaign registered successfully:', newCampaign);
-        res.status(201).json(newCampaign);
+        return res.status(201).json(newCampaign);
 
     } catch (err) {
-        console.error('Error during registration:', err);
-        res.status(500).json({ error: 'Failed to create campaign: ' + err.message });
+        console.error('Error during campaign creation:', err);
+        return res.status(500).json({ error: 'Failed to create campaign: ' + err.message });
     }
 });
 
+// Obter todas as campanhas com paginação
 router.get('/all-campaigns', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 30;
 
         const campaigns = await Campaign.find()
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .select('title description goal currentAmount category creator timeToCompleteGoal');
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .select('title description goal currentAmount category creator timeToCompleteGoal image donators')
+        .populate('creator', 'firstName lastName profilePicture');
 
         res.json(campaigns);
-    }
-    catch (err) {
+    } catch (err) {
         console.error('Error during fetching campaigns:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
+// Obter detalhes de uma campanha por ID
 router.get('/get-campaign/:id', async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id)
-            .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators');
+            .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators image')
+            .populate('creator', 'firstName lastName profilePicture'); 
+         
 
         if (!campaign) {
             return res.status(404).json({ message: 'Campaign not found!' });
@@ -99,6 +121,8 @@ router.get('/get-campaign/:id', async (req, res) => {
     }
 });
 
+
+// Fazer doação para uma campanha
 router.post('/donate/:id', async (req, res) => {
     const { id } = req.params;
     const { userId, donationDetails } = req.body;
@@ -107,9 +131,15 @@ router.post('/donate/:id', async (req, res) => {
         const campaign = await Campaign.findById(id).select('donators currentAmount coin');
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
+        // Verificar se a campanha tem coin definida
+        if (!campaign.coin || !campaign.coin.name || !campaign.coin.image) {
+            console.error('Campaign coin not defined or malformed.');
+            return res.status(500).json({ message: 'Campaign coin not defined. Please ensure the campaign has a coin field.' });
+        }
+
         const donationAmount = donationDetails[1];
 
-        // Atualização eficiente utilizando $push e $inc
+        // Atualizar a campanha
         await Campaign.updateOne(
             { _id: id },
             {
@@ -121,16 +151,16 @@ router.post('/donate/:id', async (req, res) => {
         const user = await User.findById(userId).select('coins');
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const coinAmount = Math.floor(donationDetails[1] * 0.55);
+        const coinAmount = Math.floor(donationAmount * 0.55);
 
-        const existingCoin = user.coins.find(coin => coin.coinName === campaign.coin[0]);
+        const existingCoin = user.coins.find(c => c.coinName === campaign.coin.name);
 
         if (existingCoin) {
             existingCoin.amount += coinAmount;
         } else {
             user.coins.push({
-                coinName: campaign.coin[0],
-                coinImage: campaign.coin[1],
+                coinName: campaign.coin.name,
+                coinImage: campaign.coin.image,
                 amount: coinAmount,
                 campaignId: campaign._id,
             });
@@ -138,14 +168,18 @@ router.post('/donate/:id', async (req, res) => {
 
         await user.save();
 
-        res.json({ message: 'Donation processed successfully' });
+        // Retornar a campanha atualizada após a doação
+        const updatedCampaign = await Campaign.findById(id)
+            .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators image');
+
+        return res.status(200).json(updatedCampaign);
     } catch (error) {
         console.error('Error processing donation:', error);
-        res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ message: "Server error", error: error.message });
     }
 });
 
-//rota para atualizar as informacoes da campanha
+// Atualizar uma campanha
 router.put('/update-campaign/:id', async (req, res) => {
     const { id } = req.params;
     const { 
@@ -157,8 +191,8 @@ router.put('/update-campaign/:id', async (req, res) => {
         nameBankAccount, 
         bankAccount, 
         category, 
-        image, // Adicionando o campo imagem
-        shopItems, // Adicionando o campo de itens de loja
+        image, 
+        shopItems,
         coin 
     } = req.body;
 
@@ -166,26 +200,25 @@ router.put('/update-campaign/:id', async (req, res) => {
         const campaign = await Campaign.findById(id);
         if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-        campaign.title = title;
-        campaign.description = description;
-        campaign.goal = goal;
-        campaign.timeToCompleteGoal = timeToCompleteGoal;
-        campaign.contact = contact;
-        campaign.nameBankAccount = nameBankAccount;
-        campaign.bankAccount = bankAccount;
-        campaign.category = category;
-        campaign.image = image; // Atualizar a imagem de capa
-        campaign.shopItems = shopItems; // Atualizar a lista de itens da loja
-        campaign.coin = coin;
+        // Atualizar os campos da campanha apenas se definidos
+        if (title !== undefined) campaign.title = title;
+        if (description !== undefined) campaign.description = description;
+        if (goal !== undefined) campaign.goal = goal;
+        if (timeToCompleteGoal !== undefined) campaign.timeToCompleteGoal = timeToCompleteGoal;
+        if (contact !== undefined) campaign.contact = contact;
+        if (nameBankAccount !== undefined) campaign.nameBankAccount = nameBankAccount;
+        if (bankAccount !== undefined) campaign.bankAccount = bankAccount;
+        if (category !== undefined) campaign.category = category;
+        if (image !== undefined) campaign.image = typeof image === 'string' ? image : '';
+        if (shopItems !== undefined) campaign.shopItems = Array.isArray(shopItems) ? shopItems : [];
+        if (coin && coin.name && coin.image) campaign.coin = coin;
 
         await campaign.save();
-        res.status(200).json(campaign);
-        res.json(campaign);
+        return res.status(200).json(campaign);
     } catch (error) {
         console.error('Error updating campaign:', error);
-        res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ message: "Server error" });
     }
 });
-
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar';
 import { useParams } from 'react-router-dom';
 
@@ -19,13 +19,13 @@ function EditCampaign() {
         nameBankAccount: '',
         bankAccount: '',
         category: '',
-        timeToCompleteGoal: '',
         currentAmount: 0,
         image: '',
         donators: [],
         shopItems: [],
         coin: ['', ''],
     });
+
     const [newShopItem, setNewShopItem] = useState({
         itemName: "",
         itemPrice: "",
@@ -40,9 +40,35 @@ function EditCampaign() {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
+    
                 if (response.ok) {
                     const data = await response.json();
-                    setFormData(data); 
+                    console.log('Data recebido:', data);
+
+                    // Garantir que shopItems é sempre um array de objetos { itemName, itemPrice, itemImage }
+                    const normalizedShopItems = Array.isArray(data.shopItems)
+                        ? data.shopItems.map((item) => {
+                            if (Array.isArray(item)) {
+                                // Caso raro onde o item venha como array [name, price, image], normaliza para objeto
+                                const [name, price, image] = item;
+                                return { itemName: name, itemPrice: price, itemImage: image };
+                            } else {
+                                // Caso já seja objeto, retorna como está (ou garante que tem as propriedades corretas)
+                                return {
+                                    itemName: item.itemName || '',
+                                    itemPrice: item.itemPrice || '',
+                                    itemImage: item.itemImage || ''
+                                };
+                            }
+                        })
+                        : [];
+
+                    setFormData({
+                        ...data, 
+                        shopItems: normalizedShopItems,
+                        coin: data.coin && data.coin.name && data.coin.image ? [data.coin.name, data.coin.image] : ['', ''],
+                        image: data.image || '',
+                    });
                 } else {
                     alert('Failed to load campaign details.');
                 }
@@ -52,11 +78,10 @@ function EditCampaign() {
                 setLoading(false);
             }
         }
-
+    
         fetchCampaign();
     }, [id]);
-
-
+    
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         const numericFields = ['goal', 'timeToCompleteGoal', 'bankAccount'];
@@ -66,13 +91,13 @@ function EditCampaign() {
         });
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        // Validação de campos obrigatórios
+        //  Parte 1 - Validação de campos obrigatórios
         if (parte1) {
-            if (!formData.title || !formData.description || !formData.goal || !formData.timeToCompleteGoal || !formData.contact || !formData.nameBankAccount || !formData.bankAccount || !formData.category) {
+            if (!formData.title || !formData.description || !formData.goal || !formData.timeToCompleteGoal || 
+                !formData.contact || !formData.nameBankAccount || !formData.bankAccount || !formData.category) {
                 alert('Please fill in all required fields.');
                 return;
             }
@@ -86,40 +111,56 @@ function EditCampaign() {
                 alert('Time to complete goal must be a positive number.');
                 return;
             }
-
-            if (!formData.coin[0] || !formData.coin[1]) {
+    
+            if (!Array.isArray(formData.coin) || !formData.coin[0] || !formData.coin[1]) {
                 alert('Please provide both a name and an image for the campaign coin.');
                 return;
             }
-
     
             // Passa para a próxima parte do formulário
             setParte1(false);
             setParte2(true);
             setParte3(false);
             window.scrollTo(0, 0);
+            return;
         } 
-        else if (parte2) {
-            try {
     
-                // Prepara os dados finais para envio
+        //  Parte 2 - Enviar os dados para o servidor
+        if (parte2) {
+            try {
+                // Garante que shopItems é sempre um array de objetos { itemName, itemPrice, itemImage }
+                const normalizedShopItems = formData.shopItems.map((item) => {
+                    if (Array.isArray(item)) {
+                        const [name, price, image] = item;
+                        return { itemName: name, itemPrice: price, itemImage: image };
+                    } else {
+                        return {
+                            itemName: item.itemName,
+                            itemPrice: item.itemPrice,
+                            itemImage: item.itemImage
+                        };
+                    }
+                });
+
                 const finalData = { 
                     ...formData, 
-                    shopItems: formData.shopItems, // Inclui os itens da loja
-                    creator: localStorage.getItem('userId'), // Adiciona o criador automaticamente
-                    coin: formData.coin, // Inclui a moeda
+                    shopItems: normalizedShopItems,
+                    creator: localStorage.getItem('userId'), 
+                    coin: {
+                        name: formData.coin[0],
+                        image: formData.coin[1]
+                    }
                 };
+
+                console.log("Data being sent to the server:", finalData);
     
-                console.log("Data being sent to the server:", finalData); // Verifica os dados
-                
-                // Envia os dados para o backend
                 const response = await fetch(`http://localhost:5000/api/campaign/update-campaign/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
-                    body: JSON.stringify(formData),
+                    body: JSON.stringify(finalData),
                 });
     
                 if (response.ok) {
@@ -131,9 +172,9 @@ function EditCampaign() {
     
                 setParte1(false);
                 setParte2(false);
-                setParte3(true); // Avança para a terceira parte
+                setParte3(true);
                 window.scrollTo(0, 0);
-
+    
             } catch (err) {
                 console.error('Error updating campaign:', err);
                 alert('Unexpected error updating campaign.');
@@ -141,16 +182,13 @@ function EditCampaign() {
         }
     };
     
-
     const handleInputChangeStore = (e) => {
         const { name, value } = e.target;
-
         const numericFields = ['itemPrice'];
         setNewShopItem({
             ...newShopItem,
             [name]: numericFields.includes(name) ? Number(value) : value,
         });
-
     };
 
     const handleAddShopItems = () => {
@@ -159,17 +197,23 @@ function EditCampaign() {
                 ...formData,
                 shopItems: [
                     ...formData.shopItems, 
-                    [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage || ''],
+                    {
+                        itemName: newShopItem.itemName,
+                        itemPrice: newShopItem.itemPrice,
+                        itemImage: newShopItem.itemImage || ''
+                    }
                 ],
             });
+        } else {
+            alert('Please provide a name and a price for the item.');
         }
+
         setNewShopItem({
             itemName: "",
             itemPrice: "",
             itemImage: "",
         });
     };
-
 
     const handleFileChange = (e, type) => {
         const file = e.target.files[0];
@@ -178,16 +222,16 @@ function EditCampaign() {
                 if (type === 'campaign') {
                     setFormData({ ...formData, image: base64 });
                 } else if (type === 'coin') {
-                    const newCoin = [...formData.coin];
-                    newCoin[1] = base64;
+                    const newCoin = Array.isArray(formData.coin) ? [...formData.coin] : ['', ''];
+                    newCoin[1] = base64; 
                     setFormData({ ...formData, coin: newCoin });
+                } else if (type === 'item') {
+                    setNewShopItem({ ...newShopItem, itemImage: base64 });
                 }
             }).catch((err) => console.error("Error converting file to Base64:", err));
         }
     };
-
-
-    // Converter ficheiro para Base64
+    
     const convertFileToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -196,7 +240,10 @@ function EditCampaign() {
             reader.onerror = (error) => reject(error);
         });
     };
-    
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>
@@ -263,7 +310,7 @@ function EditCampaign() {
                                 />
                             </div>
                             
-                            {/* Category and Goal */}
+                            {/* Goal and Time */}
                             <div style={styles.rowContainer}>
                                 <div style={styles.inputHalf}>
                                     <label style={styles.label}>Goal (€):</label>
@@ -288,7 +335,6 @@ function EditCampaign() {
                                     />
                                 </div>
                             </div>
-
 
                             {/* Contact */}
                             <div style={styles.inputContainer}>
@@ -326,7 +372,6 @@ function EditCampaign() {
                                         onChange={handleInputChange}
                                         style={styles.input}
                                         required
-
                                     />
                                 </div>
                             </div>
@@ -338,24 +383,28 @@ function EditCampaign() {
                                 <div style={styles.inputHalf}>
                                     <label style={styles.label}>Campaign Image:</label>
                                     <div style={styles.inputImage} onClick={() => document.getElementById('campaignFileInput').click()}>
-                                        {formData.image ? (
-                                            <img
-                                                src={formData.image}
-                                                alt="Campaign"
-                                                style={{ maxWidth: '50%', maxHeight: '140px' }}
+                                    {formData.image ? (
+                                        <img
+                                            src={formData.image}
+                                            alt="Campaign"
+                                            style={{ maxWidth: '50%', maxHeight: '140px' }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <img 
+                                                src={require('../assets/upload-icon.png')} 
+                                                alt="Upload Icon" 
+                                                style={styles.uploadIcon} 
                                             />
-                                        ) : (
-                                            <>
-                                                <img 
-                                                    src={require('../assets/upload-icon.png')} 
-                                                    alt="Upload Icon" 
-                                                    style={styles.uploadIcon} 
-                                                />
-                                                <span style={styles.uploadTextPrimary}>Upload File</span>
-                                            </>
-                                        )}
+                                            <span style={styles.uploadTextPrimary}>Upload File</span>
+                                        </>
+                                    )}
+
                                         {formData.image && (
-                                            <button onClick={() => setFormData({ ...formData, image: null })} style={styles.removeButton}>
+                                            <button onClick={(e) => {
+                                                e.stopPropagation();
+                                                setFormData({ ...formData, image: '' });
+                                            }} style={styles.removeButton}>
                                                 x
                                             </button>
                                         )}
@@ -369,7 +418,7 @@ function EditCampaign() {
                                     />
                                 </div>
 
-                                {/* Imagem da Moeda */}
+                                {/* Coin */}
                                 <div style={styles.inputHalf}>
                                     <label style={styles.label}>Coin Name:</label>
                                     <input
@@ -384,33 +433,34 @@ function EditCampaign() {
                                         style={styles.input}
                                         required
                                     />
+
                                     <label style={styles.label}>Coin Image:</label>
                                     <div style={styles.inputCoinImage} onClick={() => document.getElementById('coinFileInput').click()}>
-                                        {formData.coin[1] ? (
-                                            <img
-                                                src={formData.coin[1]}
-                                                alt="Coin"
-                                                style={{ maxWidth: '50%', maxHeight: '140px' }}
+                                    {formData.coin[1] ? (
+                                        <img
+                                            src={formData.coin[1]}
+                                            alt="Coin"
+                                            style={{ maxWidth: '50%', maxHeight: '140px' }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <img 
+                                                src={require('../assets/upload-icon.png')} 
+                                                alt="Upload Icon" 
+                                                style={styles.uploadIcon} 
                                             />
-                                        ) : (
-                                            <>
-                                                <img 
-                                                    src={require('../assets/upload-icon.png')} 
-                                                    alt="Upload Icon" 
-                                                    style={styles.uploadIcon} 
-                                                />
-                                                <span style={styles.uploadTextPrimary}>Upload Coin Image</span>
-                                            </>
-                                        )}
+                                            <span style={styles.uploadTextPrimary}>Upload Coin Image</span>
+                                        </>
+                                    )}
+
                                         {formData.coin[1] && (
-                                            <button onClick={() => {
+                                            <button onClick={(e) => {
+                                                e.stopPropagation();
                                                 const newCoin = [...formData.coin];
-                                                newCoin[1] = null;
+                                                newCoin[1] = '';
                                                 setFormData({ ...formData, coin: newCoin });
-                                                }} 
-                                                style={styles.removeButton}
-                                            >
-                                                    x
+                                            }} style={styles.removeButton}>
+                                                x
                                             </button>
                                         )}
                                     </div>
@@ -428,7 +478,6 @@ function EditCampaign() {
                                 Next
                             </button>
                             
-
                             </>   
                             )}
                             { parte2 && (
@@ -436,8 +485,8 @@ function EditCampaign() {
                             <h1>Campaign Store</h1>
 
                             <span style={{ fontSize: 20, font: 'Inter', width: '100%', opacity: 0.7 }}>Here, you can choose which items you want donators to purchase.</span>
-                            <br></ br>
-                            <br></ br>
+                            <br></br>
+                            <br></br>
                             <div style={styles.rowContainer}>
                                 <div style={styles.inputHalfItem}>
                                     <label style={styles.label}>Item name:</label>
@@ -450,7 +499,7 @@ function EditCampaign() {
                                     />
                                 </div>
                                 <div style={styles.inputHalfPrice}>
-                                    <label style={styles.label}>Price:</label>
+                                    <label style={styles.label}>Price (€):</label>
                                     <input
                                         type="number"
                                         name="itemPrice"
@@ -460,7 +509,14 @@ function EditCampaign() {
                                     />
                                 </div>
                                 <div style={styles.inputHalfSend}>
-                                    <div style={styles.addButton} onClick={handleAddShopItems}>
+                                    <div style={styles.addButton} onClick={() => {
+                                        const fileInput = document.getElementById('itemFileInput');
+                                        if (!newShopItem.itemImage && (!fileInput || !fileInput.files[0])) {
+                                            alert('Please upload an item image before adding it.');
+                                            return;
+                                        }
+                                        handleAddShopItems();
+                                    }}>
                                         <img 
                                             src={require('../assets/plus-icon-simple.png')} 
                                             alt="Plus Icon" 
@@ -471,68 +527,91 @@ function EditCampaign() {
                             </div>
 
                             <div style={styles.inputContainer}>
-                                    <label style={styles.label}>
-                                        Item Image:
-                                    </label>
-                                    <div style={styles.inputImage}>
-                                    {/*<div style={styles.inputImage} onClick={handleClick}>
-                                        {selectedFiles.length > 0 ? (
+                                <label style={styles.label}>Item Image:</label>
+                                <div style={styles.inputImage} onClick={() => document.getElementById('itemFileInput').click()}>
+                                    {newShopItem.itemImage ? (
+                                        <>
                                             <img
-                                                src={URL.createObjectURL(selectedFiles[0])}
-                                                alt="Selected"
-                                                style={{ maxWidth: '50%', maxHeight: '140' }}
+                                                src={newShopItem.itemImage}
+                                                alt="Item"
+                                                style={{ maxWidth: '50%', maxHeight: '140px', borderRadius: '50%' }}
                                             />
-                                        ) : (*/}
-                                            <>
-                                                <img 
-                                                    src={require('../assets/upload-icon.png')} 
-                                                    alt="Upload Icon" 
-                                                    style={styles.uploadIcon} 
-                                                />
-                                                <span style={styles.uploadTextPrimary}>Upload File</span><br />
-
-                                            </>
-                                        {/*)}
-                                    {selectedFiles.length > 0 && (
-                                        <button onClick={() => setSelectedFiles([])} style={styles.removeButton}>
-                                            x
-                                        </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setNewShopItem({ ...newShopItem, itemImage: '' });
+                                                }}
+                                                style={styles.removeButton}
+                                            >
+                                                x
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <img 
+                                                src={require('../assets/upload-icon.png')} 
+                                                alt="Upload Icon" 
+                                                style={styles.uploadIcon} 
+                                            />
+                                            <span style={styles.uploadTextPrimary}>Upload File</span><br />
+                                        </>
                                     )}
-                                    </div>
-                                    <input
-                                        type="file"
-                                        id="fileInput"
-                                        value={newShopItem.itemImage}
-                                        onChange={handleFileChange}
-                                        style={styles.inputfile}
-                                        accept="image/*" // Aceitar apenas imagens
-                                        multiple={false} // Apenas um ficheiro permitido
-                                    />*/}
-                                    </div>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="itemFileInput"
+                                    accept="image/*"
+                                    onChange={(e) => handleFileChange(e, 'item')}
+                                    style={styles.inputfile}
+                                />
                             </div>
 
                             <h1>List of Items</h1>
                             <div style={styles.listOfItems}>
-                                {formData.shopItems.length === 0 ? (
-                                    <p>Nenhum item adicionado à loja ainda.</p>
-                                ) : (
+                                {formData.shopItems.length > 0 ? (
                                     <ul>
-                                        {formData.shopItems.map(([name, price, image], index) => (
-                                            <li key={index} style={{ display: "flex", alignItems: "center", justifyContent: 'flex-start', marginBottom: "10px",  fontSize: "2vh" }}>
-                                                <span style={{ marginLeft: "1vh", fontSize: "3vh", textAlign: 'center'}}> {name} </span>
-                                                <span style={{ marginLeft: "1vh", fontSize: "3vh" }}> {price}€ </span>
+                                        {formData.shopItems.map((item, index) => (
+                                            <li 
+                                                key={index} 
+                                                style={{ 
+                                                    display: "flex", 
+                                                    alignItems: "center", 
+                                                    justifyContent: 'flex-start', 
+                                                    marginBottom: "10px",  
+                                                    fontSize: "2vh" 
+                                                }}
+                                            >
+                                                <span style={{ marginLeft: "1vh", fontSize: "3vh", textAlign: 'center'}}>
+                                                    {item.itemName}
+                                                </span>
+                                                <span style={{ marginLeft: "1vh", fontSize: "3vh" }}>
+                                                    {item.itemPrice}€
+                                                </span>
+                                                {item.itemImage && (
+                                                    <img 
+                                                        src={item.itemImage} 
+                                                        alt="Item Image" 
+                                                        style={{
+                                                            width: '50px',
+                                                            height: '50px',
+                                                            borderRadius: '50%',
+                                                            marginLeft: '1vh'
+                                                        }}
+                                                    />
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
+                                ) : (
+                                    <p>No items added to the store yet.</p>
                                 )}
                             </div>
+
                             <div style={styles.buttonsFlex}>
                                 <button type="button" onClick={() => { setParte1(true); setParte2(false); }} style={styles.backButton} >
                                     Back
                                 </button>
-                                
-                            
-                                <button type="submit" style={styles.submitButton} >
+                                <button type="submit" style={styles.submitButton}>
                                     Finish
                                 </button>
                             </div>
@@ -540,7 +619,6 @@ function EditCampaign() {
                             )}
                         </form>  
 
-                        
                         { parte3 && (
                             <>
                                 <h1> Campaign Updated Successfully! </h1>
@@ -669,6 +747,7 @@ const styles = {
         outline: 'none',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
         marginBottom: 20,
+        cursor: 'pointer'
     },
     inputCoinImage: {
         display: 'flex',
@@ -687,6 +766,7 @@ const styles = {
         outline: 'none',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
         marginBottom: 20,
+        cursor: 'pointer'
     },
     inputfile: {
         display: 'none',
@@ -796,7 +876,6 @@ const styles = {
         width: 52,
         height: 52,
         backgroundColor: '#EFEFEF',
-        color: 'none',
         border: 'none',
         borderRadius: 50,
         cursor: 'pointer',
@@ -808,8 +887,7 @@ const styles = {
     },
     plusIcon: { 
         width: 28,
-        height: 28,
-        
+        height: 28,       
     },
 }
 

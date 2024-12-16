@@ -38,12 +38,13 @@ router.post('/create-campaign', async (req, res) => {
             bankAccount,
             category,
             currentAmount: 0,
-            image,
+            image, 
             donators: [],
-            shopItems,
-            creator: userId,
+            shopItems, 
+            creator: userId, 
             coin,
         });
+        
 
         await newCampaign.save();
 
@@ -80,7 +81,7 @@ router.get('/all-campaigns', async (req, res) => {
 router.get('/get-campaign/:id', async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id)
-            .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems');
+            .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators');
 
         if (!campaign) {
             return res.status(404).json({ message: 'Campaign not found!' });
@@ -132,11 +133,54 @@ router.post('/donate/:id', async (req, res) => {
 
         await user.save();
 
+        res.json({ message: 'Donation processed successfully' });
+    } catch (error) {
+        console.error('Error processing donation:', error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+//rota para atualizar as informacoes da campanha
+router.put('/update-campaign/:id', async (req, res) => {
+    const { id } = req.params;
+    const { 
+        title, 
+        description, 
+        goal, 
+        timeToCompleteGoal, 
+        contact, 
+        nameBankAccount, 
+        bankAccount, 
+        category, 
+        image, // Adicionando o campo imagem
+        shopItems, // Adicionando o campo de itens de loja
+        coin 
+    } = req.body;
+
+    try {
+        const campaign = await Campaign.findById(id);
+        if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+
+        campaign.title = title;
+        campaign.description = description;
+        campaign.goal = goal;
+        campaign.timeToCompleteGoal = timeToCompleteGoal;
+        campaign.contact = contact;
+        campaign.nameBankAccount = nameBankAccount;
+        campaign.bankAccount = bankAccount;
+        campaign.category = category;
+        campaign.image = image; // Atualizar a imagem de capa
+        campaign.shopItems = shopItems; // Atualizar a lista de itens da loja
+        campaign.coin = coin;
+
+        await campaign.save();
+        res.status(200).json(campaign);
         res.json(campaign);
     } catch (error) {
         console.error('Error updating campaign:', error);
         res.status(500).json({ message: "Server error" });
     }
 });
+
 
 module.exports = router;

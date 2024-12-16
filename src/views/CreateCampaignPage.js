@@ -115,12 +115,22 @@ function CreateCampaignPage() {
     };
 
     const handleAddShopItems = () => {
+        if (!newShopItem.itemName || !newShopItem.itemPrice ) {
+            alert('Please fill in both item name and price.');
+            return;
+        }
+
+        if (!newShopItem.itemImage) {
+            alert('Please upload an image for the item.');
+            return;
+        }
+
         if (newShopItem.itemName && newShopItem.itemPrice) {
             setFormData({
                 ...formData,
                 shopItems: [
                     ...formData.shopItems, 
-                    [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage || ''],
+                    [newShopItem.itemName, newShopItem.itemPrice, newShopItem.itemImage],
                 ],
             });
         }
@@ -133,26 +143,30 @@ function CreateCampaignPage() {
 
 
     const handleFileChange = (e, type) => {
-    const file = e.target.files[0];
-    if (!file) return; // Verifica se o arquivo foi selecionado
+        const file = e.target.files[0];
+        if (!file) return; // Verifica se o arquivo foi selecionado
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-        const base64Image = reader.result;
-        if (type === 'campaign') {
-            setFormData({ ...formData, image: base64Image }); // Salva a imagem da campanha
-        } else if (type === 'coin') {
-            const updatedCoin = [...formData.coin];
-            updatedCoin[1] = base64Image; // Salva a imagem da moeda
-            setFormData({ ...formData, coin: updatedCoin });
-        } else if (type === 'item') {
-            setNewShopItem({ ...newShopItem, itemImage: base64Image }); // Salva a imagem do item
-        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            const base64Image = reader.result;
+            if (type === 'campaign') {
+                setFormData({ ...formData, image: base64Image }); // Salva a imagem da campanha
+            } else if (type === 'coin') {
+                const updatedCoin = [...formData.coin];
+                updatedCoin[1] = base64Image; // Salva a imagem da moeda
+                setFormData({ ...formData, coin: updatedCoin });
+            } else if (type === 'item') {
+                setNewShopItem({ ...newShopItem, itemImage: base64Image }); // Salva a imagem do item
+            }
+        };
     };
-};
 
-    
+    const handleRemoveShopItem = (index) => {  
+        const newShopItems = [...formData.shopItems];
+        newShopItems.splice(index, 1);
+        setFormData({ ...formData, shopItems: newShopItems });
+    };
     
 
 
@@ -319,7 +333,7 @@ function CreateCampaignPage() {
                                                     maxWidth: '50%',
                                                     maxHeight: '140px',
                                                     objectFit: 'cover',
-                                                    borderRadius: '50%',
+                                                    borderRadius: '1vh',
                                                 }} 
                                             />
                                             <button 
@@ -378,7 +392,7 @@ function CreateCampaignPage() {
                                             <img 
                                                 src={formData.coin[1]} 
                                                 alt="Coin" 
-                                                style={{ maxWidth: '50%', maxHeight: '140px', objectFit: 'cover', borderRadius: '50%' }} 
+                                                style={{ maxWidth: '50%', maxHeight: '90%', objectFit: 'cover', borderRadius: '100%' }} 
                                             />
                                         ) : (
                                             <>
@@ -494,7 +508,7 @@ function CreateCampaignPage() {
                                 <div style={styles.inputContainer}>
                                     <label style={styles.label}>Item Image:</label>
                                     <div
-                                        style={styles.inputCoinImage} // Usar estilos consistentes com Coin e Campaign Image
+                                        style={styles.inputItemImage} // Usar estilos consistentes com Coin e Campaign Image
                                         onClick={() => document.getElementById('itemFileInput').click()}
                                     >
                                         {newShopItem.itemImage ? (
@@ -506,7 +520,7 @@ function CreateCampaignPage() {
                                                         maxWidth: '50%',
                                                         maxHeight: '140px',
                                                         objectFit: 'cover',
-                                                        borderRadius: '50%', // Consistência com Coin Image
+                                                        borderRadius: '1vh', // Consistência com Coin Image
                                                     }}
                                                 />
                                                 <button
@@ -542,7 +556,7 @@ function CreateCampaignPage() {
                                 <h1>List of Items</h1>
                                 <div style={styles.listOfItems}>
                                     {formData.shopItems.length === 0 ? (
-                                        <p>No items added to the store yet.</p>
+                                        <p style={{ marginLeft: '3vh', fontSize: '2.2vh'}}>No items added to the store yet.</p>
                                     ) : (
                                         <ul>
                                             {formData.shopItems.map(([itemName, itemPrice, itemImage], index) => (
@@ -556,8 +570,16 @@ function CreateCampaignPage() {
                                                         fontSize: '2vh',
                                                     }}
                                                 >
-                                                    <span style={{ marginLeft: '1vh', fontSize: '3vh', textAlign: 'center' }}>
-                                                        {itemName}
+                                                    <div>
+                                                        <img 
+                                                            src={require('../assets/remove_icon.png')} 
+                                                            alt="Remove Icon" 
+                                                            style={{ paddingTop: '0.7vh', marginRight: '3vh', width: '2.5vh', height: '2.5vh', cursor: 'pointer' }} 
+                                                            onClick={() => {handleRemoveShopItem(index)}} 
+                                                        />
+                                                    </div>
+                                                    <span style={{ fontSize: '3vh', textAlign: 'center' }}>
+                                                        {itemName} - 
                                                     </span>
                                                     <span style={{ marginLeft: '1vh', fontSize: '3vh' }}>
                                                         {itemPrice}€
@@ -567,13 +589,14 @@ function CreateCampaignPage() {
                                                             src={itemImage}
                                                             alt="Item"
                                                             style={{
-                                                                width: '50px',
-                                                                height: '50px',
-                                                                borderRadius: '50%',
-                                                                marginLeft: '1vh',
+                                                                width: '4vh',
+                                                                height: '4vh',
+                                                                borderRadius: '1vh',
+                                                                marginLeft: '2vh',
                                                             }}
                                                         />
                                                     )}
+                                                    
                                                 </li>
                                             ))}
                                         </ul>
@@ -737,7 +760,25 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '107%',
+        width: '106%',
+        height: "15.5vh",
+        marginTop: 10,
+        paddingTop: '50px',
+        paddingBottom: '50px',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    inputItemImage: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '98%',
         height: "15.5vh",
         marginTop: 10,
         paddingTop: '50px',
@@ -838,12 +879,11 @@ const styles = {
     listOfItems: {
         display: 'flex',
         flexDirection: 'column',
-        width: '97.7%',
+        width: '98%',
         height: 250,
         marginTop: 10,
-        paddingLeft: 20,
-        paddingTop: 20,
-        paddingBottom: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
         fontSize: '2vh',
         borderRadius: '1vh',
         backgroundColor: '#EFEFEF',

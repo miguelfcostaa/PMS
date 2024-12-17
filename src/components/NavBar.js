@@ -118,6 +118,16 @@ function NavBar({ onSearch }) {
         }
     };
 
+    const handleDisplayedAmount = (amount) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return amount;
+        }
+    };
+
     const profileStyles = {
         ...style.profileIcon,
         border: verificationCompleted ? '2px solid #00FF00' : '2px solid #FF0000',
@@ -199,7 +209,7 @@ function NavBar({ onSearch }) {
                                         }}
                                     />
                                     <span style={style.coinAmount}>
-                                        {coin.amount}
+                                        {handleDisplayedAmount(coin.amount)}
                                     </span>
                                     <div style={style.coinCircle}>
                                         <img
@@ -394,7 +404,8 @@ const style = {
     coinAmount: {
         fontSize: '3.5vh',
         color: '#333',
-        width: '5vw',
+        width: '7vw',
+        maxWidth: '7vw',
         fontWeight: 'bold',
         textAlign: 'center',
         overflow: 'hidden',

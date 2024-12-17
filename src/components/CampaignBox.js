@@ -28,6 +28,31 @@ function CampaignBox({
         ? `${creatorFirstName} ${creatorLastName}` 
         : nameBankAccount;
 
+
+    function formatAmount(amount) {
+        let formattedAmount = amount.toFixed(1);
+        if (formattedAmount.endsWith('.0')) {
+            formattedAmount = formattedAmount.slice(0, -2);
+        }
+        return formattedAmount;
+    }
+        
+    function formatLargeAmount(amount) {
+        if (amount >= 1e15) {
+            return `${formatAmount(amount / 1e15)}Q`;
+        } else if (amount >= 1e12) {
+            return `${formatAmount(amount / 1e12)}T`;
+        } else if (amount >= 1e9) {
+            return `${formatAmount(amount / 1e9)}B`;
+        } else if (amount >= 1e6) {
+            return `${formatAmount(amount / 1e6)}M`;
+        } else if (amount >= 1e3) {
+            return `${formatAmount(amount / 1e3)}K`;
+        } else {
+            return amount.toString();
+        }
+    }
+
     return (
         <div style={style.container} onClick={onClick}>
             <img 
@@ -52,16 +77,16 @@ function CampaignBox({
                 </p>
             </div>
             <div style={style.campaignDonationInfo}>
-                <span style={style.currentAmount}>€ {currentAmount} </span>
-                <span style={style.donated}>of € {goal} </span>
+                <span style={style.currentAmount}>€ {formatLargeAmount(currentAmount)} </span>
+                <span style={style.donated}>of € {formatLargeAmount(goal)} </span>
             
                 <div style={style.progressBar}>
                     <div style={{ ...style.progress, width: `${Math.min(progressPercentage, 100)}%` }}>
                     </div>
                 </div>
                 <div style={style.progressInfo}>
-                    <span style={style.percentage}>{Math.round(progressPercentage)}%</span>
-                    <span style={style.daysLeft}>{timeToCompleteGoal} days left</span>
+                    <span style={style.percentage}>{formatLargeAmount(Math.round(progressPercentage))}%</span>
+                    <span style={style.daysLeft}>{formatLargeAmount(timeToCompleteGoal)} days left</span>
                 </div>
             </div>
         </div>

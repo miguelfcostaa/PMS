@@ -126,6 +126,16 @@ function ProfilePage() {
         };
     };
 
+    const handleDisplayedAmount = (amount) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return amount;
+        }
+    };
+
 
     if (!userData) {
         return <div style={styles.loading}>Loading...</div>;
@@ -201,14 +211,14 @@ function ProfilePage() {
                                                 }}
                                             />
                                             <span style={styles.coinAmount}>
-                                                {coin.amount}
+                                                {handleDisplayedAmount(coin.amount)}
                                             </span>
                                             <div style={styles.coinCircle}>
                                                 <img
                                                     src={coin.coinImage}
                                                     alt={coin.coinName}
                                                     style={styles.coinImage}
-                                                    title={coin.coinName} // Nome da moeda aparece no hover
+                                                    title={coin.coinName}
                                                 />
                                             </div>
                                             {index < coins.length - 1 && <div style={styles.coinSeparator}></div>}
@@ -544,7 +554,7 @@ const styles = {
         fontSize: '3.5vh',
         color: '#333',
         fontWeight: 'bold',
-        maxWidth: '5vw',
+        maxWidth: '7vw',
         textAlign: 'center',
         overflow: 'hidden',
         textOverflow: 'ellipsis',

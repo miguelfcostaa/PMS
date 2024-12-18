@@ -4,8 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const verifyUser = require('../verificationJob');
 const multer = require('multer');
-const mongoose = require('mongoose');
-
+const { mongoose } = require('../db');
 
 const router = express.Router();
 
@@ -181,6 +180,8 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Rota para atualizar as moedas de um utilizador
+const { getIO } = require('../socket'); // Importa o Socket.IO
+
 router.put('/:userId/coins', async (req, res) => {
     const { userId } = req.params;
 
@@ -195,11 +196,11 @@ router.put('/:userId/coins', async (req, res) => {
             return res.status(400).json({ message: 'coinName and amount are required' });
         }
 
-        // Atualização eficiente usando $set e $inc
+        // Atualiza as moedas e crashEarnings
         const result = await User.updateOne(
             { _id: userId, 'coins.coinName': coinName },
             { 
-                $inc: { 'coins.$.amount': amount }, 
+                $inc: { 'coins.$.amount': amount, crashEarnings: amount }, 
                 $set: { updatedAt: new Date() }
             }
         );
@@ -208,12 +209,17 @@ router.put('/:userId/coins', async (req, res) => {
             return res.status(404).json({ message: 'User or Coin not found' });
         }
 
-        res.status(200).json({ message: 'Coins updated successfully' });
+        // Emite o evento para notificar todos os clientes que a leaderboard foi atualizada
+        const io = getIO();
+        io.emit('leaderboardUpdated');
+
+        res.status(200).json({ message: 'Coins and earnings updated successfully' });
     } catch (error) {
         console.error('Error updating coins:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
 router.get('/challenges/:userId', async (req, res) => {
     const { userId } = req.params;
 
@@ -444,5 +450,26 @@ router.put('/:userId', async (req, res) => {
         res.status(500).json({ error: 'Error updating user data' });
     }
 });
+
+
+// Endpoint para buscar a leaderboard dos utilizadores que mais ganharam moedas no Crash
+router.get('/leaderboard/crash', async (req, res) => {
+    try {
+        const topUsers = await User.find({})
+            .select('firstName crashEarnings')
+            .sort({ crashEarnings: -1 }) // Ordenar pelo total de moedas ganhas no Crash
+            .limit(10); // Limitar a 10 utilizadores
+
+        res.status(200).json(topUsers.map((user, index) => ({
+            rank: index + 1,
+            name: user.firstName,
+            coinsWon: user.crashEarnings,
+        })));
+    } catch (error) {
+        console.error("Erro ao buscar leaderboard:", error);
+        res.status(500).json({ error: "Erro ao buscar leaderboard" });
+    }
+});
+
 
 module.exports = router;

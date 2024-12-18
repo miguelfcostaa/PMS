@@ -9,10 +9,11 @@ const connectDB = async () => {
   try {
     if (!connection) {
       connection = await mongoose.connect(process.env.MONGO_URI, {
-        maxPoolSize: 20, // Configura o máximo de conexões no pool
-        serverSelectionTimeoutMS: 5000, 
-        socketTimeoutMS: 45000, 
+        maxPoolSize: 35,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
         connectTimeoutMS: 10000,
+        useUnifiedTopology: true,
       });
       console.log('Connected to MongoDB successfully!');
     }
@@ -23,4 +24,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;
+module.exports = { mongoose, connectDB }; // Exporta o Mongoose e a função de conexão

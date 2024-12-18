@@ -3,6 +3,11 @@ import axios from "axios";
 import NavBar from "../components/NavBar";
 import SideBar from "../components/SideBar";
 import rocketIcon from "../assets/rocket.png";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000"); // URL do servidor backend
+
+
 
 // Função multiplicadora M(t) = 2^(t/10):
 function M(t) {
@@ -20,6 +25,8 @@ const CrashPage = () => {
     JSON.parse(sessionStorage.getItem("crashHistory")) || []
   );
   const [cashoutPressed, setCashoutPressed] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]); // Estado para a leaderboard
+
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
@@ -64,6 +71,42 @@ const CrashPage = () => {
       }
     };
   }, [userId, token]);
+
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/auth/leaderboard/crash", 
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setLeaderboard(response.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar leaderboard:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [token]);
+
+
+  useEffect(() => {
+    // Escuta o evento "leaderboardUpdated" do servidor
+    socket.on("leaderboardUpdated", () => {
+        console.log("Leaderboard updated, fetching latest data...");
+        fetchLeaderboard(); // Atualiza a leaderboard
+    });
+
+    // Remove o listener ao desmontar o componente
+    return () => {
+        socket.off("leaderboardUpdated");
+    };
+}, []);
+
+
 
   const getSelectedCoinAmount = () => {
     const coin = coins.find((c) => c.coinName === selectedCoin);
@@ -393,6 +436,24 @@ const CrashPage = () => {
       marginTop: "2vh",
       borderRadius: "1vh",
     },
+    leaderboardContainer: {
+      marginTop: "2vh",
+      padding: "1vh",
+      backgroundColor: "#0d1117",
+      border: "1px solid #30363d",
+      borderRadius: "0.5vh",
+    },
+    leaderboardItem: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "0.5vh 0",
+      borderBottom: "1px solid #30363d",
+    },
+    leaderboardTitle: {
+      fontSize: "1.2em",
+      fontWeight: "bold",
+      marginBottom: "1vh",
+    },
     input: {
       margin: "1vh 0",
       padding: "1vh",
@@ -498,6 +559,16 @@ const CrashPage = () => {
         >
           {buttonText}
         </button>
+        <div style={styles.leaderboardContainer}>
+          <div style={styles.leaderboardTitle}>Leaderboard</div>
+          {leaderboard.map((user, index) => (
+            <div key={index} style={styles.leaderboardItem}>
+              <span>{index + 1}</span>
+              <span>{user.name}</span>
+              <span>{user.coinsWon} coins</span>
+            </div>
+          ))}
+        </div>
       </div>
       <div style={styles.rightColumn}>
         <div style={styles.historyContainer}>

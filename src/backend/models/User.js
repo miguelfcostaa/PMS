@@ -1,4 +1,4 @@
-const mongoose = require('mongoose'); // Não precisamos conectar novamente
+const { mongoose } = require('../db');
 
 const documentSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema({
     ],
     documents: [documentSchema],
     notificationSeen: { type: Boolean, default: false },
+    crashEarnings: { type: Number, default: 0 },
 }, { timestamps: true });
 
 userSchema.index({ email: 1 });

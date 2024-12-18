@@ -2,6 +2,7 @@ const express = require('express');
 const Campaign = require('../models/Campaign'); // Usa a conexão já estabelecida no db.js
 const User = require('../models/User'); // Reutilização do modelo User sem criar novas conexões
 
+
 const router = express.Router();
 
 // Criar nova campanha

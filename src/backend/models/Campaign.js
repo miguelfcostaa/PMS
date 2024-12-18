@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { mongoose } = require('../db');
 
 // Definição do esquema de campanha
 const campaignSchema = new mongoose.Schema({

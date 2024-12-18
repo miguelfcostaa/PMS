@@ -1,26 +1,23 @@
 let io;
 
 const initIO = (server) => {
-    io = require('socket.io')(server, {
-        cors: {
-            origin: 'http://localhost:3000',
-            methods: ['GET', 'POST', 'PUT', 'DELETE'],
-            credentials: true 
-        }
-    });
-
-    io.on('connection', (socket) => {
-        console.log('Client connected:', socket.id);
-        
-        socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
+    if (!io) {
+        io = require('socket.io')(server, {
+            cors: {
+                origin: 'http://localhost:3000',
+                methods: ['GET', 'POST', 'PUT', 'DELETE'],
+                credentials: true,
+            },
         });
 
-        socket.on('message', (message) => {
-            console.log('Message received from client:', message);
-        });
-    });
+        io.on('connection', (socket) => {
+            console.log('Socket.IO client connected:', socket.id);
 
+            socket.on('disconnect', () => {
+                console.log('Socket.IO client disconnected:', socket.id);
+            });
+        });
+    }
     return io;
 };
 

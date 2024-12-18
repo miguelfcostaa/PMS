@@ -454,11 +454,6 @@ function CampaignSelectedPage() {
                         )}
                     </div>
 
-                    <div style={styles.coinInfo}>
-                        <img src={campaign.coin.image} alt={`${campaign.coin.name} icon`} style={styles.coinImage} />
-                        <span>You have: {coins.find((coin) => coin.coinName === campaign.coin.name)?.amount || 0}</span>
-                    </div>
-
                     <div style={styles.shopContainer}>
                         {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
                             campaign.shopItems.map((item, index) => {

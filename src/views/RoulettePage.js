@@ -262,6 +262,16 @@ function RoulettePage() {
 
     }
 
+    const handleDisplayedAmount = (amount) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return amount;
+        }
+    };
+
 
     const [inputValue, setInputValue] = React.useState('');
 
@@ -310,7 +320,7 @@ function RoulettePage() {
                                     {selectedCoin ? (
                                         <>
                                             <span style={{ ...styles.coinAmount, marginRight: 10 }}>
-                                                {selectedCoin.amount}
+                                                {handleDisplayedAmount(selectedCoin.amount)}
                                             </span>
                                             <div style={{ ...styles.coinCircle, width: '4vh', height: '4vh' }}>
                                                 <img
@@ -483,9 +493,9 @@ const styles = {
     coinAmount: {
         fontSize: '3.5vh',
         color: '#333',
+        width: '7vw',
+        maxWidth: '7vw',
         fontWeight: 'bold',
-        width: '2vw',
-        maxWidth: '5vw',
         textAlign: 'center',
         overflow: 'hidden',
         textOverflow: 'ellipsis',

@@ -9,19 +9,19 @@ router.post('/create-campaign', async (req, res) => {
     try {
         console.log('Received campaign registration request:', req.body);
 
-        const { 
-            title, 
-            description, 
-            goal, 
-            timeToCompleteGoal, 
-            contact, 
-            nameBankAccount, 
-            bankAccount, 
-            category, 
-            image, 
-            shopItems, 
-            coin, 
-            creator 
+        const {
+            title,
+            description,
+            goal,
+            timeToCompleteGoal,
+            contact,
+            nameBankAccount,
+            bankAccount,
+            category,
+            image,
+            shopItems,
+            coin,
+            creator
         } = req.body;
 
         // Verifica se todos os campos obrigatórios estão presentes
@@ -61,9 +61,13 @@ router.post('/create-campaign', async (req, res) => {
 
         await newCampaign.save();
 
-        // Tentar atualizar desafios do utilizador
-        const user = await User.findById(creator).select('challenges');
+        const user = await User.findById(creator); // Buscar o usuário sem limitar os campos
+
         if (user) {
+            if (!Array.isArray(user.challenges)) {
+                user.challenges = [];
+            }
+
             user.challenges.push({
                 name: 'Criar uma campanha',
                 description: `Desafio de criar a campanha "${title}"`,
@@ -71,9 +75,15 @@ router.post('/create-campaign', async (req, res) => {
                 completed: true,
                 associatedCampaign: newCampaign._id,
             });
+            user.challenges.push({
+                name: `Atingir a meta da campanha "${title}"`,
+                description: `Acompanhe o progresso para alcançar a meta de €${goal.toFixed(2)}.`,
+                progress: 0,
+                completed: false,
+                associatedCampaign: newCampaign._id,
+            });
             await user.save();
         }
-
         console.log('Campaign registered successfully:', newCampaign);
         return res.status(201).json(newCampaign);
 
@@ -90,10 +100,10 @@ router.get('/all-campaigns', async (req, res) => {
         const limit = parseInt(req.query.limit) || 30;
 
         const campaigns = await Campaign.find()
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .select('title description goal currentAmount category creator timeToCompleteGoal image donators')
-        .populate('creator', 'firstName lastName profilePicture');
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .select('title description goal currentAmount category creator timeToCompleteGoal image donators')
+            .populate('creator', 'firstName lastName profilePicture');
 
         res.json(campaigns);
     } catch (err) {
@@ -107,8 +117,8 @@ router.get('/get-campaign/:id', async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id)
             .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators image')
-            .populate('creator', 'firstName lastName profilePicture'); 
-         
+            .populate('creator', 'firstName lastName profilePicture');
+
 
         if (!campaign) {
             return res.status(404).json({ message: 'Campaign not found!' });
@@ -121,25 +131,29 @@ router.get('/get-campaign/:id', async (req, res) => {
     }
 });
 
-
 // Fazer doação para uma campanha
 router.post('/donate/:id', async (req, res) => {
-    const { id } = req.params;
-    const { userId, donationDetails } = req.body;
+    const { id } = req.params; // ID da campanha
+    const { userId, donationDetails } = req.body; // Dados da doação e do usuário
 
     try {
-        const campaign = await Campaign.findById(id).select('donators currentAmount coin');
-        if (!campaign) return res.status(404).json({ message: "Campaign not found" });
-
-        // Verificar se a campanha tem coin definida
-        if (!campaign.coin || !campaign.coin.name || !campaign.coin.image) {
-            console.error('Campaign coin not defined or malformed.');
-            return res.status(500).json({ message: 'Campaign coin not defined. Please ensure the campaign has a coin field.' });
+        // Buscar a campanha com o creator populado
+        const campaign = await Campaign.findById(id)
+            .populate('creator', 'challenges title') // Popula o creator e pega os challenges
+            .select('donators currentAmount goal coin creator title');
+        
+        if (!campaign) {
+            return res.status(404).json({ message: "Campaign not found" });
         }
 
-        const donationAmount = donationDetails[1];
+        if (!campaign.creator) {
+            console.warn('Campaign does not have an associated creator:', campaign);
+            return res.status(404).json({ message: "Campaign creator not found" });
+        }
 
-        // Atualizar a campanha
+        const donationAmount = donationDetails[1]; // Valor da doação
+
+        // Atualizar a campanha: adicionar doador e incrementar o valor atual
         await Campaign.updateOne(
             { _id: id },
             {
@@ -148,13 +162,16 @@ router.post('/donate/:id', async (req, res) => {
             }
         );
 
-        const user = await User.findById(userId).select('coins');
-        if (!user) return res.status(404).json({ message: "User not found" });
+        // Buscar o usuário que doou
+        const user = await User.findById(userId).select('coins donators challenges');
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
         const coinAmount = Math.floor(donationAmount * 0.55);
 
+        // Adicionar ou atualizar a moeda do usuário
         const existingCoin = user.coins.find(c => c.coinName === campaign.coin.name);
-
         if (existingCoin) {
             existingCoin.amount += coinAmount;
         } else {
@@ -165,35 +182,95 @@ router.post('/donate/:id', async (req, res) => {
                 campaignId: campaign._id,
             });
         }
-
         await user.save();
 
-        // Retornar a campanha atualizada após a doação
+        // Buscar o creator da campanha
+        const creator = await User.findById(campaign.creator).select('challenges');
+        if (!creator) {
+            console.error('Creator not found for this campaign.');
+            return res.status(404).json({ message: "Creator not found." });
+        }
+
+        // Procurar o desafio com o título da campanha
+        const challengeIndex = creator.challenges.findIndex(challenge =>
+            String(challenge.associatedCampaign) === String(campaign._id) && 
+            challenge.name.includes(campaign.title) // Usando o título da campanha para identificar o desafio
+        );
+
+        if (challengeIndex !== -1) {
+            const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
+        
+            // Atualizar o progresso do desafio
+            creator.challenges[challengeIndex].progress = progressPercentage;
+            creator.challenges[challengeIndex].completed = progressPercentage === 100;
+
+            // Salvar o progresso atualizado
+            await creator.save();
+            console.log('Challenge progress updated successfully.');
+        } else {
+            console.warn('No active challenge found for campaign goal.');
+        }
+
+        // Verificar o total de doações feitas pelo usuário
+        const totalDonated = (user.donators || []).reduce((total, donator) => total + donator.donationDetails[1], 0);
+
+        // Definir o valor necessário para o desafio (ex: 500€)
+        const donationThreshold = 500;
+
+        // Verifica se o usuário já tem o desafio de doação
+        const existingDonationChallenge = (user.challenges || []).find(challenge =>
+            challenge.name === `Doar €${donationThreshold}`
+        );        
+
+        // Se o usuário ainda não tiver o desafio, cria o desafio na primeira doação
+        if (!existingDonationChallenge) {
+            if (!user.challenges) {
+                user.challenges = [];  // Se for undefined, inicializa como um array vazio
+            }
+
+            user.challenges.push({
+                name: `Doar €${donationThreshold}`,
+                description: `Você atingiu o valor total de €${donationThreshold} em doações.`,
+                progress: Math.min((totalDonated / donationThreshold) * 100, 100),
+                completed: totalDonated >= donationThreshold,
+            });
+            await user.save();
+            console.log('Donation challenge created successfully.');
+        } else {
+            // Se já tiver o desafio, atualize o progresso com o valor total doado
+            existingDonationChallenge.progress = Math.min((totalDonated / donationThreshold) * 100, 100);
+            existingDonationChallenge.completed = totalDonated >= donationThreshold;
+            await user.save();
+            console.log('Donation challenge progress updated.');
+        }
+
         const updatedCampaign = await Campaign.findById(id)
             .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators image');
 
         return res.status(200).json(updatedCampaign);
+
     } catch (error) {
         console.error('Error processing donation:', error);
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 });
 
+
 // Atualizar uma campanha
 router.put('/update-campaign/:id', async (req, res) => {
     const { id } = req.params;
-    const { 
-        title, 
-        description, 
-        goal, 
-        timeToCompleteGoal, 
-        contact, 
-        nameBankAccount, 
-        bankAccount, 
-        category, 
-        image, 
+    const {
+        title,
+        description,
+        goal,
+        timeToCompleteGoal,
+        contact,
+        nameBankAccount,
+        bankAccount,
+        category,
+        image,
         shopItems,
-        coin 
+        coin
     } = req.body;
 
     try {

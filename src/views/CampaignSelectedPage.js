@@ -187,17 +187,17 @@ function CampaignSelectedPage() {
         
     function formatLargeAmount(amount) {
         if (amount >= 1e15) {
-            return `${formatAmount(amount / 1e15)}Q`;
+            return `${formatAmount(amount / 1e15).toFixed(1)}Q`;
         } else if (amount >= 1e12) {
-            return `${formatAmount(amount / 1e12)}T`;
+            return `${formatAmount(amount / 1e12).toFixed(1)}T`;
         } else if (amount >= 1e9) {
-            return `${formatAmount(amount / 1e9)}B`;
+            return `${formatAmount(amount / 1e9).toFixed(1)}B`;
         } else if (amount >= 1e6) {
-            return `${formatAmount(amount / 1e6)}M`;
+            return `${formatAmount(amount / 1e6).toFixed(1)}M`;
         } else if (amount >= 1e3) {
-            return `${formatAmount(amount / 1e3)}K`;
+            return `${formatAmount(amount / 1e3).toFixed(1)}K`;
         } else {
-            return amount;
+            return amount.toFixed(1);
         }
     }
 
@@ -296,7 +296,7 @@ function CampaignSelectedPage() {
                                     <div style={styles.drawerContainer}>
                                         <span style={styles.drawerTitle}> Donation </span>
 
-                                        <label style={styles.label}>Name (not mandatory): </label>
+                                        <label style={styles.label}>Name (optional): </label>
                                         <input
                                             type="text"
                                             name="name"
@@ -315,7 +315,7 @@ function CampaignSelectedPage() {
                                             required
                                         />
 
-                                        <label style={styles.label}>Message: </label>
+                                        <label style={styles.label}>Message (optional): </label>
                                         <textarea
                                             name="comment"
                                             value={donation.comment}

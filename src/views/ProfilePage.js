@@ -132,7 +132,7 @@ function ProfilePage() {
         } else if (amount >= 1000) {
             return `${(amount / 1000).toFixed(1)}K`;
         } else {
-            return amount;
+            return amount.toFixed(1);
         }
     };
 

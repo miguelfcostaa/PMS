@@ -466,8 +466,9 @@ function CampaignSelectedPage() {
                                             style={styles.shopItemImage} 
                                         />
                                         
-
-                                        <span style={styles.shopItemName}> {item.itemName || 'Unknown Item'} </span>
+                                        <div style={styles.shopItemName}>
+                                            <span> {item.itemName || 'Unknown Item'} </span>
+                                        </div>
                                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
                                             <span style={styles.shopItemPrice}> {item.itemPrice ?? 0} </span>
                                             {matchingCoin && (
@@ -913,6 +914,12 @@ const styles = {
         font: 'Inter',
         color: '#000000',
         marginTop: '1vh',
+        textAlign: 'center',
+        maxHeight: '5vh',
+        maxWidth: '25vh',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
     },
     shopItemPrice: {
         fontSize: '3vh',

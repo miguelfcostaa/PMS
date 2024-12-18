@@ -174,6 +174,39 @@ function CampaignSelectedPage() {
         setIsModalOpen(false);
     }
 
+    function formatAmount(amount) {
+        let formattedAmount = amount.toFixed(1);
+        if (formattedAmount.endsWith('.0')) {
+            formattedAmount = formattedAmount.slice(0, -2);
+        }
+        return formattedAmount;
+    }
+        
+    function formatLargeAmount(amount) {
+        if (amount >= 1e15) {
+            return `${formatAmount(amount / 1e15)}Q`;
+        } else if (amount >= 1e12) {
+            return `${formatAmount(amount / 1e12)}T`;
+        } else if (amount >= 1e9) {
+            return `${formatAmount(amount / 1e9)}B`;
+        } else if (amount >= 1e6) {
+            return `${formatAmount(amount / 1e6)}M`;
+        } else if (amount >= 1e3) {
+            return `${formatAmount(amount / 1e3)}K`;
+        } else {
+            return amount;
+        }
+    }
+
+    function handleDisplayContact(contact) {  
+        // Verifica se o contato é uma string e se já está formatado como "123 456 789"
+        if (typeof contact === 'string' && !/^\d{3} \d{3} \d{3}$/.test(contact)) {
+            // Formata o contato se não estiver no formato desejado
+            contact = contact.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+        }
+        return contact;
+    }
+
     return (
         <>
             <NavBar />
@@ -221,24 +254,24 @@ function CampaignSelectedPage() {
                             style={styles.image}
                         />
                         <div style={styles.donateBox}>
-                            <span style={styles.currentAmount}> € {campaign.currentAmount} </span>
-                            <span style={styles.donated}>of € {campaign.goal} </span>
+                            <span style={styles.currentAmount}> € {formatLargeAmount(campaign.currentAmount)} </span>
+                            <span style={styles.donated}>of € {formatLargeAmount(campaign.goal)} </span>
 
                             <div style={styles.progressBar}>
                                 <div
                                     style={{
                                         ...styles.progress,
-                                        width: `${Math.min(progressPercentage, 100)}%`,
+                                        width: `${(Math.min(progressPercentage, 100))}%`,
                                     }}
                                 >
                                     {progressPercentage >= 20 && (
-                                        <span style={styles.progressNumber}> {progressPercentage}% </span>
+                                        <span style={styles.progressNumber}> {formatLargeAmount(Math.round(progressPercentage))}% </span>
                                     )}
                                 </div>
                             </div>
 
                             <div style={styles.timeToGoal}>
-                                <span> {campaign.timeToCompleteGoal} days left </span>
+                                <span> {formatLargeAmount(campaign.timeToCompleteGoal)} days left </span>
                             </div>
                             <div>
                                 <div
@@ -322,7 +355,7 @@ function CampaignSelectedPage() {
                         <div style={styles.contactAndOther}>
                             <div style={styles.contactAndCategory}>
                                 <div style={styles.contact}>
-                                    <span> Contact Details: {campaign.contact} </span>
+                                    <span> Contact Details: {handleDisplayContact(campaign.contact)} </span>
                                 </div>
                                 <div style={styles.category}>
                                     <span> {campaign.category} </span>
@@ -380,7 +413,7 @@ function CampaignSelectedPage() {
                                             </span>
                                         </div>
                                         <div style={styles.ammountDonated}>
-                                            <span> € {donater?.donationDetails?.[1] || '0'} </span>
+                                            <span> € {formatLargeAmount(donater?.donationDetails?.[1]) || '0'} </span>
                                         </div>
                                     </div>
                                 ))
@@ -743,6 +776,9 @@ const styles = {
         fontSize: 24,
         font: 'Inter',
         color: '#666666',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
     },
     drawerContainer: {
         display: 'flex',

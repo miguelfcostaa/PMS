@@ -39,7 +39,6 @@ function CreateCampaignPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validar os campos obrigatórios
         if (!formData.image) {
             alert('Please upload a campaign image.');
             return;
@@ -223,6 +222,7 @@ function CreateCampaignPage() {
                                             onChange={handleInputChange}
                                             style={styles.input}
                                             required
+                                            max={365}
                                         />
                                     </div>
                                 </div>
@@ -232,12 +232,13 @@ function CreateCampaignPage() {
                                 <div style={styles.inputContainer}>
                                     <label style={styles.label}>Contact:</label>
                                     <input
-                                        type="text"
+                                        type="number"
                                         name="contact"
                                         value={formData.contact}
                                         onChange={handleInputChange}
                                         style={styles.input}
                                         required
+                                        max={999999999}
                                     />
                                 </div>
 
@@ -276,7 +277,7 @@ function CreateCampaignPage() {
                                     <div style={styles.inputHalf}>
                                         <label style={styles.label}>Campaign Image:</label>
                                         <div
-                                            style={styles.inputCoinImage}
+                                            style={styles.inputCampaignImage}
                                             onClick={() => document.getElementById('campaignFileInput').click()}
                                         >
                                             {formData.image ? (
@@ -286,9 +287,9 @@ function CreateCampaignPage() {
                                                         alt="Campaign Image"
                                                         style={{
                                                             maxWidth: '50%',
-                                                            maxHeight: '140px',
+                                                            maxHeight: '170px',
                                                             objectFit: 'cover',
-                                                            borderRadius: '50%',
+                                                            borderRadius: '1vh',
                                                         }}
                                                     />
                                                     <button
@@ -349,7 +350,7 @@ function CreateCampaignPage() {
                                                     <img
                                                         src={formData.coin.image}
                                                         alt="Coin"
-                                                        style={{ maxWidth: '50%', maxHeight: '140px', objectFit: 'cover', borderRadius: '50%' }}
+                                                        style={{ maxWidth: '50%', maxHeight: '140px', objectFit: 'cover', borderRadius: '100%' }}
                                                     />
                                                     <button
                                                         onClick={(e) => {
@@ -391,10 +392,24 @@ function CreateCampaignPage() {
                                             alert('Please fill in all required fields.');
                                             return;
                                         }
+                                        if (formData.contact.toString().length !== 9) {
+                                            alert('Contact must have exactly 9 digits.');
+                                            return;
+                                        }
+                                        if (formData.timeToCompleteGoal > 365) {
+                                            alert('Time to complete goal must be less than 365 days.');
+                                            return;
+                                        }
+
                                         if (formData.goal <= 0) {
                                             alert('Goal must be a positive number.');
                                             return;
                                         }
+                                        else if (formData.goal > 1e15) {
+                                            alert('Goal must be less than 1 quadrillion.');
+                                            return;
+                                        }
+
                                         if (formData.timeToCompleteGoal <= 0) {
                                             alert('Time to complete goal must be a positive number.');
                                             return;
@@ -673,6 +688,7 @@ const styles = {
     inputHalf: {
         width: '47%',
     },
+
     inputContainer: {
         marginBottom: 10,
     },
@@ -696,6 +712,24 @@ const styles = {
         alignItems: 'center',
         width: '106%',
         height: "15.5vh",
+        marginTop: 10,
+        paddingTop: '50px',
+        paddingBottom: '50px',
+        fontSize: '2vh',
+        borderRadius: '1vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        marginBottom: 20,
+    },
+    inputCampaignImage:{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '106%',
+        height: "27.5vh",
         marginTop: 10,
         paddingTop: '50px',
         paddingBottom: '50px',

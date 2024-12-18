@@ -190,9 +190,9 @@ router.post('/donate/:id', async (req, res) => {
 
         // Procurar o desafio com o título da campanha
         const challengeIndex = creator.challenges.findIndex(challenge =>
-            String(challenge.associatedCampaign) === String(campaign._id) &&
-            challenge.name.includes(campaign.title)
+            challenge.associatedCampaign && String(challenge.associatedCampaign) === String(campaign._id)
         );
+        
 
         if (challengeIndex !== -1) {
             const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);

@@ -220,56 +220,6 @@ router.put('/:userId/coins', async (req, res) => {
     }
 });
 
-router.get('/challenges/:userId', async (req, res) => {
-    const { userId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: 'Invalid user ID' });
-    }
-
-    try {
-        const challenges = await Challenge.aggregate([
-            {
-                $lookup: {
-                    from: 'userchallenges', // Coleção de progresso de desafios
-                    localField: '_id', // Campo do desafio
-                    foreignField: 'challengeId', // Campo no progresso
-                    as: 'userProgress', // Nome do campo onde o progresso será anexado
-                },
-            },
-            {
-                $unwind: {
-                    path: '$userProgress',
-                    preserveNullAndEmptyArrays: true, // Permitir desafios sem progresso
-                },
-            },
-            {
-                $match: {
-                    $or: [
-                        { 'userProgress.userId': mongoose.Types.ObjectId(userId) }, // Progresso do usuário
-                        { 'userProgress': null }, // Ou desafios ainda não iniciados
-                    ],
-                },
-            },
-            {
-                $project: {
-                    _id: 1,
-                    description: 1,
-                    isMedal: 1,
-                    image: 1,
-                    progress: { $ifNull: ['$userProgress.progress', 0] }, // Progresso ou 0
-                    completed: { $ifNull: ['$userProgress.completed', false] }, // Concluído ou falso
-                },
-            },
-        ]);
-
-        res.status(200).json(challenges);
-    } catch (error) {
-        console.error('Error fetching challenges:', error);
-        res.status(500).json({ error: 'Error fetching challenges' });
-    }
-});
-
 router.get('/list-challenges/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -354,55 +304,30 @@ router.delete('/challenges/:challengeId', async (req, res) => {
     }
 });
 
+// **Rota para obter desafios de um utilizador**
 router.get('/challenges/:userId', async (req, res) => {
     const { userId } = req.params;
 
+    // Verifica se o userId é um ObjectId válido
     if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ message: 'Invalid user ID' });
     }
 
     try {
-        const challenges = await Challenge.aggregate([
-            {
-                $lookup: {
-                    from: 'userchallenges', // Coleção de progresso de desafios
-                    localField: '_id', // Campo do desafio
-                    foreignField: 'challengeId', // Campo no progresso
-                    as: 'userProgress', // Nome do campo onde o progresso será anexado
-                },
-            },
-            {
-                $unwind: {
-                    path: '$userProgress',
-                    preserveNullAndEmptyArrays: true, // Permitir desafios sem progresso
-                },
-            },
-            {
-                $match: {
-                    $or: [
-                        { 'userProgress.userId': mongoose.Types.ObjectId(userId) }, // Progresso do usuário
-                        { 'userProgress': null }, // Ou desafios ainda não iniciados
-                    ],
-                },
-            },
-            {
-                $project: {
-                    _id: 1,
-                    description: 1,
-                    isMedal: 1,
-                    image: 1,
-                    progress: { $ifNull: ['$userProgress.progress', 0] }, // Progresso ou 0
-                    completed: { $ifNull: ['$userProgress.completed', false] }, // Concluído ou falso
-                },
-            },
-        ]);
+        // Busca o utilizador e seleciona apenas o campo "challenges"
+        const user = await User.findById(userId).select('challenges');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-        res.status(200).json(challenges);
+        res.status(200).json(user.challenges);
     } catch (error) {
-        console.error('Error fetching challenges:', error);
+        console.error('Error fetching challenges:', error.message);
         res.status(500).json({ error: 'Error fetching challenges' });
     }
 });
+
 
 router.put('/challenges/:userId/:challengeId', async (req, res) => {
     const { userId, challengeId } = req.params;

@@ -3,87 +3,105 @@ import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
 function Challenges() {
-  const [challengesData, setChallengesData] = useState([]);
+    const [challengesData, setChallengesData] = useState([]);
     const [rectangles, setRectangles] = useState([
         {
             id: 1,
             squares: [
-                { id: 1, image: require("../assets/plus-icon-simple.png"), description: "Create a Campaign", progress: 0 },
-                { id: 2, image: require("../assets/donate.png"), description: "Donate at least 500€ in any campaign", progress: 0 },
-                { id: 3, image: require("../assets/goal.png"), description: "Make your campaign reach its goal.", progress: 0 },
+                { id: 1, image: require("../assets/plus-icon-simple.png"), description: "Create a Campaign", progress: 0, name: "Create a Campaign" },
+                { id: 2, image: require("../assets/donate.png"), description: "Donate at least 500€ in any campaign", progress: 0, name: "Donate at least 500€ in any campaign" },
+                { id: 3, image: require("../assets/goal.png"), description: "Make your campaign reach its goal.", progress: 0, name: "Make your campaign reach its goal." },
                 { id: 4, image: require("../assets/medal-bronze.png"), description: "Reward: Helping the aid", isMedal: true }
             ],
         },
     ]);
 
+    // Função para buscar os desafios do utilizador
+    const fetchChallengesData = async () => {
+        try {
+            const userId = localStorage.getItem('userId'); 
+            if (!userId) {
+                console.error("userId is not defined in localStorage");
+                return;
+            }
+    
+            const response = await fetch(`http://localhost:5000/api/auth/challenges/${userId}`, { 
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+    
+            if (!response.ok) throw new Error("Failed to fetch challenges data");
+    
+            const challenges = await response.json();
+            
+            console.log('Challenges received from backend:', challenges);
+    
+            setChallengesData(challenges); 
+            updateRectangles(challenges); 
+        } catch (error) {
+            console.error("Erro ao buscar dados dos desafios:", error);
+        }
+    };
+    
+    
+    // Atualiza os desafios no front-end, sincronizando com o back-end
+    const updateRectangles = (challenges) => {
+        setRectangles((prevRectangles) => {
+            return prevRectangles.map((rectangle) => {
+                const updatedSquares = rectangle.squares.map((square) => {
+                    const matchingChallenge = challenges.find((challenge) => {
+                        console.log("Comparing:", challenge.name, square.name); // Debug
+                        const challengeName = challenge.name?.trim().toLowerCase();
+                        const squareName = square.name?.trim().toLowerCase();
+    
+                        return challengeName && squareName && challengeName === squareName;
+                    });
+    
+                    if (matchingChallenge) {
+                        let progressPercentage = 0;
+    
+                        // Lógica específica para cada desafio
+                        if (matchingChallenge.name.toLowerCase().includes("doar €500")) {
+                            progressPercentage = Math.min((matchingChallenge.progress / 500) * 100, 100);
+                        } else if (matchingChallenge.name.toLowerCase().includes("meta da campanha")) {
+                            progressPercentage = Math.min(matchingChallenge.progress, 100);
+                        } else {
+                            progressPercentage = Math.min(matchingChallenge.progress, 100);
+                        }
+    
+                        return {
+                            ...square,
+                            progress: Math.round(progressPercentage),
+                            completed: progressPercentage === 100
+                        };
+                    }
+    
+                    return square;
+                });
+    
+                return { ...rectangle, squares: updatedSquares };
+            });
+        });
+    };
+    
+    
+    
+
+    // Atualização automática a cada 30 segundos (polling)
     useEffect(() => {
-      const fetchChallengesData = async () => {
-          try {
-              const userId = localStorage.getItem('userId'); // Obtém o userId do localStorage
-              if (!userId) {
-                  console.error("userId is not defined in localStorage");
-                  return;
-              }
-  
-              const response = await fetch(`http://localhost:5000/api/user/challenges/${userId}`, {
-                  headers: {
-                      Authorization: `Bearer ${localStorage.getItem('token')}`,
-                  },
-              });
-  
-              if (!response.ok) throw new Error("Failed to fetch challenges data");
-  
-              const challenges = await response.json();
-              console.log("Challenges fetched from API:", challenges);
-              setChallengesData(challenges);
-  
-              const updatedRectangles = rectangles.map((rectangle) => {
-                  const updatedSquares = rectangle.squares.map((square) => {
-                      console.log("Square being checked:", square);
-  
-                      const matchingChallenge = challenges.find(
-                          (challenge) => challenge.name === square.name
-                      );
-  
-                      if (matchingChallenge) {
-                          console.log("Matching challenge:", matchingChallenge);
-  
-                          let progressPercentage = 0;
-  
-                          if (matchingChallenge.name === "Create a Campaign") {
-                              progressPercentage = matchingChallenge.progress;
-                          } else if (matchingChallenge.name === "Donate at least 500€ in any campaign") {
-                              const totalDonated = matchingChallenge.progress;
-                              console.log("Total Donated:", totalDonated);
-                              progressPercentage = Math.min(Math.round((totalDonated / 500) * 100), 100);
-                          } else if (matchingChallenge.name === "Make your campaign reach its goal.") {
-                              const campaignProgress = matchingChallenge.progress;
-                              console.log("Campaign Progress:", campaignProgress);
-                              progressPercentage = Math.min(Math.round(campaignProgress), 100);
-                          }
-  
-                          console.log(
-                              `Challenge: ${matchingChallenge.name}, Progress: ${progressPercentage}%`
-                          );
-  
-                          square.progress = progressPercentage;
-                      }
-                      return square;
-                  });
-  
-                  return { ...rectangle, squares: updatedSquares };
-              });
-  
-              console.log("Updated Rectangles:", updatedRectangles);
-              setRectangles(updatedRectangles);
-          } catch (error) {
-              console.error("Erro ao buscar dados dos desafios:", error);
-          }
-      };
-  
-      fetchChallengesData();
-  }, [rectangles]); // Retire o userId do array de dependências
-  
+        fetchChallengesData();
+
+        const interval = setInterval(() => {
+            fetchChallengesData();
+        }, 30000); // Atualiza os dados a cada 30 segundos
+
+        return () => clearInterval(interval); // Limpa o intervalo ao desmontar o componente
+    }, []); // O array vazio faz com que isso só ocorra na montagem
+
+
+    
+
     return (
         <>
             <NavBar />
@@ -115,11 +133,15 @@ function Challenges() {
                                                 <div
                                                     style={{
                                                         ...styles.progress,
-                                                        width: `${square.progress}%`, 
+                                                        width: `${square.progress}%`,
                                                     }}
                                                 ></div>
                                             </div>
-                                            <p style={styles.percentage}>{square.progress}%</p>
+                                            <p style={styles.percentage}>
+                                                {square.progress === 100
+                                                    ? "Challenge Completed"
+                                                    : `${square.progress}%`}
+                                            </p>
                                         </>
                                     )}
                                 </div>
@@ -144,7 +166,7 @@ const styles = {
         justifyContent: "space-around",
         flexDirection: "column",
         padding: "20px",
-        marginTop: "60px",
+        marginTop: "10px",
         gap: "20px"
     },
     rectangle: {
@@ -152,27 +174,31 @@ const styles = {
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
-        width: "1400px",
-        height: "375px",
+        flexWrap: "wrap", 
+        width: "100%", 
+        height: "auto", 
         padding: "10px",
         backgroundColor: "#f0f0f0",
         borderRadius: "8px",
         boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
     },
     square: {
-        marginLeft: "20px",
-        height: "250px",
-        width: "250px",
+        margin: "20px", 
+        height: "250px", 
+        width: "250px", 
         textAlign: "center",
         backgroundColor: "#ddd",
         borderRadius: "5px",
         padding: "50px",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)", 
+        transition: "transform 0.2s",
     },
     image: {
         width: "100px",
         height: "100px",
         marginTop: "20px",
         marginBottom: "10px",
+        objectFit: "contain",
     },
     description: {
         fontSize: "18px",
@@ -214,6 +240,7 @@ const styles = {
         width: "150px",
         height: "150px",
         marginBottom: "10px",
+        objectFit: "contain",
     },
 };
 

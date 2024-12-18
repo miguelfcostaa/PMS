@@ -187,17 +187,17 @@ function CampaignSelectedPage() {
         
     function formatLargeAmount(amount) {
         if (amount >= 1e15) {
-            return `${formatAmount(amount / 1e15).toFixed(1)}Q`;
+            return `${formatAmount(amount / 1e15)}Q`;
         } else if (amount >= 1e12) {
-            return `${formatAmount(amount / 1e12).toFixed(1)}T`;
+            return `${formatAmount(amount / 1e12)}T`;
         } else if (amount >= 1e9) {
-            return `${formatAmount(amount / 1e9).toFixed(1)}B`;
+            return `${formatAmount(amount / 1e9)}B`;
         } else if (amount >= 1e6) {
-            return `${formatAmount(amount / 1e6).toFixed(1)}M`;
+            return `${formatAmount(amount / 1e6)}M`;
         } else if (amount >= 1e3) {
-            return `${formatAmount(amount / 1e3).toFixed(1)}K`;
+            return `${formatAmount(amount / 1e3)}K`;
         } else {
-            return amount.toFixed(1);
+            return amount;
         }
     }
 
@@ -457,7 +457,6 @@ function CampaignSelectedPage() {
                     <div style={styles.shopContainer}>
                         {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
                             campaign.shopItems.map((item, index) => {
-                                const matchingCoin = coins.find((coin) => coin.coinName === campaign?.coin?.name);
                                 return (
                                     <div key={index} style={styles.shopItemBox}>
                                         <img 
@@ -471,12 +470,12 @@ function CampaignSelectedPage() {
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
                                             <span style={styles.shopItemPrice}> {item.itemPrice ?? 0} </span>
-                                            {matchingCoin && (
+                                            {coins.length > 0 && campaign.coin && campaign.coin.name && (
                                                 <div style={styles.coinCircle}>
-                                                    <img
-                                                        src={matchingCoin.coinImage}
-                                                        alt={matchingCoin.coinName}
-                                                        style={styles.coinImage}
+                                                    <img 
+                                                        src={campaign.coin.image} 
+                                                        alt={`${campaign.coin.name} coin`} 
+                                                        style={styles.coinImage} 
                                                     />
                                                 </div>
                                             )}

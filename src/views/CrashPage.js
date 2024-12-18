@@ -535,7 +535,7 @@ const CrashPage = () => {
           <option value="">Choose a coin</option>
           {coins.map((coin) => (
             <option key={coin.coinName} value={coin.coinName}>
-              {coin.coinName} (Saldo: {coin.amount})
+              {coin.coinName} (Saldo: {coin.amount.toFixed(1)})
             </option>
           ))}
         </select>
@@ -565,7 +565,7 @@ const CrashPage = () => {
             <div key={index} style={styles.leaderboardItem}>
               <span>{index + 1}</span>
               <span>{user.name}</span>
-              <span>{user.coinsWon} coins</span>
+              <span>{user.coinsWon.toFixed(1)} coins</span>
             </div>
           ))}
         </div>

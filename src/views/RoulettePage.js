@@ -361,7 +361,7 @@ function RoulettePage() {
                                                     }}
                                                 />
                                                 <span style={styles.coinAmount}>
-                                                    {coin.amount}
+                                                    {coin.amount.toFixed(1)}
                                                 </span>
                                                 <div style={styles.coinCircle}>
                                                     <img

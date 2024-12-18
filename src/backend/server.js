@@ -3,9 +3,10 @@ const http = require('http');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./db');
-const { initIO } = require('./socket'); // Importar initIO para inicializar o io
+const { initIO } = require('./socket');
 const authRoutes = require('./routes/authRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
+const mongoose = require('mongoose');
 
 dotenv.config({ path: './src/backend/.env' });
 
@@ -24,7 +25,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/campaign', campaignRoutes);
 
-// Inicializar o io depois que o servidor for criado
 initIO(server);
 
 app.use((err, req, res, next) => {
@@ -42,9 +42,24 @@ process.on('unhandledRejection', (reason, promise) => {
     process.exit(1);
 });
 
+process.on('SIGINT', async () => {
+    console.log('SIGINT signal received: closing MongoDB connection');
+    await mongoose.connection.close();
+    process.exit(0);
+});
+
+setInterval(async () => {
+    try {
+        const connections = await mongoose.connection.db.admin().serverStatus();
+        console.log('Current connections:', connections.connections.current);
+    } catch (error) {
+        console.error('Error checking current connections:', error);
+    }
+}, 60000); // Exibe o número de conexões a cada 60 segundos
+
 (async () => {
     try {
-        await connectDB();
+        await connectDB(); // Usa a mesma conexão compartilhada
         const PORT = process.env.PORT || 5000;
         server.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

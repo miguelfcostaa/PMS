@@ -1,14 +1,12 @@
 const express = require('express');
-const Campaign = require('../models/Campaign');
-const User = require('../models/User');
+const Campaign = require('../models/Campaign'); // Usa a conexão já estabelecida no db.js
+const User = require('../models/User'); // Reutilização do modelo User sem criar novas conexões
 
 const router = express.Router();
 
 // Criar nova campanha
 router.post('/create-campaign', async (req, res) => {
     try {
-        console.log('Received campaign registration request:', req.body);
-
         const { 
             title, 
             description, 
@@ -24,7 +22,6 @@ router.post('/create-campaign', async (req, res) => {
             creator 
         } = req.body;
 
-        // Verifica se todos os campos obrigatórios estão presentes
         if (!title || !description || goal == null || timeToCompleteGoal == null || !contact || !nameBankAccount || !bankAccount || !category || !creator) {
             return res.status(400).json({ error: 'All fields are required' });
         }
@@ -41,7 +38,6 @@ router.post('/create-campaign', async (req, res) => {
             return res.status(400).json({ error: 'Coin (with name and image) is required' });
         }
 
-        // Criar a campanha
         const newCampaign = new Campaign({
             title,
             description,
@@ -61,7 +57,6 @@ router.post('/create-campaign', async (req, res) => {
 
         await newCampaign.save();
 
-        // Tentar atualizar desafios do utilizador
         const user = await User.findById(creator).select('challenges');
         if (user) {
             user.challenges.push({

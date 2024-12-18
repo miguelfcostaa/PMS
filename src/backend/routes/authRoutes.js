@@ -1,10 +1,11 @@
 const express = require('express');
-const User = require('../models/User');
+const User = require('../models/User'); // Usa a conexão já estabelecida pelo mongoose no arquivo db.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const verifyUser = require('../verificationJob');
-const mongoose = require('mongoose');
 const multer = require('multer');
+const mongoose = require('mongoose');
+
 
 const router = express.Router();
 
@@ -21,13 +22,11 @@ router.post('/register', async (req, res) => {
     try {
         const { firstName, lastName, email, password, TIN, passportNumber, documents } = req.body;
 
-        // Verifica se o email já está registado
         const userExists = await User.findOne({ email }).select('_id');
         if (userExists) {
             return res.status(400).json({ message: 'Email already registered' });
         }
 
-        // Hashear a palavra-passe
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({
             firstName,
@@ -42,11 +41,9 @@ router.post('/register', async (req, res) => {
             documents,
         });
 
-        // Salvar o utilizador na base de dados
         await newUser.save();
         console.log(`User registered successfully: ${newUser.email}`);
 
-        // Agendar a verificação do utilizador
         setImmediate(() => verifyUser(newUser._id));
 
         res.status(201).json({ message: 'User registered successfully', userId: newUser._id });
@@ -55,6 +52,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // Rota para upload de imagem de perfil
 router.put('/:userId/profile-picture', upload.single('profilePicture'), async (req, res) => {

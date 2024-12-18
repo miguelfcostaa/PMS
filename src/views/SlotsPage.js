@@ -164,12 +164,6 @@ function SlotsPage() {
             </div>
             
             <h1 style={styles.header}><b>Slots do Coelho</b></h1>
-            <button 
-                style={sendoUsado ? styles.buttonUsado : styles.button} 
-                onClick={sendoUsado ? null : rollAll}
-                disabled={sendoUsado}> 
-                Roll All 
-            </button>
 
             <div style={styles.controlsContainer}>
 
@@ -197,6 +191,14 @@ function SlotsPage() {
                 />
             </div>
 
+            <button 
+                style={sendoUsado ? styles.buttonUsado : styles.button} 
+                onClick={sendoUsado ? null : rollAll}
+                disabled={sendoUsado}> 
+                Roll All 
+            </button>
+
+
         </div>
 
 
@@ -209,8 +211,9 @@ const styles = {
     header:{
         position:'absolute',
         top: '14vh',
-        color:'black',
-        fontSize:'6vh'
+        color:'lightgray',
+        fontSize:'6vh',
+        textShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 1)',
     },
     input:{
         border: '0.5vh solid black',
@@ -218,7 +221,7 @@ const styles = {
         width: '10vw',
         alignItems:'left',
         color:'lightgray',
-        backgroundImage: 'linear-gradient(to right, gray, #474747, gray)',
+        backgroundImage: 'linear-gradient(to right, #262626, #474747, #262626)',
         fontWeight:'10vh',
         height: '5vh',
         fontSize:'2vh'
@@ -240,11 +243,9 @@ const styles = {
         height: "10vh",
         border: 'none',
         background: '#425576',
-        boxshadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-        borderradius: '5px',
         cursor: 'pointer',
         fontSize: '4vh',
-        borderRadius: "20px",
+        borderRadius: "20vh",
         color:"#C7D5E5",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
     },
@@ -252,16 +253,14 @@ const styles = {
     buttonUsado:{
         top: '78vh',
         position:'absolute',
-        padding: '10px 20px',
+        padding: '1vh 2vw',
         width: "25vw",
         height: "10vh",
         border: 'none',
         background: ' rgba(0, 0, 0, 0.25)',
-        boxshadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-        borderradius: '5px',
         cursor: 'pointer',
         fontSize: '4vh',
-        borderRadius: "20px",
+        borderRadius: "20vh",
         color:"#C7D5E5",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
     },
@@ -276,7 +275,7 @@ const styles = {
         padding: 0.15 * icon_width + 'vh',
         border: '2vh solid black',
         borderRadius: '5vh',
-        backgroundImage: 'linear-gradient(to right, gray, lightgray, gray)',
+        backgroundImage: 'linear-gradient(to right, #474747, gray, #474747)',
         borderRadius: '1vh',
     },
 

@@ -208,25 +208,28 @@ function SlotsPage() {
 const styles = {
     header:{
         position:'absolute',
-        marginTop: '-25vh',
-        color:'white',
+        top: '14vh',
+        color:'black',
         fontSize:'6vh'
     },
     input:{
-        border: '2px solid black',
-        borderRadius: '4px',
-        width: 'auto',
+        border: '0.5vh solid black',
+        borderRadius: '1vh',
+        width: '10vw',
         alignItems:'left',
         color:'lightgray',
-        backgroundImage: 'linear-gradient(to right, #731919, #9e1919, #731919)',
-        fontWeight:'10vh'
+        backgroundImage: 'linear-gradient(to right, gray, #474747, gray)',
+        fontWeight:'10vh',
+        height: '5vh',
+        fontSize:'2vh'
     },
 
     controlsContainer:{
-        marginTop:'97vh',
+        top:'80vh',
         position:'absolute',
         display: "flex",
         gap:'30vw',
+        position:'absolute'
     },
 
     button:{
@@ -266,17 +269,15 @@ const styles = {
     slot:{
         position: 'relative',
         width: (num_reels) * 0.2 * icon_width + 'vh',
-        height: 0.51 * icon_height + 'vh',
+        height: 0.4 * icon_height + 'vh',
         display: 'flex',
         top:'10vh',
         justifyContent: 'space-between',
-        padding: 0.6 * icon_width + 'px',
-        paddingLeft: 3 * icon_width + 'px',
-        paddingRight: 3 * icon_width + 'px',
+        padding: 0.15 * icon_width + 'vh',
         border: '2vh solid black',
         borderRadius: '5vh',
-        backgroundImage: 'linear-gradient(to right, #e05e1d, #9e1919, #e05e1d)',
-        borderRadius: '3px',
+        backgroundImage: 'linear-gradient(to right, gray, lightgray, gray)',
+        borderRadius: '1vh',
     },
 
     faixa: {

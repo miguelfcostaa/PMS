@@ -7,19 +7,19 @@ const router = express.Router();
 // Criar nova campanha
 router.post('/create-campaign', async (req, res) => {
     try {
-        const { 
-            title, 
-            description, 
-            goal, 
-            timeToCompleteGoal, 
-            contact, 
-            nameBankAccount, 
-            bankAccount, 
-            category, 
-            image, 
-            shopItems, 
-            coin, 
-            creator 
+        const {
+            title,
+            description,
+            goal,
+            timeToCompleteGoal,
+            contact,
+            nameBankAccount,
+            bankAccount,
+            category,
+            image,
+            shopItems,
+            coin,
+            creator
         } = req.body;
 
         if (!title || !description || goal == null || timeToCompleteGoal == null || !contact || !nameBankAccount || !bankAccount || !category || !creator) {
@@ -136,7 +136,7 @@ router.post('/donate/:id', async (req, res) => {
         const campaign = await Campaign.findById(id)
             .populate('creator', 'challenges title') // Popula o creator e pega os challenges
             .select('donators currentAmount goal coin creator title');
-        
+
         if (!campaign) {
             return res.status(404).json({ message: "Campaign not found" });
         }
@@ -179,25 +179,27 @@ router.post('/donate/:id', async (req, res) => {
         }
         await user.save();
 
-        // Buscar o creator da campanha
         const creator = await User.findById(campaign.creator).select('challenges');
         if (!creator) {
             console.error('Creator not found for this campaign.');
             return res.status(404).json({ message: "Creator not found." });
         }
 
+        campaign.currentAmount += donationAmount;
+        await campaign.save();
+
         // Procurar o desafio com o título da campanha
         const challengeIndex = creator.challenges.findIndex(challenge =>
-            String(challenge.associatedCampaign) === String(campaign._id) && 
-            challenge.name.includes(campaign.title) // Usando o título da campanha para identificar o desafio
+            String(challenge.associatedCampaign) === String(campaign._id) &&
+            challenge.name.includes(campaign.title)
         );
 
         if (challengeIndex !== -1) {
             const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
-        
+
             // Atualizar o progresso do desafio
-            creator.challenges[challengeIndex].progress = progressPercentage;
-            creator.challenges[challengeIndex].completed = progressPercentage === 100;
+            creator.challenges[challengeIndex].progress = (Math.min(progressPercentage, 100));
+            creator.challenges[challengeIndex].completed = (Math.min(progressPercentage, 100)) === 100;
 
             // Salvar o progresso atualizado
             await creator.save();
@@ -206,38 +208,40 @@ router.post('/donate/:id', async (req, res) => {
             console.warn('No active challenge found for campaign goal.');
         }
 
-        // Verificar o total de doações feitas pelo usuário
-        const totalDonated = (user.donators || []).reduce((total, donator) => total + donator.donationDetails[1], 0);
-
-        // Definir o valor necessário para o desafio (ex: 500€)
         const donationThreshold = 500;
 
-        // Verifica se o usuário já tem o desafio de doação
-        const existingDonationChallenge = (user.challenges || []).find(challenge =>
-            challenge.name === `Doar €${donationThreshold}`
-        );        
+        const existingDonationChallenge = user.challenges.find(challenge =>
+            challenge.name.includes(`Doar €${donationThreshold}`)
+        );
 
-        // Se o usuário ainda não tiver o desafio, cria o desafio na primeira doação
         if (!existingDonationChallenge) {
+            // Se o desafio não existe, cria um novo
             if (!user.challenges) {
-                user.challenges = [];  // Se for undefined, inicializa como um array vazio
+                user.challenges = []; // Inicializa como array vazio se necessário
             }
 
             user.challenges.push({
                 name: `Doar €${donationThreshold}`,
                 description: `Você atingiu o valor total de €${donationThreshold} em doações.`,
-                progress: Math.min((totalDonated / donationThreshold) * 100, 100),
-                completed: totalDonated >= donationThreshold,
+                progress: Math.min((donationAmount / donationThreshold) * 100, 100),
+                completed: donationAmount >= donationThreshold,
             });
-            await user.save();
             console.log('Donation challenge created successfully.');
         } else {
-            // Se já tiver o desafio, atualize o progresso com o valor total doado
-            existingDonationChallenge.progress = Math.min((totalDonated / donationThreshold) * 100, 100);
-            existingDonationChallenge.completed = totalDonated >= donationThreshold;
-            await user.save();
+            // Se o desafio já existe, atualiza o progresso
+            existingDonationChallenge.progress = Math.min(
+                (existingDonationChallenge.progress || 0) + (donationAmount / donationThreshold) * 100,
+                100
+            );
+            existingDonationChallenge.completed =
+                (existingDonationChallenge.progress || 0) + (donationAmount / donationThreshold) * 100 >= 100;
+
             console.log('Donation challenge progress updated.');
         }
+
+        // Salva o usuário atualizado
+        await user.save();
+
 
         const updatedCampaign = await Campaign.findById(id)
             .select('title description goal currentAmount category contact nameBankAccount bankAccount creator coin shopItems timeToCompleteGoal donators image');

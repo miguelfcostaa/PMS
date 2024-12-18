@@ -24,14 +24,12 @@ function Challenges() {
         }
     ]);
 
-    const [userData, setUserData] = useState(null); // Dados do usuário
-    const [challengesData, setChallengesData] = useState([]); // Dados dos desafios
+    const [userData, setUserData] = useState(null); 
+    const [challengesData, setChallengesData] = useState([]); 
 
-    // Função para buscar os dados do usuário e seus desafios
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Obtendo o ID do usuário logado (a API deve retornar os dados do usuário autenticado)
                 const userResponse = await fetch('http://localhost:5000/api/user/data', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`, // Passando o token do usuário autenticado
@@ -66,14 +64,14 @@ function Challenges() {
                     return { ...rectangle, squares: updatedSquares };
                 });
 
-                setRectangles(updatedRectangles); // Atualiza o estado com os novos progressos
+                setRectangles(updatedRectangles); 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
             }
         };
 
         fetchData();
-    }, [rectangles]); // Rodar sempre que o estado rectangles for alterado
+    }, [rectangles]); 
 
     return (
         <>
@@ -106,7 +104,7 @@ function Challenges() {
                                                 <div
                                                     style={{
                                                         ...styles.progress,
-                                                        width: `${square.progress}%`, // Atualizando a largura da barra de progresso
+                                                        width: `${square.progress}%`, 
                                                     }}
                                                 ></div>
                                             </div>

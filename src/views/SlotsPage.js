@@ -2,10 +2,14 @@ import React, { useState, useEffect}  from 'react';
 import NavBar from '../components/NavBar';
 import axios from "axios";
 import SideBar from '../components/SideBar';
-import background from "../assets/slotreel.webp";
+import background from "../assets/slotreel.jpg";
+import Dropdown from '@mui/joy/Dropdown';
+import Menu from '@mui/joy/Menu';
+import MenuButton from '@mui/joy/MenuButton';
+import MenuItem from '@mui/joy/MenuItem';
 
-const icon_width = 79;
-const icon_height = 79;
+const icon_width = 132;
+const icon_height = 131;
 const num_icons= 9;
 const num_reels = 3;
 const slot = [0,0,0];
@@ -13,37 +17,37 @@ const iconMap = [ "cherry", "plum", "orange", "bell", "bar", "lemon", "melon","b
 const time_per_icon = 100
 let multiplier = 0;
 
-    const roll = (faixa, offset) => {
-        const delta = (offset + 2) * num_icons + Math.round(Math.random() * num_icons);
+const roll = (faixa, offset) => {
+    const delta = (offset + 2) * num_icons + Math.round(Math.random() * num_icons);
 
-        return new Promise((resolve,reject) => {
-            const backgroundPositionY = styles.faixa.backgroundPositionY,
-            targetPosY = backgroundPositionY + delta * icon_height,
-            normTargetPosY = targetPosY % (num_icons * icon_height);
+    return new Promise((resolve,reject) => {
+        const backgroundPositionY = styles.faixa.backgroundPositionY,
+        targetPosY = backgroundPositionY + delta * icon_height,
+        normTargetPosY = targetPosY % (num_icons * icon_height);
 
-            setTimeout(() => {
-                faixa.style.transition = 'background-position-y ' + (8 + 1 * delta) * time_per_icon + 'ms cubic-bezier(.41,-0.01,.63,1.09)';
-                faixa.style.backgroundPositionY = backgroundPositionY + delta * icon_height + 'px';
-            }, offset * 150);
-            
-            setTimeout(() => {
-                faixa.style.transition = 'none';
-                faixa.style.backgroundPositionY = normTargetPosY + 'px';
-                resolve(delta % num_icons);
-            }, (8 + 1 * delta) * time_per_icon + offset * 150); 
-        })
-    }
+        setTimeout(() => {
+            faixa.style.transition = 'background-position-y ' + (8 + 1 * delta) * time_per_icon + 'ms cubic-bezier(.41,-0.01,.63,1.09)';
+            faixa.style.backgroundPositionY = backgroundPositionY + delta * icon_height + 'px';
+        }, offset * 150);
+        
+        setTimeout(() => {
+            faixa.style.transition = 'none';
+            faixa.style.backgroundPositionY = normTargetPosY + 'px';
+            resolve(delta % num_icons);
+        }, (8 + 1 * delta) * time_per_icon + offset * 150); 
+    })
+}
 
 function SlotsPage() {
     const [coins, setCoins] = useState([]);
-    const [selectedCoin, setSelectedCoin] = useState("");
+    const [selectedCoin, setSelectedCoin] = useState(null);
     const [betAmount, setBetAmount] = useState("");
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
     const [sendoUsado, setSendoUsado] = useState(false)
 
     const getSelectedCoinAmount = () => {
-        const coin = coins.find((c) => c.coinName === selectedCoin);
+        const coin = coins.find((c) => c.coinName === selectedCoin.coinName);
         return coin ? coin.amount : 0;
     };
     
@@ -74,39 +78,40 @@ function SlotsPage() {
         if (!selectedCoin || !betAmount) {
             alert("Escolha uma moeda e insira o valor da aposta!");
             return;
-          }
-          if (betAmount > getSelectedCoinAmount()) {
+        }
+        if (betAmount > getSelectedCoinAmount()) {
             alert("Saldo insuficiente!");
             return;
-          }
+        }
           
           
-         setSendoUsado(true);
+        setSendoUsado(true);
 
-          const updatedCoins = coins.map((coin) => {
-            if (coin.coinName === selectedCoin) {
-              return { ...coin, amount: coin.amount - parseFloat(betAmount) };
+        const updatedCoins = coins.map((coin) => {
+            if (coin.coinName === selectedCoin.coinName) {
+            const updatedCoin = { ...coin, amount: coin.amount - parseFloat(betAmount) };
+            setSelectedCoin(updatedCoin);
+            return updatedCoin;
             }
             return coin;
-          });
+        });
+        setCoins(updatedCoins);
       
-          setCoins(updatedCoins);
-      
-          try {
+        try {
             await axios.put(
               `http://localhost:5000/api/auth/${userId}/coins`,
               {
-                coinName: selectedCoin,
+                coinName: selectedCoin.coinName,
                 amount: -parseFloat(betAmount),
               },
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-          } catch (error) {
-            console.error("Erro ao atualizar moedas na base de dados:", error);
-            return;
-          }
+        } catch (error) {
+        console.error("Erro ao atualizar moedas na base de dados:", error);
+        return;
+        }
 
         multiplier = 0;
         const faixaList = document.querySelectorAll('.slot > .faixa');
@@ -131,8 +136,8 @@ function SlotsPage() {
                 if(multiplier !== 0){
                     const winnings = betAmount * multiplier;
                     const updatedCoins = coins.map((coin) => {
-                    if (coin.coinName === selectedCoin) { 
-                        alert('Ganhou ' + winnings + ' ' + coin.coinName);
+                    if (coin.coinName === selectedCoin.coinName) { 
+                        alert('You won ' + winnings + ' coins! Congratulations!');
                         return { ...coin, amount: coin.amount + parseFloat(winnings) };
                     }
                     return coin;
@@ -140,12 +145,20 @@ function SlotsPage() {
                 
                     setCoins(updatedCoins);
                 
-                    axios.put(
-                        `http://localhost:5000/api/auth/${userId}/coins`,
-                        {coinName: selectedCoin,amount: parseFloat(winnings),},
-                        {headers: { Authorization: `Bearer ${token}` },}
-                    );
+                    try {
+                        axios.put(
+                            `http://localhost:5000/api/auth/${userId}/coins`,
+                            {coinName: selectedCoin.coinName,amount: parseFloat(winnings),},
+                            {headers: { Authorization: `Bearer ${token}` },}
+                        );
+                    } catch (error) {
+                        console.error("Erro ao atualizar moedas na base de dados:", error);
+                    }
                 }
+                else {
+                    alert('You lost! Try again!');
+                }
+    
                 setSendoUsado(false);
             })
             .catch(() => {
@@ -153,40 +166,101 @@ function SlotsPage() {
             });
     }
 
+    const handleDisplayedAmount = (amount) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return amount.toFixed(1);
+        }
+    };
+
+
     return (
         <>                    
         <NavBar  />       
         <div style={styles.mainContent}>
-            <div class='slot' style={styles.slot}>
-                <div class='faixa' style={styles.faixa}></div>    
-                <div class='faixa' style={styles.faixa}></div>       
-                <div class='faixa' style={styles.faixa}></div>       
+
+            <div style={styles.container}>
+                <h1 style={styles.header}><b> SLOTS </b></h1>
+                <div class='slot' style={styles.slot}>
+                    <div class='faixa' style={styles.faixa}></div>    
+                    <div class='faixa' style={styles.faixa}></div>       
+                    <div class='faixa' style={styles.faixa}></div>       
+                </div>
             </div>
-            
-            <h1 style={styles.header}><b>Slots do Coelho</b></h1>
-            <button 
-                style={sendoUsado ? styles.buttonUsado : styles.button} 
-                onClick={sendoUsado ? null : rollAll}
-                disabled={sendoUsado}> 
-                Roll All 
-            </button>
 
             <div style={styles.controlsContainer}>
+                <Dropdown>
+                    <MenuButton variant="solid" color="#FFFFFF" style={{ padding: 0 }}>
+                        <div style={styles.coinsContainerDropdown}>
+                            {selectedCoin ? (
+                                <>
+                                    <span style={{...styles.coinAmount, width: '10vh', textAlign: 'start'}}>
+                                        {handleDisplayedAmount(selectedCoin.amount)}
+                                    </span>
+                                    <div style={{ ...styles.coinCircle, width: '4vh', height: '4vh' }}>
+                                        <img
+                                            src={selectedCoin.coinImage}
+                                            alt={selectedCoin.coinName}
+                                            style={styles.coinImage}
+                                        />
+                                    </div>
 
-                <select 
-                    value={selectedCoin}
-                    onChange={(e) => setSelectedCoin(e.target.value)}
-                    style={styles.input}>
+                                </>
+                            ) : (
+                                <>
+                                    <span style={styles.coinText}> Coins </span>
+                                    <img
+                                        src={require('../assets/dropdown-icon.png')}
+                                        alt="Dropdown Icon"
+                                        style={styles.dropdownIcon}
+                                    />
+                                </>
+                            )}
+                        </div>
+                    </MenuButton>
+                    <Menu style={styles.dropdownMenuItem}>
+                        {coins.length > 0 ? (
+                            coins.map((coin, index) => (
+                                <div style={styles.coinRow} key={index}>
+                                    <MenuItem onClick={() => setSelectedCoin(coin)}>
+                                        <img
+                                            src={require('../assets/plus-icon.png')}
+                                            alt="Add Icon"
+                                            style={styles.addCoinsIcon}
+                                            onClick={() => {
+                                                if (!coin.campaignId) {
+                                                    alert('Campaign ID não encontrado para esta moeda.');
+                                                    return;
+                                                }
+                                                window.location.href = `/campaign/${coin.campaignId}`;
+                                            }}
+                                        />
+                                        <span style={styles.coinAmount}>
+                                            {handleDisplayedAmount(coin.amount)}
+                                        </span>
+                                        <div style={styles.coinCircle}>
+                                            <img
+                                                src={coin.coinImage}
+                                                alt={coin.coinName}
+                                                style={styles.coinImage}
+                                                title={coin.coinName} 
+                                            />
+                                        </div>
+                                    </MenuItem>
+                                </div>
+                            ))
+                        ) : (
+                            <MenuItem>
+                                <span>No coins available</span>
+                            </MenuItem>
+                        )}
+                    </Menu>
+                </Dropdown>
 
-                    <option value="">Choose a coin</option>
 
-                    {coins.map((coin) => (
-                        <option key={coin.coinName} value={coin.coinName}>
-                        {coin.coinName} (Saldo: {coin.amount})
-                        </option>
-                    ))}
-
-                </select>
 
                 <input
                     type="number"
@@ -195,6 +269,22 @@ function SlotsPage() {
                     onChange={(e) => setBetAmount(e.target.value)}
                     style={styles.input}
                 />
+
+                { sendoUsado ? (
+                    <button 
+                        style={styles.button} 
+                        disabled
+                    > 
+                        Roll All
+                    </button>
+                ) : (
+                    <button 
+                        style={styles.button} 
+                        onClick={rollAll}
+                    > 
+                        Roll All
+                    </button>
+                )}
             </div>
 
         </div>
@@ -206,83 +296,79 @@ function SlotsPage() {
 }
 
 const styles = {
-    header:{
-        position:'absolute',
-        marginTop: '-25vh',
-        color:'white',
-        fontSize:'6vh'
+    mainContent: {
+        marginTop: '5vh',
+        marginLeft: '14.75vw',
+        font: 'Inter',
+        display: 'flex',
+        flexDirection: 'column',
+	    justifyContent: 'center',
+	    alignItems: 'center',
     },
-    input:{
-        border: '2px solid black',
-        borderRadius: '4px',
-        width: 'auto',
-        alignItems:'left',
-        color:'lightgray',
-        backgroundImage: 'linear-gradient(to right, #731919, #9e1919, #731919)',
-        fontWeight:'10vh'
+
+    header:{
+        color:'white',
+        fontSize:'6vh',
+        textAlign:'center',
+        margin: 0,
+        marginBottom: '2vh',
+        padding: 0,
     },
 
     controlsContainer:{
-        marginTop:'97vh',
-        position:'absolute',
+        marginTop:'2vh',
         display: "flex",
-        gap:'30vw',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '2vh',
     },
 
     button:{
-        top: '78vh',
-        position:'absolute',
-        padding: '10px 20px',
-        width: "25vw",
-        height: "10vh",
+        height: "6vh",
+        width: "22.2vh",
+        borderRadius: "2vh",
+        backgroundColor: '#1FA8FE',
         border: 'none',
-        background: '#425576',
-        boxshadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-        borderradius: '5px',
-        cursor: 'pointer',
-        fontSize: '4vh',
-        borderRadius: "20px",
-        color:"#C7D5E5",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        color: '#fff',
+        fontSize: "2.6vh",
+        fontWeight: 'bold',
+        cursor: 'pointer',
     },
 
-    buttonUsado:{
-        top: '78vh',
-        position:'absolute',
-        padding: '10px 20px',
-        width: "25vw",
-        height: "10vh",
+    input:{
+        height: "6vh",
+        width: "13.5vh",
+        borderRadius: "2vh",
+        backgroundColor: '#fff',
         border: 'none',
-        background: ' rgba(0, 0, 0, 0.25)',
-        boxshadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-        borderradius: '5px',
-        cursor: 'pointer',
-        fontSize: '4vh',
-        borderRadius: "20px",
-        color:"#C7D5E5",
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+        color: '#1FA8FE',
+        fontSize: "2.6vh",
+        padding: '0 2vh',
+        fontWeight: 'bold',
     },
 
     slot:{
-        position: 'relative',
-        width: (num_reels) * 0.2 * icon_width + 'vh',
-        height: 0.51 * icon_height + 'vh',
         display: 'flex',
-        top:'10vh',
-        justifyContent: 'space-between',
-        padding: 0.6 * icon_width + 'px',
-        paddingLeft: 3 * icon_width + 'px',
-        paddingRight: 3 * icon_width + 'px',
+        justifyContent: 'center',
+        gap: '1vh',
+    },
+
+    container:{
+        width: '120vh',
+        height: '60vh',
+        marginTop: '10vh',
+        marginBottom: '3vh',
         border: '2vh solid black',
         borderRadius: '5vh',
         backgroundImage: 'linear-gradient(to right, #e05e1d, #9e1919, #e05e1d)',
-        borderRadius: '3px',
     },
 
     faixa: {
-		position: 'relative',
-		width: icon_width,
-		height: 3 * icon_height,
+        width: icon_width + 'px', 
+		height: (num_reels * icon_height) + 'px', 
 		border: '1px solid rgba(black, 0.3)',
 		borderRadius: '10px',
 		overflow: 'hidden',
@@ -291,15 +377,74 @@ const styles = {
 		backgroundRepeat: 'repeat-y'
     },
     
-    mainContent: {
-        marginTop: '5vh',
-        marginLeft: '14.75vw',
-        paddingLeft: '0px',
-        font: 'Inter',
+    coinsContainerDropdown: {
+        height: "6vh",
+        width: "22.2vh",
+        borderRadius: "2vh",
+        backgroundColor: '#FFFFFF',
         display: 'flex',
-	    justifyContent: 'center',
-	    alignItems: 'center',
-    }
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
+    },
+    coinText: {
+        color: '#1FA8FE',
+        fontSize: "2.6vh",
+        fontWeight: 'bold',
+        flex: '1',
+    },
+    dropdownMenuItem: {
+        width: 'auto',
+        borderRadius: '2vh',
+        backgroundColor: '#EFEFEF',
+        padding: '0.5vw 0.5vw 0.5vw 0.5vw',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+    },
+    dropdownIcon: {
+        width: "4vh",
+        height: "2vh",
+        paddingRight: '1.6vh',
+    },
+    coinRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+        padding: '0.5vh 0vh'
+    },
+    addCoinsIcon: {
+        width: '2.5vw',
+        height: '2.5vw',
+        cursor: 'pointer',
+    },
+    coinAmount: {
+        fontSize: '3.5vh',
+        color: '#333',
+        width: '7vw',
+        maxWidth: '7vw',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    coinCircle: {
+        width: '2.5vw',
+        height: '2.5vw',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFAD00',
+    },
+    coinImage: {
+        width: '80%',
+        height: '80%',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },   
 
 
 };

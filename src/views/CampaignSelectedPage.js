@@ -104,7 +104,10 @@ function CampaignSelectedPage() {
     
             if (response.ok) {
                 const updatedCampaign = await response.json();
-                setCampaign(updatedCampaign ?? { shopItems: [], donators: [], coin: { name: '', image: '' } });
+                setCampaign((prevCampaign) => ({
+                    ...prevCampaign,
+                    donators: updatedCampaign?.donators || prevCampaign.donators,
+                }));
     
                 const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
                 if (userResponse.status === 200) {
@@ -442,14 +445,15 @@ function CampaignSelectedPage() {
                         </span>
                         {coins.length > 0 && campaign.coin && campaign.coin.name && (
                             <div style={styles.coinCircle}>
-                                <img
-                                    src={coins.find((coin) => coin.coinName === campaign?.coin?.name)?.coinImage}
-                                    alt={coins.find((coin) => coin.coinName === campaign?.coin?.name)?.coinName}
-                                    style={styles.coinImage}
+                                <img 
+                                    src={campaign.coin.image} 
+                                    alt={`${campaign.coin.name} coin`} 
+                                    style={styles.coinImage} 
                                 />
                             </div>
                         )}
                     </div>
+
                     <div style={styles.shopContainer}>
                         {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
                             campaign.shopItems.map((item, index) => {
@@ -461,6 +465,7 @@ function CampaignSelectedPage() {
                                             alt="Imagem do item" 
                                             style={styles.shopItemImage} 
                                         />
+                                        
 
                                         <span style={styles.shopItemName}> {item.itemName || 'Unknown Item'} </span>
                                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>

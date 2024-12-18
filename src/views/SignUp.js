@@ -253,7 +253,7 @@ const SignUp = () => {
                             <div style={styles.termsContainer}>
                                 <input type="checkbox" id="terms" checked={termsAccepted} onChange={handleTermsChange} style={styles.checkbox} />
                                 <label htmlFor="terms" style={styles.termsLabel}>
-                                    I agree to the <a href="#" style={styles.termsLink}>Terms and Conditions</a>
+                                    I agree to the <a style={styles.termsLink}>Terms and Conditions</a>
                                 </label>
                             </div>
                             <button style={styles.signUpButton} onClick={handleSignUp}>Sign Up</button>

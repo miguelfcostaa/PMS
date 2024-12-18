@@ -151,17 +151,7 @@ const SignUp = () => {
                                     />
                                 </div>
                             </div>
-                            <div style={styles.inputContainer}>
-                                <label style={styles.label}>Email</label>
-                                <input 
-                                    type="email" 
-                                    name="email" 
-                                    value={formData.email} 
-                                    onChange={handleInputChange} 
-                                    style={styles.input} 
-                                    placeholder="Email" 
-                                />
-                            </div>
+                            
                             <div style={styles.inputContainer}>
                                 <label style={styles.label}>Password</label>
                                 <input 
@@ -173,20 +163,7 @@ const SignUp = () => {
                                     placeholder="Password" 
                                 />
                             </div>
-                            <div style={styles.inputContainer}>
-                                <label style={styles.label}>Confirm Password</label>
-                                <input 
-                                    type="password" 
-                                    name="confirmPassword" 
-                                    value={formData.confirmPassword} 
-                                    onChange={handleInputChange} 
-                                    style={styles.input} 
-                                    placeholder="Confirm Password" 
-                                />
-                            </div>
-                            <button style={styles.signUpButton} onClick={handleSignUp}>Sign Up</button>
-                        </div>
-                        <div style={styles.rightColumn}>
+                            
                             <div style={styles.inputContainer}>
                                 <label style={styles.label}>Tax Identification Number (TIN)</label>
                                 <input 
@@ -196,17 +173,6 @@ const SignUp = () => {
                                     onChange={handleInputChange} 
                                     style={styles.input} 
                                     placeholder="TIN" 
-                                />
-                            </div>
-                            <div style={styles.inputContainer}>
-                                <label style={styles.label}>Passport Number</label>
-                                <input 
-                                    type="text" 
-                                    name="passportNumber" 
-                                    value={formData.passportNumber} 
-                                    onChange={handleInputChange} 
-                                    style={styles.input} 
-                                    placeholder="Passport Number" 
                                 />
                             </div>
                             <div style={styles.inputContainer}>
@@ -231,12 +197,12 @@ const SignUp = () => {
                                         ))
                                     ) : (
                                         <>
-                                            <span
-                                                style={styles.uploadTextPrimary}
-                                            >
-                                                Upload a File
-                                            </span>
-                                            <span style={styles.uploadTextSecondary}>Drag and drop files here</span>
+                                            <img
+                                                src={require('../assets/upload-icon.png')}
+                                                alt="Upload Icon"
+                                                style={styles.uploadIcon}
+                                            />
+                                            <span style={styles.uploadTextPrimary}>Upload Item Image</span>
                                         </>
                                     )}
                                     <input
@@ -248,17 +214,54 @@ const SignUp = () => {
                                     />
                                 </div>
                             </div>
+                        </div>
+                        <div style={styles.rightColumn}>
+                            <div style={styles.inputContainer}>
+                                <label style={styles.label}>Email</label>
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    value={formData.email} 
+                                    onChange={handleInputChange} 
+                                    style={styles.inputRight} 
+                                    placeholder="Email" 
+                                />
+                            </div>
+                            <div style={styles.inputContainer}>
+                                <label style={styles.label}>Confirm Password</label>
+                                <input 
+                                    type="password" 
+                                    name="confirmPassword" 
+                                    value={formData.confirmPassword} 
+                                    onChange={handleInputChange} 
+                                    style={styles.inputRight} 
+                                    placeholder="Confirm Password" 
+                                />
+                            </div>
+                            <div style={styles.inputContainer}>
+                                <label style={styles.label}>Passport Number</label>
+                                <input 
+                                    type="text" 
+                                    name="passportNumber" 
+                                    value={formData.passportNumber} 
+                                    onChange={handleInputChange} 
+                                    style={styles.inputRight} 
+                                    placeholder="Passport Number" 
+                                />
+                            </div>
+                            
                             <div style={styles.termsContainer}>
                                 <input type="checkbox" id="terms" checked={termsAccepted} onChange={handleTermsChange} style={styles.checkbox} />
                                 <label htmlFor="terms" style={styles.termsLabel}>
                                     I agree to the <a href="#" style={styles.termsLink}>Terms and Conditions</a>
                                 </label>
                             </div>
+                            <button style={styles.signUpButton} onClick={handleSignUp}>Sign Up</button>
+                            <p style={styles.footerText}>
+                                Already a member? <a href="/signin" style={styles.signInLink}>Sign In</a>
+                            </p>
                         </div>
                     </div>
-                    <p style={styles.footerText}>
-                        Already a member? <a href="/signin" style={styles.signInLink}>Sign In</a>
-                    </p>
                 </div>
             </div>
         </>
@@ -330,10 +333,20 @@ const styles = {
         outline: 'none',
         boxShadow: '0.3vh 0.3vh 0.7vh rgba(0, 0, 0, 0.2)',
     },
+    inputRight: {
+        width: '96.5%',
+        padding: '1vh',
+        fontSize: '1.6vh',
+        borderRadius: '0.5vh',
+        border: 'none',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.3vh 0.3vh 0.7vh rgba(0, 0, 0, 0.2)',
+    },
     uploadBox: {
         width: '103%',
-        height: '10vh',
-        border: '0.2vh dashed #ccc',
+        height: '12vh',
+        border: 'none',
         borderRadius: '0.5vh',
         display: 'flex',
         flexDirection: 'column',
@@ -341,6 +354,9 @@ const styles = {
         justifyContent: 'center',
         marginTop: '1vh',
         cursor: 'pointer',
+        backgroundColor: '#EFEFEF',
+        outline: 'none',
+        boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
     },
     uploadTextPrimary: {
         color: '#000',
@@ -366,14 +382,14 @@ const styles = {
     termsContainer: {
         display: 'flex',
         alignItems: 'center',
-        marginTop: '2vh',
-        textAlign: 'left',
+        marginTop: '5vh',
+        justifyContent: 'center',
     },
     checkbox: {
         marginRight: '1vh',
     },
     termsLabel: {
-        fontSize: '1.4vh',
+        fontSize: '1.5vh',
         color: '#666666',
     },
     termsLink: {
@@ -381,24 +397,35 @@ const styles = {
         textDecoration: 'none',
     },
     signUpButton: {
-        width: '103%',
+        width: '99.5%',
         backgroundColor: '#333333',
         color: '#ffffff',
-        padding: '1.5vh',
+        padding: '1.3vh',
         borderRadius: '0.5vh',
         border: 'none',
-        fontSize: '1.6vh',
+        fontSize: '1.5vh',
         cursor: 'pointer',
         marginTop: '2vh',
     },
     footerText: {
-        fontSize: '1.4vh',
+        fontSize: '1.5vh',
         color: '#666666',
-        marginTop: '2vh',
+
     },
     signInLink: {
         color: '#009DFF',
         textDecoration: 'none',
+    },
+    uploadTextPrimary: {
+        fontSize: '1.8vh',
+        fontWeight: 'bold',
+        font: 'Inter',
+        cursor: 'pointer',
+    },
+    uploadIcon: {
+        width: 42,
+        height: 42,
+        cursor: 'pointer',
     },
 };
 

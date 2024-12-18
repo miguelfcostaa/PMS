@@ -17,6 +17,8 @@ import CrashPage from './views/CrashPage';
 import { SearchProvider } from './contexts/SearchContext';
 import { CategoryProvider } from './contexts/CategoryContext';
 import About from './views/About';
+import Contact from './views/Contact';
+import EditCampaign from './views/EditCampaign';
 
 
 function BackgroundColorWrapper({ children }) {
@@ -48,6 +50,7 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/campaign" element={<CampaignsPage />} />
           <Route path="/campaign/:id" element={<CampaignSelectedPage />} />
+          <Route path="/edit-campaign/:id" element={<EditCampaign />} />
           <Route path='/challenges' element={<Challenges />} />
           <Route path="/games" element={<GamesPage />} />
           <Route path="/roulette" element={<RoulettePage />}/>
@@ -55,6 +58,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/crash" element={<CrashPage />} />
           <Route path='/about' element={<About />} />
+          <Route path='/contact' element={<Contact />} />
           <Route path='/slots' element={<SlotsPage />} />
         </Routes>
       </BackgroundColorWrapper>

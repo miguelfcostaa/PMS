@@ -36,7 +36,7 @@ function Init() {
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000)
             renderer = new THREE.WebGLRenderer()
 
-            renderer.setSize(window.innerWidth / 1.5, window.innerHeight / 1.5)
+            renderer.setSize(window.innerWidth / 1.7, window.innerHeight / 1.7)
             //renderer.setClearColor(0xC7D5E5);
             renderer.setClearColor(0xE8E8E8)
             canvas.current.appendChild(renderer.domElement)
@@ -90,12 +90,13 @@ function Init() {
 
 
 function RoulettePage() {
-
     const [coins, setCoins] = useState([]);
     const [selectedCoin, setSelectedCoin] = useState(null);
+    //const [betAmount, setBetAmount] = useState("");
     const [userData, setUserData] = useState({});
+    const [playRoll, setPlayRoll] = useState(true);
     const userId = localStorage.getItem('userId');
-
+    const token = localStorage.getItem("token");
 
     const navigate = useNavigate();
 
@@ -116,29 +117,73 @@ function RoulettePage() {
         fetchUserData();
     }, [userId]);
 
+    const getSelectedCoinAmount = () => {
+        const coin = coins.find((c) => c.coinName === selectedCoin.coinName);
+        console.log("name: " + " " + selectedCoin.coinName)
+        return coin ? coin.amount : 0;
+    };
 
-
-    function roulette() {
+    async function roulette(color) {
         const index = Math.floor(Math.random() * 10)
         const result = circles[index]
+        const colorWinner = colors[index]
+        const didWin = color === colorWinner
+        console.log("resultado: " + didWin + "cor: " + colorWinner)
         let today = new Date()
         let s = today.getSeconds()
         let actualS = s
         let sp = speed
-    
+        let control = true
+        let winnings = 0
+        console.log("token: " + token)
+
         if (selectedCoin === null) {
             alert('Please select a coin to bet.');
             return;
         }
-    
+        if (inputValue > getSelectedCoinAmount()) {
+            alert("Saldo insuficiente! " + getSelectedCoinAmount());
+            return;
+        }
+
+        const updatedCoins = coins.map((coin) => {
+            if (coin.coinName === selectedCoin.coinName) {
+                return { ...coin, amount: coin.amount - parseFloat(inputValue) };
+            }
+            return coin;
+        });
+
+        setCoins(updatedCoins);
+        console.log( "asdasd " +  selectedCoin.coinName + " " + -parseFloat(inputValue));
+        try {
+            await axios.put(
+                `http://localhost:5000/api/auth/${userId}/coins`,
+                {
+                    coinName: selectedCoin.coinName,
+                    amount: -parseFloat(inputValue),
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+        } catch (error) {
+            console.error("Erro ao atualizar moedas na base de dados:", error);
+            return;
+        }
+
+
         const rouletteAnimation = () => {
+            setPlayRoll((prev) => {
+                return false;
+            });
+            //result.scale.set(0.25, 0.25, 0.25)
             circles.forEach((c, index) => {
-                if (actualS < s + 5) {
+                console.log("time: " + actualS + " " + s)
+                if (((actualS - s + 60) % 60) < 5) {
                     today = new Date()
                     actualS = today.getSeconds()
-                    console.log(sp)
                     c.position.x -= sp
-                    sp = sp - sp / 3000
+                    sp = sp - sp / 5000
                     if (c.position.x <= -2.5) {
                         if (index !== 0) {
                             c.position.x = circles[index - 1].position.x + spacing
@@ -149,12 +194,49 @@ function RoulettePage() {
                     }
                 }
                 else {
-                    if (result.position.x >= -0.1 && result.position.x <= -0.3) {
+                    //if (result.position.x != -0.2) {
+                    if (result.position.x <= -0.15 && result.position.x >= -0.3) {
+                        setPlayRoll((prev) => {
+                            return true;
+                        });
+                        if (control) {
+                            //alert(didWin ? "Ganhou" : "Perdeu");
+                            control = false;
+                            if (didWin) {
+                                if (color === "red" || color === "black") {
+                                    winnings = inputValue * 2
+                                    console.log("Ganhou red ou black")
+                                }
+                                else if (color === "blue") {
+                                    winnings = inputValue * 10
+                                    console.log("Ganhou blue")
+                                }
+                                const updatedCoins = coins.map((coin) => {
+                                    if (coin.coinName === selectedCoin.coinName) {
+                                        alert('Ganhou ' + winnings + ' ' + coin.coinName);
+                                        return { ...coin, amount: coin.amount + parseFloat(winnings) };
+                                    }
+                                    return coin;
+                                });
+                                setCoins(updatedCoins);
+                                
+                                axios.put(
+                                    `http://localhost:5000/api/auth/${userId}/coins`,
+                                    {coinName: selectedCoin.coinName,amount: parseFloat(winnings),},
+                                    {headers: { Authorization: `Bearer ${token}` },}
+                                );
+                            }
+                            else{
+                                alert("Perdeu")
+                            }
+                        }
+                    }
+                    else {
                         today = new Date()
                         actualS = today.getSeconds()
-                        console.log(s)
+
                         c.position.x -= sp
-                        sp = sp - sp / 3000
+                        sp = sp - sp / 8000
                         if (c.position.x <= -2.5) {
                             console.log(c.position.x)
                             if (index !== 0) {
@@ -168,14 +250,16 @@ function RoulettePage() {
                 }
             });
         }
-    
+
         const animate = () => {
-            requestAnimationFrame(animate)
+            if (control) requestAnimationFrame(animate)
             rouletteAnimation()
             renderer.render(scene, camera)
-    
+            console.log("posiçao: " + result.position.x)
+
         };
         animate()
+
     }
 
 
@@ -196,21 +280,21 @@ function RoulettePage() {
 
             <div style={styles.container}>
                 <div style={styles.buttonGroup}>
-                    <button onClick={roulette} 
-                    disabled={!inputValue.trim()} 
-                    style={{ ...styles.button, backgroundColor: "#9D0208" }}>
+                    <button onClick={playRoll ? () => roulette("red") : null}
+                        //disabled={!inputValue.trim()} 
+                        style={{ ...styles.button, backgroundColor: "#9D0208" }}>
                         Place Bet x2
                     </button>
-                    <button onClick={roulette} 
-                    disabled={!inputValue.trim()} 
-                    style={{ ...styles.button, backgroundColor: "#009DFF" }}
-                    onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
+                    <button onClick={playRoll ? () => roulette("blue") : null}
+                        //disabled={!inputValue.trim()} 
+                        style={{ ...styles.button, backgroundColor: "#009DFF" }}
+                        onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
                         Place Bet x10
                     </button>
-                    <button onClick={roulette} 
-                    disabled={!inputValue.trim()} 
-                    style={{ ...styles.button, backgroundColor: "#000000" }}
-                    onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
+                    <button onClick={playRoll ? () => roulette("black") : null}
+                        //disabled={!inputValue.trim()} 
+                        style={{ ...styles.button, backgroundColor: "#000000" }}
+                        onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover)}>
                         Place Bet x2
                     </button>
                 </div>
@@ -219,23 +303,23 @@ function RoulettePage() {
                     <label htmlFor="quantity" style={styles.label}>Quantity:</label>
                     <div style={styles.coinFlex}>
                         <input type="number" id="quantity" value={inputValue} onChange={handleInputChange} style={styles.input} />
-                        
+
                         <Dropdown>
                             <MenuButton variant="solid" color="#FFFFFF">
                                 <div style={styles.coinsContainerDropdown}>
                                     {selectedCoin ? (
                                         <>
-                                            <span style={{...styles.coinAmount, marginRight: 10}}>
+                                            <span style={{ ...styles.coinAmount, marginRight: 10 }}>
                                                 {selectedCoin.amount}
                                             </span>
-                                            <div style={{...styles.coinCircle, width: '4vh', height: '4vh'}}>
+                                            <div style={{ ...styles.coinCircle, width: '4vh', height: '4vh' }}>
                                                 <img
                                                     src={selectedCoin.coinImage}
                                                     alt={selectedCoin.coinName}
                                                     style={styles.coinImage}
                                                 />
                                             </div>
-                                            
+
                                         </>
                                     ) : (
                                         <>
@@ -254,10 +338,10 @@ function RoulettePage() {
                                     coins.map((coin, index) => (
                                         <div style={styles.coinRow} key={index}>
                                             <MenuItem onClick={() => setSelectedCoin(coin)}>
-                                                <img 
-                                                    src={require('../assets/plus-icon.png')} 
-                                                    alt="Add Icon" 
-                                                    style={styles.addCoinsIcon} 
+                                                <img
+                                                    src={require('../assets/plus-icon.png')}
+                                                    alt="Add Icon"
+                                                    style={styles.addCoinsIcon}
                                                     onClick={() => {
                                                         if (!coin.campaignId) {
                                                             alert('Campaign ID não encontrado para esta moeda.');
@@ -296,13 +380,11 @@ function RoulettePage() {
 
 const styles = {
     canvas: {
-        height: "350px",
+        height: "20%",
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         marginLeft: "15%",
-    },
-    buttonGroup: {
     },
     container: {
         display: 'flex',
@@ -378,7 +460,7 @@ const styles = {
         backgroundColor: '#EFEFEF',
         padding: '0.5vw 0.5vw 0.5vw 0.5vw',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        overflowY: 'auto', 
+        overflowY: 'auto',
         overflowX: 'hidden',
     },
     dropdownIcon: {
@@ -390,7 +472,7 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        position: 'relative', 
+        position: 'relative',
         padding: '0.5vh 0vh'
     },
     addCoinsIcon: {

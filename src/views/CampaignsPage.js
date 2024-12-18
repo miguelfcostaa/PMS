@@ -82,13 +82,20 @@ function CampaignsPage() {
                         filteredCampaigns.map((campaign) => (
                             <div onClick={() => handleCampaignClick(campaign._id)} key={campaign._id} >
                                 <CampaignBox
+                                    id={campaign._id}
                                     title={campaign.title}
                                     description={campaign.description}
                                     goal={campaign.goal}
-                                    timeToCompleteGoal={campaign.timeToCompleteGoal}
                                     currentAmount={campaign.currentAmount}
-                                    nameBankAccount={campaign.nameBankAccount}
+                                    timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                    nameBankAccount={campaign.creator ? `${campaign.creator.firstName} ${campaign.creator.lastName}` : campaign.nameBankAccount}
+                                    image={campaign.image}
+                                    creatorPicture={campaign.creator?.profilePicture}
+                                    creatorFirstName={campaign.creator?.firstName}
+                                    creatorLastName={campaign.creator?.lastName}
+                                    onClick={() => handleCampaignClick(campaign._id)}
                                 />
+
                             </div>
                         ))
                     ) : (
@@ -106,6 +113,7 @@ const styles = {
         marginLeft: '15%',
         paddingLeft: '2vh',
         font: 'Inter',
+        marginBottom: '3vh',
     },
     line: {
         borderBottom: '0.2vh solid #D0D0D0',
@@ -136,7 +144,7 @@ const styles = {
         display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'flex-start',
-        gap: '8vh',
+        gap: '2.7vh',
     },
     searchIcon: {
         width: '2.2vh',

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Definição do esquema de campanha
 const campaignSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -10,19 +11,42 @@ const campaignSchema = new mongoose.Schema({
     bankAccount: { type: String, required: true },
     category: { type: String, required: true },
     currentAmount: { type: Number, default: 0 },
-    image: { type: String, required: false },
-    contentType: { type: String, required: false },
-    donators: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        donationDetails: { type: Array, default: [] },
-    }],
-    shopItems: { type: Array, default: [] },
+    image: { type: String, default: '' }, // Campo "image" para armazenar a imagem da campanha
+    donators: {
+        type: [{
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            donationDetails: { type: Array, default: [] },
+        }],
+        default: []
+    },
+    shopItems: {
+        type: [{
+            itemName: { type: String, required: true },
+            itemPrice: { type: Number, required: true },
+            itemImage: { type: String, required: true },
+        }],
+        default: []
+    },
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    coin: { type: [String], required: true },
+    coin: {
+        type: {
+            name: { type: String, required: true },
+            image: { type: String, required: true },
+        },
+        required: true
+    },
 }, { timestamps: true });
 
+// Índices para otimizar as buscas
 campaignSchema.index({ creator: 1 });
+campaignSchema.index({ title: 1 });
 
-const Campaign = mongoose.model('Campaign', campaignSchema);
+// Exportação do modelo reutilizando a conexão mongoose existente
+let Campaign;
+try {
+    Campaign = mongoose.model('Campaign'); // Se o modelo já foi definido, usa a instância existente
+} catch (error) {
+    Campaign = mongoose.model('Campaign', campaignSchema); // Caso contrário, define o modelo
+}
 
 module.exports = Campaign;

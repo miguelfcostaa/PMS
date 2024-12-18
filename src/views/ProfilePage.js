@@ -3,6 +3,9 @@ import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 import CampaignBox from '../components/CampaignBox';
 import axios from 'axios';
+import defaultAvatar from '../assets/default-avatar.png';
+
+const fields = ['firstName', 'lastName', 'email', 'password', 'TIN', 'passportNumber', 'IBAN', 'paymentMethod'];
 
 function ProfilePage() {
     const [userData, setUserData] = useState(null);
@@ -10,9 +13,10 @@ function ProfilePage() {
     const [updatedData, setUpdatedData] = useState({});
     const [coins, setCoins] = useState([]);
     const [isVerified, setIsVerified] = useState(false);
-    const [myCampaigns, setMyCampaigns] = useState([]);
+    const [myCampaigns, setMyCampaigns] = useState([])
     const [donatedCampaigns, setDonatedCampaigns] = useState([]);
     const userId = localStorage.getItem('userId');
+    
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -31,21 +35,38 @@ function ProfilePage() {
         
 
         const fetchCampaigns = async () => {
-            const userId = localStorage.getItem('userId');
-            const campaignsResponse = await axios.get('http://localhost:5000/api/campaign/all-campaigns');
+            const userId = localStorage.getItem('userId'); // Obtém o ID do utilizador do localStorage
+            
+            try {
+                const campaignsResponse = await axios.get('http://localhost:5000/api/campaign/all-campaigns');
+        
+                // Filtra campanhas criadas pelo utilizador
+                const userCampaigns = campaignsResponse.data.filter(campaign => 
+                    campaign.creator && campaign.creator._id.toString() === userId
+                );
+                setMyCampaigns(userCampaigns);
+        
+                // Filtra campanhas doadas pelo utilizador (verifica se donators existe)
+                // Filtra campanhas doadas pelo utilizador (verifica se donators existe)
+                const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
+                    Array.isArray(campaign.donators) && 
+                    campaign.donators.some(donator => donator.userId?.toString() === userId)
+                );
 
-            const userCampaigns = campaignsResponse.data.filter(campaign => campaign.creator === userId);
-            setMyCampaigns(userCampaigns);
-
-            const userDonatedCampaigns = campaignsResponse.data.filter(campaign =>
-                campaign.donators.some(donator => donator.userId === userId)
-            );
-            setDonatedCampaigns(userDonatedCampaigns);
+                setDonatedCampaigns(userDonatedCampaigns);
+        
+            } catch (error) {
+                console.error('Error fetching campaigns:', error);
+            }
         };
+        
+        
+        
 
         fetchUserData();
         fetchCampaigns();
-    }, [userId]);
+        fetchUserData();
+    }, [userId, userData?.profilePicture]); 
 
     const handleEdit = (field) => {
         if (userData) {
@@ -56,37 +77,65 @@ function ProfilePage() {
 
     const handleSave = async () => {
         try {
-            const response = await axios.put(`http://localhost:5000/api/auth/${userId}`, updatedData);
-            setUserData({ ...userData, ...response.data });
-            setEditingField(null);
+            const response = await axios.put(
+                `http://localhost:5000/api/auth/${userId}`, 
+                updatedData
+            );
+            if (response.status === 200) {
+                setUserData({ ...userData, ...updatedData });
+                setEditingField(null);
+            }
         } catch (error) {
             console.error('Error updating user data:', error);
         }
     };
+    
+    
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
+        
         if (!file) {
             console.error('No file selected');
             return;
         }
-
+        
         const formData = new FormData();
         formData.append('profilePicture', file);
-
+        
         try {
             const response = await axios.put(
                 `http://localhost:5000/api/auth/${userId}/profile-picture`,
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } }
             );
-
-            console.log('Profile picture updated:', response.data);
-            setUserData({ ...userData, profilePicture: response.data.profilePicture });
+    
+            setUserData({
+                ...userData, 
+                profilePicture: response.data.profilePicture
+            });
+            
         } catch (error) {
             console.error('Error uploading profile picture:', error);
         }
     };
+    
+    const handleEditCampaign = (campaignId) => {
+        return () => {
+            window.location.href = `/edit-campaign/${campaignId}`;
+        };
+    };
+
+    const handleDisplayedAmount = (amount) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return amount;
+        }
+    };
+
 
     if (!userData) {
         return <div style={styles.loading}>Loading...</div>;
@@ -117,22 +166,17 @@ function ProfilePage() {
                         <div style={styles.profileLeft}>
                             <div style={styles.profilePictureContainer}>
                                 <div style={styles.profilePicture}>
-                                    <img
-                                        src={
-                                            userData?.profilePicture
-                                                ? `data:image/png;base64,${userData.profilePicture}`
-                                                : require('../assets/default-avatar.png')
-                                        }
-                                        alt="Profile"
-                                        style={styles.picture}
+                                <img
+                                    src={
+                                        userData?.profilePicture
+                                            ? `data:image/png;base64,${userData.profilePicture}`
+                                            : defaultAvatar
+                                    }
+                                    alt="Profile"
+                                    style={styles.picture}
                                     />
                                 </div>
                                 <label htmlFor="profilePictureUpload" style={styles.uploadButton}>
-                                    <img 
-                                        src={require('../assets/adicionar-imagem.png')} 
-                                        alt="Add Icon" 
-                                        style={styles.addIcon} 
-                                    /> 
                                     <input
                                         id="profilePictureUpload"
                                         type="file"
@@ -140,7 +184,13 @@ function ProfilePage() {
                                         onChange={handleProfilePictureUpload}
                                         style={{ display: 'none' }}
                                     />
+                                    <img 
+                                        src={require('../assets/adicionar-imagem.png')} 
+                                        alt="Add Icon" 
+                                        style={styles.addIcon} 
+                                    /> 
                                 </label>
+
                             </div>
 
                             <h3 style={styles.coinsTitle}>Your Coins</h3>
@@ -161,14 +211,14 @@ function ProfilePage() {
                                                 }}
                                             />
                                             <span style={styles.coinAmount}>
-                                                {coin.amount}
+                                                {handleDisplayedAmount(coin.amount)}
                                             </span>
                                             <div style={styles.coinCircle}>
                                                 <img
                                                     src={coin.coinImage}
                                                     alt={coin.coinName}
                                                     style={styles.coinImage}
-                                                    title={coin.coinName} // Nome da moeda aparece no hover
+                                                    title={coin.coinName}
                                                 />
                                             </div>
                                             {index < coins.length - 1 && <div style={styles.coinSeparator}></div>}
@@ -192,15 +242,14 @@ function ProfilePage() {
                                         <div style={styles.inputContainer}>
                                             {editingField === field ? (
                                                 <input
-                                                    type="text"
-                                                    value={updatedData[field]}
-                                                    onChange={(e) =>
-                                                        setUpdatedData({ ...updatedData, [field]: e.target.value })
-                                                    }
-                                                    onBlur={handleSave}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                                                    style={styles.input}
-                                                />
+                                                type="text"
+                                                value={updatedData[field]}
+                                                onChange={(e) => setUpdatedData({ ...updatedData, [field]: e.target.value })}
+                                                onBlur={() => handleSave()} // Salva as alterações ao perder o foco
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSave()} // Salva ao pressionar "Enter"
+                                                style={styles.input}
+                                            />
+                                            
                                             ) : (
                                                 <span style={styles.fieldValue}>
                                                     {userData[field] !== undefined && userData[field] !== ''
@@ -230,18 +279,27 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {myCampaigns.length > 0 ? (
                                 myCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
+                                    <div style={{ display: 'flex', flexDirection: 'column'}}>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                currentAmount={campaign.currentAmount}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                nameBankAccount={campaign.creator ? `${campaign.creator.firstName} ${campaign.creator.lastName}` : campaign.nameBankAccount}
+                                                image={campaign.image}
+                                                creatorPicture={campaign.creator?.profilePicture}
+                                                creatorFirstName={campaign.creator?.firstName}
+                                                creatorLastName={campaign.creator?.lastName}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                        <button style={styles.button} onClick={handleEditCampaign(campaign._id)} >
+                                            <span> Edit </span>
+                                        </button>
                                     </div>
                                 ))
                             ) : (
@@ -258,19 +316,25 @@ function ProfilePage() {
                         <div style={styles.campaignsContainer}>
                             {donatedCampaigns.length > 0 ? (
                                 donatedCampaigns.map(campaign => (
-                                    <div style={styles.campaignShadow}>
-                                        <CampaignBox
-                                            key={campaign._id}
-                                            id={campaign._id}
-                                            title={campaign.title}
-                                            description={campaign.description}
-                                            goal={campaign.goal}
-                                            timeToCompleteGoal={campaign.timeToCompleteGoal}
-                                            currentAmount={campaign.currentAmount}
-                                            nameBankAccount={campaign.nameBankAccount}
-                                            onClick={() => window.location.href = `/campaign/${campaign._id}`}
-                                        />
-                                    </div>
+                                    <>
+                                        <div style={styles.campaignShadow}>
+                                            <CampaignBox
+                                                key={campaign._id}
+                                                id={campaign._id}
+                                                title={campaign.title}
+                                                description={campaign.description}
+                                                goal={campaign.goal}
+                                                currentAmount={campaign.currentAmount}
+                                                timeToCompleteGoal={campaign.timeToCompleteGoal}
+                                                nameBankAccount={campaign.creator ? `${campaign.creator.firstName} ${campaign.creator.lastName}` : campaign.nameBankAccount}
+                                                image={campaign.image}
+                                                creatorPicture={campaign.creator?.profilePicture}
+                                                creatorFirstName={campaign.creator?.firstName}
+                                                creatorLastName={campaign.creator?.lastName}
+                                                onClick={() => window.location.href = `/campaign/${campaign._id}`}
+                                            />
+                                        </div>
+                                    </>
                                 ))
                             ) : (
                                 <p style={styles.noCampaignsMessage}>You haven't donated to any campaigns yet.</p>
@@ -459,13 +523,11 @@ const styles = {
     campaignsContainer: {
         display: 'flex',
         overflowX: 'auto', 
-        gap: '2vw', 
-        padding: '1vh 0', 
+        gap: '1vw', 
     },
     campaignShadow: {
-        marginLeft: '1vw',
+        margin: '1vw',
         boxShadow: '0px 1px 8px 1px rgba(0, 0, 0, 0.25)',
-        marginBottom: '7vh',
         borderRadius: 10,
     },
     noCampaignsMessage: {
@@ -492,7 +554,7 @@ const styles = {
         fontSize: '3.5vh',
         color: '#333',
         fontWeight: 'bold',
-        maxWidth: '5vw',
+        maxWidth: '7vw',
         textAlign: 'center',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -528,6 +590,20 @@ const styles = {
         alignItems: 'center',
         height: '100vh',
         fontSize: '5vh',
+    },
+
+    button: {
+        backgroundColor: '#393939',
+        marginLeft: '2vh',
+        color: '#fff',
+        padding: '1vh',
+        width: '15vh',
+        border: 'none',
+        borderRadius: '1vh',
+        cursor: 'pointer',
+        fontSize: '2vh',
+        marginBottom: '1vh',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.25)',
     },
 };
 

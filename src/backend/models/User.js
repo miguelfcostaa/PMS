@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Não precisamos conectar novamente
 
 const documentSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     passportNumber: { type: String, required: true },
     IBAN: { type: String, default: '' },
     paymentMethod: { type: String, default: '' },
-    profilePicture: { type: String, default: '' },
+    profilePicture: { type: String, default: '' }, 
     coins: [{
         coinName: { type: String, required: true },
         coinImage: { type: String, required: true },
@@ -27,6 +27,15 @@ const userSchema = new mongoose.Schema({
         enum: ['doador', 'criador/doador', 'admin'], 
         default: 'doador'
     },
+    challenges: [
+        {
+            name: { type: String, required: true }, 
+            description: { type: String, required: true }, 
+            progress: { type: Number, default: 0 }, 
+            completed: { type: Boolean, default: false }, 
+            associatedCampaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign' }, 
+        },
+    ],
     documents: [documentSchema],
     notificationSeen: { type: Boolean, default: false },
 }, { timestamps: true });

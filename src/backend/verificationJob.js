@@ -1,5 +1,5 @@
 const User = require('./models/User');
-const { io } = require('./server'); // Importa o io diretamente do servidor
+const { getIO } = require('./socket'); // Importar o getIO do ficheiro separado
 
 const verifyUser = async (userId) => {
     try {
@@ -15,8 +15,9 @@ const verifyUser = async (userId) => {
             await user.save();
 
             console.log(`User with ID ${userId} is now verified as 'criador/doador'.`);
-
-            // Emitir o evento via WebSocket
+            
+            // Obtemos a instância de io depois de ter sido inicializada
+            const io = getIO();
             io.emit('userVerified', { userId, role: user.role });
         }
     } catch (error) {

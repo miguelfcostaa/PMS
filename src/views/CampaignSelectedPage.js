@@ -5,10 +5,16 @@ import { useParams } from 'react-router-dom';
 import ModalClose from '@mui/joy/ModalClose';
 import Drawer from '@mui/joy/Drawer';
 import axios from 'axios';
+import Modal from 'react-modal';
 
 function CampaignSelectedPage() {
     const { id } = useParams();
-    const [campaign, setCampaign] = useState({});
+    const [campaign, setCampaign] = useState({
+        shopItems: [], 
+        donators: [],
+        coin: { name: '', image: '' }
+    });
+    
     const [userData, setUserData] = useState({});
     const userId = localStorage.getItem('userId');
     const [coins, setCoins] = useState([]);
@@ -19,8 +25,13 @@ function CampaignSelectedPage() {
         amount: "",
         comment: "",
     });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [itemToBuy, setItemToBuy] = useState(null);
+    const [confirmBuy, setConfirmBuy] = useState(false);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+
         const fetchUserData = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/api/auth/${userId}`);
@@ -39,10 +50,7 @@ function CampaignSelectedPage() {
                 const response = await fetch(`http://localhost:5000/api/campaign/get-campaign/${id}`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Dados recebidos da API:', data); // Verifica o conteúdo aqui
-                    setCampaign(data);
-                } else {
-                    console.log('Erro ao buscar campanha:', response.status);
+                    setCampaign(data ?? { shopItems: [], donators: [], coin: { name: '', image: '' } });
                 }
             } catch (err) {
                 console.log('Erro de conexão ao servidor:', err);
@@ -51,7 +59,7 @@ function CampaignSelectedPage() {
 
         fetchUserData();
         fetchCampaign();
-    }, [id]);
+    }, [id, isModalOpen, userId]);
 
     const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
 
@@ -65,23 +73,23 @@ function CampaignSelectedPage() {
             alert("Please, enter a valid amount.");
             return;
         }
-
+    
         if (donation.amount < 1) {
             alert("The minimum donation amount is €1.");
             return;
         }
-
-        if (userData.paymentMethod === null || userData.paymentMethod === "") {
+    
+        if (!userData.paymentMethod || userData.paymentMethod.trim() === "") {
             alert("Please, add a payment method on your profile to donate.");
             return;
         }
-
+    
         const newDonation = [
             donation.name || "Anonymous",
             parseFloat(donation.amount),
             donation.comment || ""
         ];
-
+    
         try {
             const response = await fetch(`http://localhost:5000/api/campaign/donate/${id}`, {
                 method: "POST",
@@ -89,23 +97,29 @@ function CampaignSelectedPage() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    userId: localStorage.getItem('userId'), // Enviar o ID do utilizador
-                    donationDetails: newDonation, // Detalhes da doação
+                    userId: localStorage.getItem('userId'),
+                    donationDetails: newDonation,
                 }),
             });
-
+    
             if (response.ok) {
                 const updatedCampaign = await response.json();
-                setCampaign(updatedCampaign);
+                setCampaign((prevCampaign) => ({
+                    ...prevCampaign,
+                    donators: updatedCampaign?.donators || prevCampaign.donators,
+                }));
+    
+                const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (userResponse.status === 200) {
+                    const data = userResponse.data;
+                    setUserData(data);
+                    setCoins(data.coins || []);
+                }
+    
                 setDonationCompleted(true);
                 setTimeout(() => setDonationCompleted(false), 500);
                 setOpen(false);
-
-                setDonation({
-                    name: "",
-                    amount: "",
-                    comment: "",
-                });
+                setDonation({ name: "", amount: "", comment: "" });
             } else {
                 console.error("Erro ao processar doação:", response.status);
             }
@@ -113,39 +127,154 @@ function CampaignSelectedPage() {
             console.error("Erro de conexão ao servidor:", error);
         }
     };
+    
+    const handleBuyItem = async (item) => {
+        // Agora item é um objeto { itemName, itemPrice, itemImage }
+        const itemPrice = item?.itemPrice ?? 0; 
+        const itemName = item?.itemName ?? ''; 
+        const coinName = campaign?.coin?.name || '';
+    
+        if (!Array.isArray(coins)) {
+            alert("Coin list is not loaded yet.");
+            return;
+        }
+    
+        const matchingCoin = coins.find((coin) => coin.coinName === coinName);
+        if (!matchingCoin || matchingCoin.amount < itemPrice) {
+            alert("You don't have enough coins to buy this item.");
+            return;
+        }
+    
+        setItemToBuy({ itemName, itemPrice, coinName });
+        setIsModalOpen(true);
+    };
+    
+    const confirmPurchase = async () => {
+        const { itemPrice, coinName } = itemToBuy;
+    
+        const response = await axios.put(`http://localhost:5000/api/auth/${userId}/coins`, {
+            coinName: coinName,
+            amount: -itemPrice, 
+        });
+    
+        if (response.status === 200) {
+            try {
+                const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
+                if (userResponse.status === 200) {
+                    setCoins(userResponse.data.coins || []);
+                }
+            } catch (error) {
+                console.error('Error fetching updated user data:', error);
+            }
+            setConfirmBuy(true);  
+        } else {
+            alert("Failed to update your coins. Please try again.");
+        }
+    };
+    
+    const cancelPurchase = () => {
+        setConfirmBuy(false);
+        setIsModalOpen(false);
+    }
+
+    function formatAmount(amount) {
+        let formattedAmount = amount.toFixed(1);
+        if (formattedAmount.endsWith('.0')) {
+            formattedAmount = formattedAmount.slice(0, -2);
+        }
+        return formattedAmount;
+    }
+        
+    function formatLargeAmount(amount) {
+        if (amount >= 1e15) {
+            return `${formatAmount(amount / 1e15)}Q`;
+        } else if (amount >= 1e12) {
+            return `${formatAmount(amount / 1e12)}T`;
+        } else if (amount >= 1e9) {
+            return `${formatAmount(amount / 1e9)}B`;
+        } else if (amount >= 1e6) {
+            return `${formatAmount(amount / 1e6)}M`;
+        } else if (amount >= 1e3) {
+            return `${formatAmount(amount / 1e3)}K`;
+        } else {
+            return amount;
+        }
+    }
+
+    function handleDisplayContact(contact) {  
+        // Verifica se o contato é uma string e se já está formatado como "123 456 789"
+        if (typeof contact === 'string' && !/^\d{3} \d{3} \d{3}$/.test(contact)) {
+            // Formata o contato se não estiver no formato desejado
+            contact = contact.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+        }
+        return contact;
+    }
 
     return (
         <>
             <NavBar />
             <SideBar />
+            <Modal
+                isOpen={isModalOpen}
+                onRequestClose={cancelPurchase}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    },
+                    content: {
+                        backgroundColor: '#FFF',
+                        margin: '10% 30% 20% 30%',
+                        padding: '20px',
+                        borderRadius: '10px',
+                        textAlign: 'center',
+                    },
+                }}
+            >
+                { !confirmBuy ? (
+                    <>
+                        <h2>Are you sure you want to buy this item?</h2>
+                        <p style={{fontSize: 24, margin: 20}}> {itemToBuy?.itemName} - Price: {itemToBuy?.itemPrice} </p>
+                        <div>
+                            <button onClick={confirmPurchase} style={styles.confirmButton}>Confirm</button>
+                            <button onClick={cancelPurchase} style={styles.cancelButton}>Cancel</button>
+                        </div>
+                    </>
+                ) : ( 
+                    <> 
+                        <h2>Item purchased successfully!</h2>
+                        <p style={{fontSize: 20, marginTop: '4vh'}}> Your purchase will make a difference in the lives of the campaign beneficiaries, bringing hope and support directly to those in need. </p>
+                        <p style={{fontSize: 20}}> Thank You!</p>
+                    </>
+                )}
+            </Modal>
             <div style={styles.mainContent}>
                 <div style={styles.container}>
                     <span style={styles.title}>{campaign.title}</span>
                     <div style={styles.imageAndDonate}>
                         <img
-                            src={require('../assets/image.png')}
+                            src={campaign.image ? campaign.image : require('../assets/image.png')}
                             alt="Imagem da campanha"
                             style={styles.image}
                         />
                         <div style={styles.donateBox}>
-                            <span style={styles.currentAmount}> € {campaign.currentAmount} </span>
-                            <span style={styles.donated}>of € {campaign.goal} </span>
+                            <span style={styles.currentAmount}> € {formatLargeAmount(campaign.currentAmount)} </span>
+                            <span style={styles.donated}>of € {formatLargeAmount(campaign.goal)} </span>
 
                             <div style={styles.progressBar}>
                                 <div
                                     style={{
                                         ...styles.progress,
-                                        width: `${Math.min(progressPercentage, 100)}%`,
+                                        width: `${(Math.min(progressPercentage, 100))}%`,
                                     }}
                                 >
                                     {progressPercentage >= 20 && (
-                                        <span style={styles.progressNumber}> {progressPercentage}% </span>
+                                        <span style={styles.progressNumber}> {formatLargeAmount(Math.round(progressPercentage))}% </span>
                                     )}
                                 </div>
                             </div>
 
                             <div style={styles.timeToGoal}>
-                                <span> {campaign.timeToCompleteGoal} days left </span>
+                                <span> {formatLargeAmount(campaign.timeToCompleteGoal)} days left </span>
                             </div>
                             <div>
                                 <div
@@ -199,10 +328,11 @@ function CampaignSelectedPage() {
                                         <input
                                             type="text"
                                             name="paymentMethod"
-                                            value={userData.paymentMethod}
+                                            value={userData.paymentMethod || ''}
                                             style={styles.input}
                                             disabled
                                         />
+
 
                                         <button
                                             type="button"
@@ -228,7 +358,7 @@ function CampaignSelectedPage() {
                         <div style={styles.contactAndOther}>
                             <div style={styles.contactAndCategory}>
                                 <div style={styles.contact}>
-                                    <span> Contact Details: {campaign.contact} </span>
+                                    <span> Contact Details: {handleDisplayContact(campaign.contact)} </span>
                                 </div>
                                 <div style={styles.category}>
                                     <span> {campaign.category} </span>
@@ -238,15 +368,23 @@ function CampaignSelectedPage() {
                             <div style={styles.line}></div>
 
                             <div style={styles.personInfo}>
-                                <img
-                                    src={require('../assets/image.png')}
-                                    alt="Imagem da campanha"
-                                    style={styles.personImage}
-                                />
-                                <div style={styles.namePerson}>
-                                    <span> Created by: </span>
-                                    <span> {campaign.nameBankAccount} </span>
-                                </div>
+                            <img
+                                src={campaign.creator && campaign.creator.profilePicture 
+                                    ? `data:image/jpeg;base64,${campaign.creator.profilePicture}`
+                                    : require('../assets/image.png')}
+                                alt="Creator Image"
+                                style={styles.personImage}
+                            />
+
+                            <div style={styles.namePerson}>
+                                <span> Created by: </span>
+                                <span>
+                                {campaign.creator 
+                                    ? `${campaign.creator.firstName} ${campaign.creator.lastName}` 
+                                    : campaign.nameBankAccount}
+                                </span>
+                            </div>
+
                             </div>
 
                             <div style={styles.description}>
@@ -266,34 +404,29 @@ function CampaignSelectedPage() {
                         <div style={styles.donationsBox}>
                             <span style={styles.donationsTitle}> Donations </span>
                             <div style={styles.donatorsFlex}>
-                                {campaign.donators && campaign.donators.length > 0 ? (
-                                    campaign.donators.map((donater, index) => (
-                                        <>
-                                            <div key={index} style={styles.donators}>
-                                                <div style={styles.nameAndComment}>
-                                                    <span style={styles.donaterName}>
-                                                        {donater.donationDetails[0]}
-                                                    </span>
-                                                    <span style={styles.donaterComment}>
-                                                        {donater.donationDetails[2]}
-                                                    </span>
-                                                </div>
-                                                <div style={styles.ammountDonated}>
-                                                    <span> € {donater.donationDetails[1]} </span>
-                                                </div>
-                                            </div>
-                                            {index < campaign.donators.length - 1 && (
-                                                <div style={styles.line2}></div>
-                                            )}
-                                        </>
-                                    ))
-                                ) : (
-                                    <div style={styles.donatorsFlex}>
-                                        <span style={{ fontSize: 18, opacity: 0.6 }}>
-                                            No donations made yet.
-                                        </span>
+                            {campaign.donators && campaign.donators.length > 0 ? (
+                                campaign.donators.map((donater, index) => (
+                                    <div key={index} style={styles.donators}>
+                                        <div style={styles.nameAndComment}>
+                                            <span style={styles.donaterName}>
+                                                {donater?.donationDetails?.[0] || 'Anonymous'}
+                                            </span>
+                                            <span style={styles.donaterComment}>
+                                                {donater?.donationDetails?.[2] || ''}
+                                            </span>
+                                        </div>
+                                        <div style={styles.ammountDonated}>
+                                            <span> € {formatLargeAmount(donater?.donationDetails?.[1]) || '0'} </span>
+                                        </div>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <div style={styles.donatorsFlex}>
+                                    <span style={{ fontSize: 18, opacity: 0.6 }}>
+                                        No donations made yet.
+                                    </span>
+                                </div>
+                            )}
                             </div>
                         </div>
                     </div>
@@ -302,50 +435,76 @@ function CampaignSelectedPage() {
                 <div style={styles.shopTitle}>
                     <span> Campaign Store </span>
                 </div>                
-                <div style={styles.shopContainer}>
-                    {campaign?.shopItems?.length > 0 ? (
-                        campaign.shopItems.map((item, index) => {
-                            const matchingCoin = coins.find(
-                                (coin) => coin.coinName === campaign.coin[0]
-                            ); 
+                <div style={styles.shopContainerFlex}>
+                    <div style={styles.currentCoins}>
+                        <span style={styles.coinsText}>
+                            <b>You have: </b> 
+                            {Array.isArray(coins) && coins.length > 0 
+                                ? coins.find((coin) => coin.coinName === campaign?.coin?.name)?.amount || 0 
+                                : 0}
+                        </span>
+                        {coins.length > 0 && campaign.coin && campaign.coin.name && (
+                            <div style={styles.coinCircle}>
+                                <img 
+                                    src={campaign.coin.image} 
+                                    alt={`${campaign.coin.name} coin`} 
+                                    style={styles.coinImage} 
+                                />
+                            </div>
+                        )}
+                    </div>
 
-                            return (
-                                <div key={index} style={styles.shopItemBox}>
-                                    <img
-                                        src={require('../assets/image.png')}
-                                        alt="Imagem do item"
-                                        style={styles.shopItemImage}
-                                    />
-                                    <span style={styles.shopItemName}> {item[0]} </span>
-                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
-                                        <span style={styles.shopItemPrice}> {item[1]} </span>
-                                        {matchingCoin && (
-                                            <div style={styles.coinCircle}>
-                                                <img
-                                                    src={matchingCoin.coinImage}
-                                                    alt={matchingCoin.coinName}
-                                                    style={styles.coinImage}
-                                                />
-                                            </div>
-                                        )}
+                    <div style={styles.coinInfo}>
+                        <img src={campaign.coin.image} alt={`${campaign.coin.name} icon`} style={styles.coinImage} />
+                        <span>You have: {coins.find((coin) => coin.coinName === campaign.coin.name)?.amount || 0}</span>
+                    </div>
+
+                    <div style={styles.shopContainer}>
+                        {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
+                            campaign.shopItems.map((item, index) => {
+                                const matchingCoin = coins.find((coin) => coin.coinName === campaign?.coin?.name);
+                                return (
+                                    <div key={index} style={styles.shopItemBox}>
+                                        <img 
+                                            src={item?.itemImage ? item.itemImage : require('../assets/image.png')} 
+                                            alt="Imagem do item" 
+                                            style={styles.shopItemImage} 
+                                        />
+                                        
+
+                                        <span style={styles.shopItemName}> {item.itemName || 'Unknown Item'} </span>
+                                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
+                                            <span style={styles.shopItemPrice}> {item.itemPrice ?? 0} </span>
+                                            {matchingCoin && (
+                                                <div style={styles.coinCircle}>
+                                                    <img
+                                                        src={matchingCoin.coinImage}
+                                                        alt={matchingCoin.coinName}
+                                                        style={styles.coinImage}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            style={styles.buyButton}
+                                            onClick={() => handleBuyItem(item)}
+                                        >
+                                            Buy
+                                        </button>
                                     </div>
-
-                                    <button
-                                        type="button"
-                                        style={styles.buyButton}
-                                    >
-                                        Buy
-                                    </button>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div style={styles.shopItemBox}>
-                            <span> No items available in the store. </span>
-                        </div>
-                    )}
+                                );
+                            })
+                        ) : (
+                            <div style={styles.shopItemBox}>
+                                <span> No items available in the store. </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>            
+            </div>
+           
         </>
     );
 }
@@ -454,18 +613,6 @@ const styles = {
         textAlign: 'center',
         alignContent: 'center',
         cursor: 'pointer',
-    },
-    donateButtonDisabled: {
-        backgroundColor: '#F8B422',
-        width: '100%',
-        height: 82,
-        borderRadius: 20,
-        marginTop: 60,
-        fontSize: 32,
-        font: 'Inter',
-        textAlign: 'center',
-        alignContent: 'center',
-        cursor: 'not-allowed',
     },
     shareCampaign: {
         backgroundColor: '#F8B422',
@@ -591,11 +738,10 @@ const styles = {
         marginLeft: 50,
         paddingLeft: 30,
         paddingRight: 30,
-        paddingTop  : 30,
-        paddingBottom  : 20,
+        paddingTop: 30,
+        paddingBottom: 20,
         marginBottom: 40,
         overflow: 'auto',
-
     },
     donationsTitle: {
         fontSize: 30,
@@ -616,7 +762,6 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width: '80%',
-        
     },
     donaterName: {
         fontSize: 20,
@@ -641,6 +786,9 @@ const styles = {
         fontSize: 24,
         font: 'Inter',
         color: '#666666',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
     },
     drawerContainer: {
         display: 'flex',
@@ -718,48 +866,68 @@ const styles = {
         paddingBottom: 20,
     },
     shopContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        alignContent: 'center',
+        alignItems: 'center',
+        gap: '4.3vh',	
+        padding: '2vh',
+    },
+    shopContainerFlex: {
+        display: 'flex',
+        flexDirection: 'column',
         backgroundColor: "#FFFFFF",
         borderRadius: 20,
         width: "101%",
         height: "100%",
-        display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
         marginBottom: 40,
     },
+    currentCoins: {
+        fontSize: '3vh',
+        font: 'Inter',  
+        color: '#000000',
+        paddingTop: 20,
+        paddingLeft: 20,
+        display: 'flex', 
+        alignItems: 'center', 
+    },
+    coinsText: {
+        marginLeft: '1vh',
+        marginRight: '1vh',  
+    },
     shopItemBox: {
-        width: "36vh",	
-        height: "46vh",
+        width: "30vh",	
+        height: "40vh",
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         boxShadow: "4px 4px 36.5px 3px rgba(0, 0, 0, 0.25)",
-        margin: '2vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
     },
     shopItemImage: {
-        width: "15vh",
-        height: "15vh",
+        width: "12vh",
+        height: "12vh",
         borderRadius: 100,
     },
     shopItemName: {
-        fontSize: '3.5vh',
+        fontSize: '3vh',
         font: 'Inter',
         color: '#000000',
         marginTop: '1vh',
     },
     shopItemPrice: {
-        fontSize: '4vh',
+        fontSize: '3vh',
         font: 'Inter',
         color: '#000000',
         marginRight: '1vh',
     },
     coinCircle: {
-        width: '2.5vw',
-        height: '2.5vw',
+        width: '2.2vw',
+        height: '2.2vw',
         borderRadius: '50%',
         display: 'flex',
         justifyContent: 'center',
@@ -786,6 +954,33 @@ const styles = {
         fontWeight: 'bold',
         cursor: 'pointer',
         marginTop: '2vh',
+    },
+    confirmButton: {
+        width: '20%',
+        backgroundColor: '#009DFF',
+        padding: '10px 10px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 10,
+        fontSize: 20,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        marginRight: '2vh',
+    },
+    cancelButton: {
+        width: '20%',
+        backgroundColor: '#FF0000',
+        padding: '10px 10px',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignContent: 'center',
+        fontSize: 20,
+        font: 'Inter',
+        fontWeight: 'bold',
+        cursor: 'pointer',
     },
 };
 

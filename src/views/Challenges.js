@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar';
 import SideBar from '../components/SideBar';
 
 function Challenges() {
+  const [challengesData, setChallengesData] = useState([]);
     const [rectangles, setRectangles] = useState([
         {
             id: 1,
@@ -10,69 +11,79 @@ function Challenges() {
                 { id: 1, image: require("../assets/plus-icon-simple.png"), description: "Create a Campaign", progress: 0 },
                 { id: 2, image: require("../assets/donate.png"), description: "Donate at least 500€ in any campaign", progress: 0 },
                 { id: 3, image: require("../assets/goal.png"), description: "Make your campaign reach its goal.", progress: 0 },
-                { id: 4, image: require("../assets/medal-bronze.png"), description: "Reward: Creator of Campaign", isMedal: true }
+                { id: 4, image: require("../assets/medal-bronze.png"), description: "Reward: Helping the aid", isMedal: true }
             ],
         },
-        {
-            id: 2,
-            squares: [
-                { id: 1, image: require("../assets/deposit.png"), description: "Deposit 100€", progress: 0 },
-                { id: 2, image: require("../assets/multiplier.jpg"), description: "Double your money, playing any game", progress: 0 },
-                { id: 3, image: require("../assets/donate.png"), description: "Donate to any campaign a value superior to 400€", progress: 0 },
-                { id: 4, image: require("../assets/medal-silver.png"), description: "Reward: Helping the aid", isMedal: true }
-            ]
-        }
     ]);
 
-    const [userData, setUserData] = useState(null); 
-    const [challengesData, setChallengesData] = useState([]); 
-
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const userResponse = await fetch('http://localhost:5000/api/user/data', {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Passando o token do usuário autenticado
-                    },
-                });
-
-                if (!userResponse.ok) throw new Error("Failed to fetch user data");
-
-                const user = await userResponse.json();
-                setUserData(user);
-
-                // Buscando desafios do usuário
-                const challengesResponse = await fetch(`http://localhost:5000/api/user/challenges/${user._id}`);
-                if (!challengesResponse.ok) throw new Error("Failed to fetch challenges data");
-
-                const challenges = await challengesResponse.json();
-                setChallengesData(challenges);
-
-                // Atualizando progresso nos quadrados
-                const updatedRectangles = rectangles.map((rectangle) => {
-                    const updatedSquares = rectangle.squares.map((square) => {
-                        // Encontrando o desafio correspondente ao square
-                        const matchingChallenge = challenges.find(challenge => challenge.description === square.description);
-
-                        // Se encontramos o desafio correspondente, atualizamos o progresso
-                        if (matchingChallenge) {
-                            square.progress = matchingChallenge.progress || 0; // Atualizando o progresso
-                        }
-                        return square;
-                    });
-
-                    return { ...rectangle, squares: updatedSquares };
-                });
-
-                setRectangles(updatedRectangles); 
-            } catch (error) {
-                console.error("Erro ao buscar dados:", error);
-            }
-        };
-
-        fetchData();
-    }, [rectangles]); 
-
+      const fetchChallengesData = async () => {
+          try {
+              const userId = localStorage.getItem('userId'); // Obtém o userId do localStorage
+              if (!userId) {
+                  console.error("userId is not defined in localStorage");
+                  return;
+              }
+  
+              const response = await fetch(`http://localhost:5000/api/user/challenges/${userId}`, {
+                  headers: {
+                      Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  },
+              });
+  
+              if (!response.ok) throw new Error("Failed to fetch challenges data");
+  
+              const challenges = await response.json();
+              console.log("Challenges fetched from API:", challenges);
+              setChallengesData(challenges);
+  
+              const updatedRectangles = rectangles.map((rectangle) => {
+                  const updatedSquares = rectangle.squares.map((square) => {
+                      console.log("Square being checked:", square);
+  
+                      const matchingChallenge = challenges.find(
+                          (challenge) => challenge.name === square.name
+                      );
+  
+                      if (matchingChallenge) {
+                          console.log("Matching challenge:", matchingChallenge);
+  
+                          let progressPercentage = 0;
+  
+                          if (matchingChallenge.name === "Create a Campaign") {
+                              progressPercentage = matchingChallenge.progress;
+                          } else if (matchingChallenge.name === "Donate at least 500€ in any campaign") {
+                              const totalDonated = matchingChallenge.progress;
+                              console.log("Total Donated:", totalDonated);
+                              progressPercentage = Math.min(Math.round((totalDonated / 500) * 100), 100);
+                          } else if (matchingChallenge.name === "Make your campaign reach its goal.") {
+                              const campaignProgress = matchingChallenge.progress;
+                              console.log("Campaign Progress:", campaignProgress);
+                              progressPercentage = Math.min(Math.round(campaignProgress), 100);
+                          }
+  
+                          console.log(
+                              `Challenge: ${matchingChallenge.name}, Progress: ${progressPercentage}%`
+                          );
+  
+                          square.progress = progressPercentage;
+                      }
+                      return square;
+                  });
+  
+                  return { ...rectangle, squares: updatedSquares };
+              });
+  
+              console.log("Updated Rectangles:", updatedRectangles);
+              setRectangles(updatedRectangles);
+          } catch (error) {
+              console.error("Erro ao buscar dados dos desafios:", error);
+          }
+      };
+  
+      fetchChallengesData();
+  }, [rectangles]); // Retire o userId do array de dependências
+  
     return (
         <>
             <NavBar />
@@ -133,7 +144,7 @@ const styles = {
         justifyContent: "space-around",
         flexDirection: "column",
         padding: "20px",
-        marginTop: "10px",
+        marginTop: "60px",
         gap: "20px"
     },
     rectangle: {

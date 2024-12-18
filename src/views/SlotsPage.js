@@ -89,9 +89,9 @@ function SlotsPage() {
 
         const updatedCoins = coins.map((coin) => {
             if (coin.coinName === selectedCoin.coinName) {
-            const updatedCoin = { ...coin, amount: coin.amount - parseFloat(betAmount) };
-            setSelectedCoin(updatedCoin);
-            return updatedCoin;
+                const updatedCoin = { ...coin, amount: coin.amount - parseFloat(betAmount) };
+                setSelectedCoin(updatedCoin);
+                return updatedCoin;
             }
             return coin;
         });
@@ -138,7 +138,9 @@ function SlotsPage() {
                     const updatedCoins = coins.map((coin) => {
                     if (coin.coinName === selectedCoin.coinName) { 
                         alert('You won ' + winnings + ' coins! Congratulations!');
-                        return { ...coin, amount: coin.amount + parseFloat(winnings) };
+                        const updatedCoin = { ...coin, amount: coin.amount + parseFloat(winnings) };
+                        setSelectedCoin(updatedCoin);
+                        return updatedCoin;
                     }
                     return coin;
                     });

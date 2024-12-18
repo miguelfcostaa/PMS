@@ -287,7 +287,6 @@ function SlotsPage() {
                 )}
             </div>
 
-
         </div>
 
 

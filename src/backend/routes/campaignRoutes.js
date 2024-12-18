@@ -2,7 +2,6 @@ const express = require('express');
 const Campaign = require('../models/Campaign'); // Usa a conexão já estabelecida no db.js
 const User = require('../models/User'); // Reutilização do modelo User sem criar novas conexões
 
-
 const router = express.Router();
 
 // Criar nova campanha
@@ -65,14 +64,14 @@ router.post('/create-campaign', async (req, res) => {
             }
 
             user.challenges.push({
-                name: 'Criar uma campanha',
+                name: 'Create a Campaign',
                 description: `Desafio de criar a campanha "${title}"`,
                 progress: 100,
                 completed: true,
                 associatedCampaign: newCampaign._id,
             });
             user.challenges.push({
-                name: `Atingir a meta da campanha "${title}"`,
+                name: `Make your campaign reach its goal.`,
                 description: `Acompanhe o progresso para alcançar a meta de €${goal.toFixed(2)}.`,
                 progress: 0,
                 completed: false,
@@ -222,7 +221,7 @@ router.post('/donate/:id', async (req, res) => {
             }
 
             user.challenges.push({
-                name: `Doar €${donationThreshold}`,
+                name: `Donate at least 500€ in any campaign`,
                 description: `Você atingiu o valor total de €${donationThreshold} em doações.`,
                 progress: Math.min((donationAmount / donationThreshold) * 100, 100),
                 completed: donationAmount >= donationThreshold,

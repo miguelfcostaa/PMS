@@ -109,7 +109,7 @@ function CampaignsPage() {
 
 const styles = {
     mainContent: {
-        marginTop: 105,
+        marginTop: '12.5vh',
         marginLeft: '15%',
         paddingLeft: '2vh',
         font: 'Inter',

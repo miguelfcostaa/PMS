@@ -477,7 +477,6 @@ function CampaignSelectedPage() {
                     <div style={styles.shopContainer}>
                         {Array.isArray(campaign?.shopItems) && campaign.shopItems.length > 0 ? (
                             campaign.shopItems.map((item, index) => {
-                                const matchingCoin = coins.find((coin) => coin.coinName === campaign?.coin?.name);
                                 return (
                                     <div key={index} style={styles.shopItemBox}>
                                         <img 
@@ -491,12 +490,12 @@ function CampaignSelectedPage() {
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '2vh'}}>
                                             <span style={styles.shopItemPrice}> {item.itemPrice ?? 0} </span>
-                                            {matchingCoin && (
+                                            {coins.length > 0 && campaign.coin && campaign.coin.name && (
                                                 <div style={styles.coinCircle}>
-                                                    <img
-                                                        src={matchingCoin.coinImage}
-                                                        alt={matchingCoin.coinName}
-                                                        style={styles.coinImage}
+                                                    <img 
+                                                        src={campaign.coin.image} 
+                                                        alt={`${campaign.coin.name} coin`} 
+                                                        style={styles.coinImage} 
                                                     />
                                                 </div>
                                             )}

@@ -442,86 +442,94 @@ function CreateCampaignPage() {
                                 <br />
 
                                 <div style={styles.rowContainer}>
-                                    <div style={styles.inputHalfItem}>
-                                        <label style={styles.label}>Item Name:</label>
-                                        <input
-                                            type="text"
-                                            name="itemName"
-                                            value={newShopItem.itemName}
-                                            onChange={handleInputChangeStore}
-                                            style={styles.input}
-                                        />
-                                    </div>
-
-                                    <div style={styles.inputHalfPrice}>
-                                        <label style={styles.label}>Price (€):</label>
-                                        <input
-                                            type="number"
-                                            name="itemPrice"
-                                            value={newShopItem.itemPrice}
-                                            onChange={handleInputChangeStore}
-                                            style={styles.input}
-                                        />
-                                    </div>
-
-                                    <div style={styles.inputHalfSend}>
-                                        <div style={styles.addButton} onClick={handleAddShopItems}>
-                                            <img
-                                                src={require('../assets/plus-icon-simple.png')}
-                                                alt="Plus Icon"
-                                                style={styles.plusIcon}
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{...styles.inputHalf, width: '90%'}}>
+                                            <label style={styles.label}>Item Name:</label>
+                                            <input
+                                                type="text"
+                                                name="itemName"
+                                                value={newShopItem.itemName}
+                                                onChange={handleInputChangeStore}
+                                                style={styles.input}
                                             />
                                         </div>
+                                        <div style={{ display: 'flex', flexDirection: 'row', gap: 50, width: '100%', marginTop: '3vh'}}>
+                                            <div style={{...styles.inputHalf, width: '60%' }}>
+                                                <label style={styles.label}>Price (€):</label>
+                                                <input
+                                                    type="number"
+                                                    name="itemPrice"
+                                                    value={newShopItem.itemPrice}
+                                                    onChange={handleInputChangeStore}
+                                                    style={styles.input}
+                                                />
+                                            </div>
+                                            <div style={{...styles.inputHalf }}>
+                                                <div style={styles.addButton} onClick={handleAddShopItems}>
+                                                    Add Item
+                                                    <img
+                                                        src={require('../assets/plus-icon-simple.png')}
+                                                        alt="Plus Icon"
+                                                        style={styles.plusIcon}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+
+
+                                    <div style={styles.inputHalf}>
+                                        <label style={styles.label}>Item Image:</label>
+                                        <div
+                                            style={styles.inputItemImage} // Usar estilos consistentes com Coin e Campaign Image
+                                            onClick={() => document.getElementById('itemFileInput').click()}
+                                        >
+                                            {newShopItem.itemImage ? (
+                                                <>
+                                                    <img
+                                                        src={newShopItem.itemImage}
+                                                        alt="Item Image"
+                                                        style={{
+                                                            maxWidth: '50%',
+                                                            maxHeight: '140px',
+                                                            objectFit: 'cover',
+                                                            borderRadius: '1vh', // Consistência com Coin Image
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setNewShopItem({ ...newShopItem, itemImage: '' });
+                                                        }}
+                                                        style={styles.removeButton}
+                                                    >
+                                                        x
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={require('../assets/upload-icon.png')}
+                                                        alt="Upload Icon"
+                                                        style={styles.uploadIcon}
+                                                    />
+                                                    <span style={styles.uploadTextPrimary}>Upload Item Image</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            id="itemFileInput"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, 'item')}
+                                            style={styles.inputfile}
+                                        />
+                                    </div>
+                                    
+
+                                    
                                 </div>
 
-                                <div style={styles.inputContainer}>
-                                    <label style={styles.label}>Item Image:</label>
-                                    <div
-                                        style={styles.inputItemImage} // Usar estilos consistentes com Coin e Campaign Image
-                                        onClick={() => document.getElementById('itemFileInput').click()}
-                                    >
-                                        {newShopItem.itemImage ? (
-                                            <>
-                                                <img
-                                                    src={newShopItem.itemImage}
-                                                    alt="Item Image"
-                                                    style={{
-                                                        maxWidth: '50%',
-                                                        maxHeight: '140px',
-                                                        objectFit: 'cover',
-                                                        borderRadius: '1vh', // Consistência com Coin Image
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setNewShopItem({ ...newShopItem, itemImage: '' });
-                                                    }}
-                                                    style={styles.removeButton}
-                                                >
-                                                    x
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <img
-                                                    src={require('../assets/upload-icon.png')}
-                                                    alt="Upload Icon"
-                                                    style={styles.uploadIcon}
-                                                />
-                                                <span style={styles.uploadTextPrimary}>Upload Item Image</span>
-                                            </>
-                                        )}
-                                    </div>
-                                    <input
-                                        type="file"
-                                        id="itemFileInput"
-                                        accept="image/*"
-                                        onChange={(e) => handleFileChange(e, 'item')}
-                                        style={styles.inputfile}
-                                    />
-                                </div>
 
                                 <h1>List of Items</h1>
                                 <div style={styles.listOfItems}>
@@ -746,8 +754,8 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '98%',
-        height: "15.5vh",
+        width: '96%',
+        height: "9.5vh",
         marginTop: 10,
         paddingTop: '50px',
         paddingBottom: '50px',
@@ -863,23 +871,26 @@ const styles = {
         width: '7%',
     },
     addButton: {
-        width: 52,
+        width: 172,
         height: 52,
         backgroundColor: '#EFEFEF',
-        color: 'none',
         border: 'none',
-        borderRadius: 50,
+        borderRadius: 10,
         cursor: 'pointer',
-        marginTop: 38,
+        marginTop: '4.1vh',
         boxShadow: '0.5vh 0.5vh 1vh rgba(0, 0, 0, 0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        fontSize: '2.2vh',
+        font: 'Inter',
+        fontWeight: 'bold',
+        color: '#009DFF',
     },
     plusIcon: {
-        width: 28,
-        height: 28,
-
+        width: 23,
+        height: 23,
+        marginLeft: 10,
     },
 };
 

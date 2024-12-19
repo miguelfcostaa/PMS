@@ -357,7 +357,7 @@ function CampaignSelectedPage() {
                                             }}
                                             disabled={isLoading}
                                         >
-                                            {isLoading ? 'A processar...' : 'Doar'}
+                                            {isLoading ? 'Processing...' : 'Doar'}
                                         </button>
 
 

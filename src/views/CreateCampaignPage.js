@@ -7,6 +7,7 @@ function CreateCampaignPage() {
     const [parte1, setParte1] = useState(true);
     const [parte2, setParte2] = useState(false);
     const [parte3, setParte3] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -57,6 +58,8 @@ function CreateCampaignPage() {
             creator: localStorage.getItem('userId'),
         };
 
+        setIsLoading(true);
+
         try {
             const response = await fetch('http://localhost:5000/api/campaign/create-campaign', {
                 method: 'POST',
@@ -70,6 +73,7 @@ function CreateCampaignPage() {
             if (!response.ok) {
                 const errorData = await response.json();
                 alert(errorData.error || "Failed to create campaign");
+                setIsLoading(false);
                 return;
             }
 
@@ -81,6 +85,8 @@ function CreateCampaignPage() {
         } catch (err) {
             console.error("Unexpected error creating campaign:", err.message);
             alert('Unexpected error creating campaign.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -132,9 +138,7 @@ function CreateCampaignPage() {
         const updatedItems = [...formData.shopItems];
         updatedItems.splice(index, 1);
         setFormData({ ...formData, shopItems: updatedItems });
-      };
-      
-
+    };
 
     return (
         <>
@@ -265,7 +269,6 @@ function CreateCampaignPage() {
                                             onChange={handleInputChange}
                                             style={styles.input}
                                             required
-
                                         />
                                     </div>
                                 </div>
@@ -539,44 +542,44 @@ function CreateCampaignPage() {
                                         <ul>
                                             {formData.shopItems.map((item, index) => (
                                                 <li
-                                                key={index}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'flex-start',
-                                                    marginBottom: '10px',
-                                                    fontSize: '2vh',
-                                                }}
-                                                >
-                                                <div>
-                                                    <img
-                                                    src={require('../assets/remove_icon.png')}
-                                                    alt="Remove Icon"
-                                                    style={{ paddingTop: '0.7vh', marginRight: '3vh', width: '2.5vh', height: '2.5vh', cursor: 'pointer' }}
-                                                    onClick={() => { handleRemoveShopItem(index) }}
-                                                    />
-                                                </div>
-                                                <span style={{ fontSize: '3vh', textAlign: 'center' }}>
-                                                    {item.itemName} -
-                                                </span>
-                                                <span style={{ marginLeft: '1vh', fontSize: '3vh' }}>
-                                                    {item.itemPrice}€
-                                                </span>
-                                                {item.itemImage && (
-                                                    <img
-                                                    src={item.itemImage}
-                                                    alt="Item"
+                                                    key={index}
                                                     style={{
-                                                        width: '4vh',
-                                                        height: '4vh',
-                                                        borderRadius: '1vh',
-                                                        marginLeft: '2vh',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'flex-start',
+                                                        marginBottom: '10px',
+                                                        fontSize: '2vh',
                                                     }}
-                                                    />
-                                                )}
+                                                >
+                                                    <div>
+                                                        <img
+                                                            src={require('../assets/remove_icon.png')}
+                                                            alt="Remove Icon"
+                                                            style={{ paddingTop: '0.7vh', marginRight: '3vh', width: '2.5vh', height: '2.5vh', cursor: 'pointer' }}
+                                                            onClick={() => { handleRemoveShopItem(index) }}
+                                                        />
+                                                    </div>
+                                                    <span style={{ fontSize: '3vh', textAlign: 'center' }}>
+                                                        {item.itemName} -
+                                                    </span>
+                                                    <span style={{ marginLeft: '1vh', fontSize: '3vh' }}>
+                                                        {item.itemPrice}€
+                                                    </span>
+                                                    {item.itemImage && (
+                                                        <img
+                                                            src={item.itemImage}
+                                                            alt="Item"
+                                                            style={{
+                                                                width: '4vh',
+                                                                height: '4vh',
+                                                                borderRadius: '1vh',
+                                                                marginLeft: '2vh',
+                                                            }}
+                                                        />
+                                                    )}
                                                 </li>
                                             ))}
-                                            </ul>
+                                        </ul>
 
                                     )}
                                 </div>
@@ -593,8 +596,16 @@ function CreateCampaignPage() {
                                         Back
                                     </button>
 
-                                    <button type="submit" style={styles.submitButton}>
-                                        Finish
+                                    <button 
+                                        type="submit" 
+                                        style={{
+                                            ...styles.submitButton, 
+                                            backgroundColor: isLoading ? '#A9A9A9' : styles.submitButton.backgroundColor, 
+                                            cursor: isLoading ? 'not-allowed' : 'pointer'
+                                        }}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? 'A processar...' : 'Finish'}
                                     </button>
                                 </div>
                             </>

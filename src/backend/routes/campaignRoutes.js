@@ -65,14 +65,14 @@ router.post('/create-campaign', async (req, res) => {
 
             user.challenges.push({
                 name: 'Create a Campaign',
-                description: `Desafio de criar a campanha "${title}"`,
+                description: `Desafio de criar a campanha`,
                 progress: 100,
                 completed: true,
                 associatedCampaign: newCampaign._id,
             });
             user.challenges.push({
-                name: `Make your campaign reach its goal.`,
-                description: `Acompanhe o progresso para alcançar a meta de €${goal.toFixed(2)}.`,
+                name: `Atingir a meta da campanha "${title}"`,
+                description: `Make your campaign reach its goal.`,
                 progress: 0,
                 completed: false,
                 associatedCampaign: newCampaign._id,
@@ -190,10 +190,10 @@ router.post('/donate/:id', async (req, res) => {
 
         // Procurar o desafio com o título da campanha
         const challengeIndex = creator.challenges.findIndex(challenge =>
-            challenge.associatedCampaign && String(challenge.associatedCampaign) === String(campaign._id)
+            String(challenge.associatedCampaign) === String(campaign._id) &&
+            challenge.name.includes(campaign.title)
         );
         
-
         if (challengeIndex !== -1) {
             const progressPercentage = Math.round((campaign.currentAmount / campaign.goal) * 100);
 

@@ -44,19 +44,27 @@ function Challenges() {
         }
     };
     
-    
     // Atualiza os desafios no front-end, sincronizando com o back-end
     const updateRectangles = (challenges) => {
         setRectangles((prevRectangles) => {
             return prevRectangles.map((rectangle) => {
                 const updatedSquares = rectangle.squares.map((square) => {
                     const matchingChallenge = challenges.find((challenge) => {
-                        console.log("Comparing:", challenge.name, square.name); // Debug
-                        const challengeName = challenge.name?.trim().toLowerCase();
-                        const squareName = square.name?.trim().toLowerCase();
-    
-                        return challengeName && squareName && challengeName === squareName;
+                        if (challenge.description?.toLowerCase().includes("make your campaign reach its goal")) {
+                            // Comparar usando description para o desafio específico
+                            console.log("Comparing description for goal challenge:", challenge.description, square.description); // Debug
+                            const challengeDescription = challenge.description?.trim().toLowerCase();
+                            const squareDescription = square.description?.trim().toLowerCase();
+                            return challengeDescription && squareDescription && challengeDescription === squareDescription;
+                        } else {
+                            // Comparar usando name para os outros desafios
+                            console.log("Comparing name for other challenges:", challenge.name, square.name); // Debug
+                            const challengeName = challenge.name?.trim().toLowerCase();
+                            const squareName = square.name?.trim().toLowerCase();
+                            return challengeName && squareName && challengeName === squareName;
+                        }
                     });
+                    
     
                     if (matchingChallenge) {
                         let progressPercentage = 0;
@@ -64,8 +72,9 @@ function Challenges() {
                         // Lógica específica para cada desafio
                         if (matchingChallenge.name.toLowerCase().includes("doar €500")) {
                             progressPercentage = Math.min((matchingChallenge.progress / 500) * 100, 100);
-                        } else if (matchingChallenge.name.toLowerCase().includes("meta da campanha")) {
+                        } else if (matchingChallenge.description.includes(`Make your campaign reach its goal.`)) {
                             progressPercentage = Math.min(matchingChallenge.progress, 100);
+                            console.log(progressPercentage);
                         } else {
                             progressPercentage = Math.min(matchingChallenge.progress, 100);
                         }
@@ -85,9 +94,6 @@ function Challenges() {
         });
     };
     
-    
-    
-
     // Atualização automática a cada 30 segundos (polling)
     useEffect(() => {
         fetchChallengesData();

@@ -26,4 +26,14 @@ const getIO = () => {
     return io;
 };
 
-module.exports = { initIO, getIO };
+/**
+ * Emite um evento userWon para todos os clientes. 
+ * Isso deverá ser chamado quando o utilizador ganhar na ronda.
+ * @param {string} userName - Nome do utilizador que ganhou.
+ * @param {number} amount - Quantidade de moedas ganhas.
+ */
+const emitUserWon = (userName, amount) => {
+    getIO().emit('userWon', { userName, amount });
+};
+
+module.exports = { initIO, getIO, emitUserWon };

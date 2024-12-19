@@ -205,6 +205,18 @@ router.put('/:userId/coins', async (req, res) => {
             }
         );
 
+
+        if (amount > 0) {
+            // Buscar o nome do utilizador
+            const updatedUser = await User.findById(userId).select('firstName');
+
+            // Emite o evento userWon, passando o nome do utilizador e as moedas ganhas
+            const { emitUserWon } = require('../socket'); 
+            emitUserWon(updatedUser.firstName, amount);
+            console.log(`Emitted userWon event for user ${updatedUser.firstName} with ${amount} coins`);
+        }
+
+
         if (result.modifiedCount === 0) {
             return res.status(404).json({ message: 'User or Coin not found' });
         }

@@ -7,8 +7,6 @@ import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000"); // URL do servidor backend
 
-
-
 // Função multiplicadora M(t) = 2^(t/10):
 function M(t) {
   return Math.pow(2, t / 10);
@@ -25,11 +23,12 @@ const CrashPage = () => {
     JSON.parse(sessionStorage.getItem("crashHistory")) || []
   );
   const [cashoutPressed, setCashoutPressed] = useState(false);
-  const [leaderboard, setLeaderboard] = useState([]); // Estado para a leaderboard
-
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [winningMessage, setWinningMessage] = useState(null);
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
+  const userName = localStorage.getItem("userName"); // Certifica-te que isto está definido durante o login
 
   const canvasRef = useRef(null);
   const requestRef = useRef(null);
@@ -72,11 +71,10 @@ const CrashPage = () => {
     };
   }, [userId, token]);
 
-
   const fetchLeaderboard = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/auth/leaderboard/crash", 
+        "http://localhost:5000/api/auth/leaderboard/crash",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -87,26 +85,38 @@ const CrashPage = () => {
     }
   };
 
-
   useEffect(() => {
     fetchLeaderboard();
   }, [token]);
 
-
   useEffect(() => {
-    // Escuta o evento "leaderboardUpdated" do servidor
     socket.on("leaderboardUpdated", () => {
-        console.log("Leaderboard updated, fetching latest data...");
-        fetchLeaderboard(); // Atualiza a leaderboard
+      console.log("Leaderboard updated, fetching latest data...");
+      fetchLeaderboard();
     });
 
-    // Remove o listener ao desmontar o componente
     return () => {
-        socket.off("leaderboardUpdated");
+      socket.off("leaderboardUpdated");
     };
-}, []);
+  }, []);
 
+  // Escuta o evento "userWon"
+  useEffect(() => {
+    socket.on('userWon', ({ userName: winnerName, amount }) => {
+      console.log(`Evento userWon recebido: winnerName=${winnerName}, amount=${amount}`);
+      if (winnerName === userName) {
+        console.log("É o utilizador atual, mostrando banner.");
+        setWinningMessage(`Ganhaste ${amount.toFixed(2)} coins!`);
+        setTimeout(() => {
+          setWinningMessage(null);
+        }, 5000);
+      }
+    });
 
+    return () => {
+      socket.off('userWon');
+    };
+  }, [userName]);
 
   const getSelectedCoinAmount = () => {
     const coin = coins.find((c) => c.coinName === selectedCoin);
@@ -131,6 +141,7 @@ const CrashPage = () => {
     }
 
     // Reiniciar estado
+    console.log("Iniciando round...");
     gameEndedRef.current = false;
     endedAt100Ref.current = false;
     lastIntegerRef.current = 1;
@@ -156,14 +167,15 @@ const CrashPage = () => {
         }
       );
     } catch (error) {
-      console.error("Erro ao atualizar moedas na base de dados:", error);
+      console.error("Erro ao atualizar moedas na base de dados antes do round:", error);
       return;
     }
 
-    // Determinar ponto de crash aleatório entre 1.00 e 100.00
-    crashMultiplierRef.current = parseFloat((1 + Math.random() * 99).toFixed(2));
+    const r = Math.random();
+    const rawMultiplier = 1 / (1 - r);
+    crashMultiplierRef.current = parseFloat(Math.min(100, rawMultiplier).toFixed(2));
+    console.log(`Crash determinado em: ${crashMultiplierRef.current}x`);
 
-    // Processar autoCashout
     if (autoCashout.trim() !== "") {
       const acValue = parseFloat(autoCashout);
       if (!isNaN(acValue) && acValue > 0) {
@@ -187,12 +199,12 @@ const CrashPage = () => {
   };
 
   const endRound = (finalMultiplier) => {
+    console.log(`Ronda terminada a ${finalMultiplier}x. cashoutPressed=${cashoutPressed}`);
     gameRunningRef.current = false;
     setIsPlaying(false);
     gameEndedRef.current = true;
 
     const win = endedAt100Ref.current || cashoutPressed;
-
     const updatedHistory = [
       { multiplier: finalMultiplier.toFixed(2), win: win },
       ...history,
@@ -202,12 +214,16 @@ const CrashPage = () => {
   };
 
   const handleCashout = async () => {
-    if (!isPlaying || cashoutPressed) return;
+    console.log("handleCashout() chamado");
+    if (!isPlaying || cashoutPressed) {
+      console.log("Cashout ignorado: isPlaying=", isPlaying, "cashoutPressed=", cashoutPressed);
+      return;
+    }
 
-    // Definimos cashoutPressed = true imediatamente para atualizar a UI
     setCashoutPressed(true);
 
     const winnings = parseFloat(betAmount) * currentMultiplier;
+    console.log(`Cashout com winnings=${winnings}`);
     const updatedCoins = coins.map((coin) => {
       if (coin.coinName === selectedCoin) {
         return { ...coin, amount: coin.amount + parseFloat(winnings) };
@@ -228,12 +244,13 @@ const CrashPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log("Moedas atualizadas com sucesso no cashout");
     } catch (error) {
-      console.error("Erro ao atualizar moedas na base de dados:", error);
+      console.error("Erro ao atualizar moedas na base de dados no cashout:", error);
       return;
     }
 
-    // Agora o estado já foi alterado, as moedas atualizadas, e a UI deve refletir o cashout
+    endRound(currentMultiplier);
   };
 
   const animate = () => {
@@ -247,15 +264,16 @@ const CrashPage = () => {
 
     pointsRef.current.push({ t: elapsedSec, m });
 
-    // Auto cashout automático
+    // Verifica autoCashout primeiro
     if (!cashoutPressed && autoCashoutValRef.current !== null && displayM >= autoCashoutValRef.current) {
-      // Chama exatamente o mesmo handleCashout do click manual
+      console.log(`AutoCashout atingido em ${displayM}x`);
       handleCashout();
-      // Não retornamos e nem chamamos outro requestFrame aqui, apenas deixamos o jogo continuar
+      return;
     }
 
     // Se atingir 100.00
     if (m >= 100) {
+      console.log("Atingiu 100x");
       if (!cashoutPressed) {
         handleCashout();
       }
@@ -266,6 +284,7 @@ const CrashPage = () => {
 
     // Se crashar
     if (m >= crashMultiplierRef.current) {
+      console.log(`Crashou em ${displayM}x antes do autoCashout`);
       endRound(displayM);
       return;
     }
@@ -321,14 +340,14 @@ const CrashPage = () => {
     ctx.strokeStyle = "#fff";
     ctx.stroke();
 
-    // Foguete rotacionado 90 graus adicionais
+    // Foguete
     const rocketSize = 100 / scale;
     const rocketX = t;
     const rocketY = m - 1;
 
     ctx.save();
     ctx.translate(rocketX, rocketY);
-    ctx.rotate(Math.PI / 2); 
+    ctx.rotate(Math.PI / 2);
     if (
       rocketImg.current && 
       rocketImg.current.complete && 
@@ -351,16 +370,13 @@ const CrashPage = () => {
 
     ctx.restore();
 
-    // Determinar cor final
     const finalM = crashMultiplierRef.current;
     let finalColor = "red";
     if (finalM === 100.0) {
       finalColor = "gold";
     }
 
-    // Tempo final da ronda
     const t_end = 10 * Math.log2(finalM);
-    // Se estivermos a menos de 0.01s do fim, mostrar cor final
     let textColor = "#fff";
     if (gameEndedRef.current) {
       textColor = endedAt100Ref.current ? "gold" : "red";
@@ -370,7 +386,6 @@ const CrashPage = () => {
       }
     }
 
-    // Pulse ao mudar de inteiro
     let fontSize = 60; 
     const currentInt = Math.floor(displayM);
     if (currentInt > lastIntegerRef.current) {
@@ -378,7 +393,6 @@ const CrashPage = () => {
       lastIntegerRef.current = currentInt;
     }
 
-    // Multiplicador no centro
     ctx.save();
     ctx.fillStyle = textColor;
     ctx.font = `bold ${fontSize}px Arial`;
@@ -399,7 +413,7 @@ const CrashPage = () => {
   let buttonColor = "#238636";
   let buttonText = "Bet (Next Round)";
   let buttonAction = !isPlaying ? startGame : null;
-  
+
   if (isPlaying) {
     if (cashoutPressed) {
       buttonColor = "#238636";
@@ -526,6 +540,20 @@ const CrashPage = () => {
     <div style={styles.container}>
       <NavBar />
       <SideBar />
+      {winningMessage && (
+        <div style={{
+          position: 'absolute',
+          top: '60px',
+          left: '20px',
+          backgroundColor: 'green',
+          padding: '10px',
+          borderRadius: '5px',
+          zIndex: 9999,
+          color: '#fff'
+        }}>
+          {winningMessage}
+        </div>
+      )}
       <div style={styles.controlsContainer}>
         <select
           value={selectedCoin}

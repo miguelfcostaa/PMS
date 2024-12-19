@@ -28,6 +28,7 @@ function CampaignSelectedPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [itemToBuy, setItemToBuy] = useState(null);
     const [confirmBuy, setConfirmBuy] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); 
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -68,28 +69,32 @@ function CampaignSelectedPage() {
         setDonation({ ...donation, [name]: value });
     };
 
+    
+
     const handleDonation = async () => {
         if (!donation.amount || isNaN(donation.amount)) {
             alert("Please, enter a valid amount.");
             return;
         }
-    
+
         if (donation.amount < 1) {
             alert("The minimum donation amount is €1.");
             return;
         }
-    
+
         if (!userData.paymentMethod || userData.paymentMethod.trim() === "") {
             alert("Please, add a payment method on your profile to donate.");
             return;
         }
-    
+
+        setIsLoading(true); // Desativa o botão enquanto processa a doação
+
         const newDonation = [
             donation.name || "Anonymous",
             parseFloat(donation.amount),
             donation.comment || ""
         ];
-    
+
         try {
             const response = await fetch(`http://localhost:5000/api/campaign/donate/${id}`, {
                 method: "POST",
@@ -101,21 +106,23 @@ function CampaignSelectedPage() {
                     donationDetails: newDonation,
                 }),
             });
-    
+
             if (response.ok) {
                 const updatedCampaign = await response.json();
+
                 setCampaign((prevCampaign) => ({
                     ...prevCampaign,
+                    currentAmount: updatedCampaign?.currentAmount ?? (prevCampaign.currentAmount + parseFloat(donation.amount)),
                     donators: updatedCampaign?.donators || prevCampaign.donators,
                 }));
-    
+
                 const userResponse = await axios.get(`http://localhost:5000/api/auth/${userId}`);
                 if (userResponse.status === 200) {
                     const data = userResponse.data;
                     setUserData(data);
                     setCoins(data.coins || []);
                 }
-    
+
                 setDonationCompleted(true);
                 setTimeout(() => setDonationCompleted(false), 500);
                 setOpen(false);
@@ -125,8 +132,12 @@ function CampaignSelectedPage() {
             }
         } catch (error) {
             console.error("Erro de conexão ao servidor:", error);
+        } finally {
+            setIsLoading(false); // Certifica que o botão é reativado
         }
     };
+
+    
     
     const handleBuyItem = async (item) => {
         // Agora item é um objeto { itemName, itemPrice, itemImage }
@@ -178,28 +189,32 @@ function CampaignSelectedPage() {
     }
 
     function formatAmount(amount) {
+        if (amount == null || isNaN(amount)) return '0';
         let formattedAmount = amount.toFixed(1);
         if (formattedAmount.endsWith('.0')) {
             formattedAmount = formattedAmount.slice(0, -2);
         }
         return formattedAmount;
     }
+    
         
     function formatLargeAmount(amount) {
+        if (amount == null || isNaN(amount)) return '0';
         if (amount >= 1e15) {
-            return `${formatAmount(amount / 1e15).toFixed(1)}Q`;
+            return `${formatAmount(amount / 1e15)}Q`;
         } else if (amount >= 1e12) {
-            return `${formatAmount(amount / 1e12).toFixed(1)}T`;
+            return `${formatAmount(amount / 1e12)}T`;
         } else if (amount >= 1e9) {
-            return `${formatAmount(amount / 1e9).toFixed(1)}B`;
+            return `${formatAmount(amount / 1e9)}B`;
         } else if (amount >= 1e6) {
-            return `${formatAmount(amount / 1e6).toFixed(1)}M`;
+            return `${formatAmount(amount / 1e6)}M`;
         } else if (amount >= 1e3) {
-            return `${formatAmount(amount / 1e3).toFixed(1)}K`;
+            return `${formatAmount(amount / 1e3)}K`;
         } else {
-            return amount.toFixed(1);
+            return formatAmount(amount);
         }
     }
+    
 
     function handleDisplayContact(contact) {  
         // Verifica se o contato é uma string e se já está formatado como "123 456 789"
@@ -291,8 +306,7 @@ function CampaignSelectedPage() {
                                     backdropProps={{ onClick: () => setOpen(false) }}
                                     color="#E8E8E8"
                                 >
-                                    <ModalClose onClick={() => setOpen(false)} />
-
+                                    <ModalClose onClick={() => setOpen(false)} /> 
                                     <div style={styles.drawerContainer}>
                                         <span style={styles.drawerTitle}> Donation </span>
 
@@ -301,7 +315,7 @@ function CampaignSelectedPage() {
                                             type="text"
                                             name="name"
                                             value={donation.name}
-                                            onChange={handleInputChange}
+                                            onChange={(e) => setDonation({ ...donation, name: e.target.value })}
                                             style={styles.input}
                                         />
 
@@ -310,7 +324,7 @@ function CampaignSelectedPage() {
                                             type="number"
                                             name="amount"
                                             value={donation.amount}
-                                            onChange={handleInputChange}
+                                            onChange={(e) => setDonation({ ...donation, amount: e.target.value })}
                                             style={styles.input}
                                             required
                                         />
@@ -319,7 +333,7 @@ function CampaignSelectedPage() {
                                         <textarea
                                             name="comment"
                                             value={donation.comment}
-                                            onChange={handleInputChange}
+                                            onChange={(e) => setDonation({ ...donation, comment: e.target.value })}
                                             style={styles.textArea}
                                             required
                                         />
@@ -333,14 +347,20 @@ function CampaignSelectedPage() {
                                             disabled
                                         />
 
-
                                         <button
                                             type="button"
                                             onClick={handleDonation}
-                                            style={styles.donationButton}
+                                            style={{
+                                                ...styles.donationButton,
+                                                backgroundColor: isLoading ? '#A9A9A9' : styles.donationButton.backgroundColor,
+                                                cursor: isLoading ? 'not-allowed' : 'pointer'
+                                            }}
+                                            disabled={isLoading}
                                         >
-                                            Donate
+                                            {isLoading ? 'A processar...' : 'Doar'}
                                         </button>
+
+
                                         {donationCompleted && (
                                             <span style={styles.donationCompleted}>
                                                 Donation completed!
@@ -835,7 +855,7 @@ const styles = {
     donationButton: {
         width: '50%',
         height: '6vh',
-        backgroundColor: '#009DFF',
+        backgroundColor:'#009DFF', 
         padding: '1vh 2vh',
         color: '#fff',
         border: 'none',
@@ -843,7 +863,6 @@ const styles = {
         fontSize: '2.5vh',
         font: 'Inter',
         fontWeight: 'bold',
-        cursor: 'pointer',
         marginTop: '4.3vh',
     },
     donationCompleted: {
